@@ -126,6 +126,8 @@ export default function CallbackPage() {
 
 ## 4. 기존 테이블 사용
 
+> **스키마 변경 이력**: momo 앱에서 발생한 DB 변경사항은 `docs/schema-changelog.md`에서 추적합니다.
+
 ### profiles (INSERT — 온보딩 완료 시)
 ```typescript
 const { data, error } = await supabase
@@ -151,16 +153,18 @@ const { data } = await supabase.functions.invoke('calculate-saju', {
   body: { birthDate, birthTime, gender, userName }
 })
 
-// 사주 AI 해석
+// 사주 AI 해석 — 응답에 idealMatch 객체 포함 (2026-03-09~)
 const { data } = await supabase.functions.invoke('generate-saju-reading', {
   body: { userId: profileId, birthDate, birthTime, gender, userName }
 })
 
-// 관상 분석
+// 관상 분석 — 응답에 ideal_match_* 4필드 포함 (2026-03-09~)
 const { data } = await supabase.functions.invoke('generate-gwansang-reading', {
   body: { userId: profileId, photoUrl, userName, gender }
 })
 ```
+
+> **참고**: Edge Function 응답 구조 변경 상세는 `docs/schema-changelog.md` 참조
 
 ### Storage (사진 업로드)
 ```typescript

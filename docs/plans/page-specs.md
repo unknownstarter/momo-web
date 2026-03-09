@@ -136,6 +136,11 @@ Flutter 앱의 `destiny_analysis_page.dart` 재현:
 3. **성격 해석** — AI 텍스트 (3~5 문단)
 4. **연애 성향** — AI 텍스트 + 키워드 칩
 5. **올해 운세** — AI 텍스트
+6. **잘 맞는 이상형의 사주** _(2026-03-09 추가)_
+   - 천간합(天干合) 파트너 배지: 하트 아이콘 + 일간 한글/한자 (예: "기(己)")
+   - 이상형 키워드 칩 3개 (outlined, rounded)
+   - 명리학 근거 설명 텍스트 (2~3문장)
+   - 데이터: `saju_profiles.ideal_match` JSONB → `traits[]`, `description`
 
 ### 하단 CTA
 - "관상 결과도 보기" → `/result/gwansang`
@@ -155,6 +160,11 @@ Flutter 앱의 `destiny_analysis_page.dart` 재현:
 4. **Traits 5축** — 레이더 차트 또는 바 차트
    - Leadership / Warmth / Independence / Sensitivity / Energy
 5. **종합 해석** — AI 텍스트
+6. **잘 맞는 이상형의 관상** _(2026-03-09 추가)_
+   - 이상형 동물상 배지 (예: "강아지상")
+   - 이상형 키워드 칩 3개 (outlined, rounded)
+   - 관상학 근거 설명 텍스트 (2~3문장, 삼정/오관 보완 논리)
+   - 데이터: `gwansang_profiles.ideal_match_animal_korean`, `ideal_match_traits[]`, `ideal_match_description`
 
 ### 하단 CTA
 - "궁합 매칭 받고 싶다면?" → `/waitlist`

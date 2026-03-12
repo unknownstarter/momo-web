@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>오행이 캐릭터 프리뷰</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, 'Pretendard', sans-serif;
+    background: #F7F3EE;
+    color: #2D2D2D;
+    padding: 40px 20px;
+  }
+  h1 {
+    text-align: center;
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #4A4F54;
+  }
+  .subtitle {
+    text-align: center;
+    font-size: 14px;
+    color: #6B6B6B;
+    margin-bottom: 40px;
+  }
+  .characters {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 24px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .card {
+    background: #FFFFFF;
+    border-radius: 16px;
+    padding: 24px 20px 20px;
+    width: 160px;
+    text-align: center;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    transition: transform 0.2s ease;
+  }
+  .card:hover { transform: translateY(-4px); }
+  .card img {
+    width: 120px;
+    height: 120px;
+    object-fit: contain;
+    border-radius: 8px;
+  }
+  .card .name {
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 12px;
+    color: #2D2D2D;
+  }
+  .card .element {
+    font-size: 12px;
+    font-weight: 500;
+    margin-top: 4px;
+    padding: 2px 10px;
+    border-radius: 20px;
+    display: inline-block;
+  }
+  .card .desc {
+    font-size: 11px;
+    color: #6B6B6B;
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+  .wood .element { background: #D4E4D7; color: #5A8A64; }
+  .fire .element { background: #F0D4D2; color: #B06B68; }
+  .earth .element { background: #E8DFC8; color: #9A8A64; }
+  .metal .element { background: #E0E2E4; color: #6B7075; }
+  .water .element { background: #C8DBEA; color: #5A7FA0; }
+
+  .palette {
+    max-width: 900px;
+    margin: 48px auto 0;
+    background: #FFFFFF;
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+  .palette h2 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #4A4F54;
+  }
+  .palette-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    align-items: center;
+  }
+  .palette-label {
+    width: 100px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #6B6B6B;
+  }
+  .swatch {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 4px;
+    font-size: 9px;
+    color: #6B6B6B;
+    border: 1px solid rgba(0,0,0,0.06);
+  }
+  .dark-section {
+    background: #1D1E23;
+    border-radius: 16px;
+    padding: 28px;
+    margin-top: 24px;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .dark-section h2 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #E8E4DF;
+  }
+  .dark-section .palette-label { color: #A09B94; }
+  .dark-section .swatch { border-color: rgba(255,255,255,0.08); color: #A09B94; }
+</style>
+</head>
+<body>
+
+<h1>오행이(五行이) 캐릭터</h1>
+<p class="subtitle">사주연 디자인 시스템 — 한지 팔레트 기반 치이카와 스타일 마스코트</p>
+
+<div class="characters">
+  <div class="card wood">
+    <img src="namuri_wood_default.png" alt="나무리">
+    <div class="name">나무리</div>
+    <span class="element">木 나무</span>
+    <div class="desc">새싹 고양이<br>따뜻한 리더</div>
+  </div>
+  <div class="card fire">
+    <img src="bulkkori_fire_default.png" alt="불꼬리">
+    <div class="name">불꼬리</div>
+    <span class="element">火 불</span>
+    <div class="desc">불꽃 꼬리 고양이<br>열정적 에너자이저</div>
+  </div>
+  <div class="card earth">
+    <img src="heuksuni_earth_default.png" alt="흙순이">
+    <div class="name">흙순이</div>
+    <span class="element">土 흙</span>
+    <div class="desc">따뜻한 곰<br>포근한 중재자</div>
+  </div>
+  <div class="card metal">
+    <img src="soedongi_metal_default.png" alt="쇠동이">
+    <div class="name">쇠동이</div>
+    <span class="element">金 쇠</span>
+    <div class="desc">통통한 강아지<br>느긋한 멋쟁이</div>
+  </div>
+  <div class="card water">
+    <img src="mulgyeori_water_default.png" alt="물결이">
+    <div class="name">물결이</div>
+    <span class="element">水 물</span>
+    <div class="desc">물방울 고양이<br>감성파 지혜러</div>
+  </div>
+  <div class="card" style="border: 1px dashed #C8C4BE;">
+    <img src="namuri_girlfriend_default.png" alt="나무리 여자친구">
+    <div class="name">나무리 여친</div>
+    <span class="element" style="background:#F2D0D5; color:#B06B68;">♥ 서브</span>
+    <div class="desc">리본 고양이<br>나무리의 여자친구</div>
+  </div>
+</div>
+
+<div class="palette">
+  <h2>한지 팔레트 — 라이트 모드</h2>
+  <div class="palette-row">
+    <span class="palette-label">브랜드</span>
+    <div class="swatch" style="background:#A8C8E8">Primary</div>
+    <div class="swatch" style="background:#F2D0D5">Secondary</div>
+    <div class="swatch" style="background:#4A4F54; color:#A09B94">Tertiary</div>
+  </div>
+  <div class="palette-row">
+    <span class="palette-label">배경</span>
+    <div class="swatch" style="background:#F7F3EE">BG</div>
+    <div class="swatch" style="background:#FEFCF9">Surface</div>
+    <div class="swatch" style="background:#FFFFFF">Card</div>
+    <div class="swatch" style="background:#F0EDE8">Elevated</div>
+  </div>
+  <div class="palette-row">
+    <span class="palette-label">오행</span>
+    <div class="swatch" style="background:#8FB89A">木</div>
+    <div class="swatch" style="background:#D4918E">火</div>
+    <div class="swatch" style="background:#C8B68E">土</div>
+    <div class="swatch" style="background:#B8BCC0">金</div>
+    <div class="swatch" style="background:#89B0CB">水</div>
+  </div>
+  <div class="palette-row">
+    <span class="palette-label">궁합 등급</span>
+    <div class="swatch" style="background:#C27A88; color:white">천생연분</div>
+    <div class="swatch" style="background:#C49A7C">좋은인연</div>
+    <div class="swatch" style="background:#A8B0A0">보통</div>
+    <div class="swatch" style="background:#959EA2">노력</div>
+  </div>
+</div>
+
+<div class="dark-section">
+  <h2>한지 팔레트 — 다크/신비 모드</h2>
+  <div class="palette-row">
+    <span class="palette-label">배경</span>
+    <div class="swatch" style="background:#1D1E23">BG</div>
+    <div class="swatch" style="background:#2A2B32">Surface</div>
+    <div class="swatch" style="background:#35363F">Card</div>
+  </div>
+  <div class="palette-row">
+    <span class="palette-label">텍스트</span>
+    <div class="swatch" style="background:#E8E4DF; color:#2D2D2D">Primary</div>
+    <div class="swatch" style="background:#A09B94; color:#2D2D2D">Secondary</div>
+    <div class="swatch" style="background:linear-gradient(135deg,#C8B68E,#D4C9A8); color:#2D2D2D">Glow</div>
+  </div>
+</div>
+
+</body>
+</html>

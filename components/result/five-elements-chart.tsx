@@ -26,7 +26,7 @@ export function FiveElementsChart({ fiveElements }: { fiveElements: Record<strin
               />
               <span className="text-xs font-medium text-ink">{label}</span>
             </div>
-            <div className="flex-1 h-5 rounded-full overflow-hidden bg-black/5">
+            <div className="flex-1 h-5 rounded-full overflow-hidden bg-white border border-hanji-border">
               <div
                 className="h-full rounded-full transition-all duration-300"
                 style={{

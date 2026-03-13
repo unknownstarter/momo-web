@@ -19,7 +19,7 @@ export function SajuCard({
       className={`rounded-card p-4 ${
         variant === "elevated"
           ? "bg-hanji-elevated shadow-medium border border-hanji-border"
-          : "bg-black/5 dark:bg-white/5 border border-hanji-border"
+          : "bg-white border border-hanji-border"
       } ${className}`}
       style={borderColor ? { borderColor } : undefined}
     >

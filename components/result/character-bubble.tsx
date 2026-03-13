@@ -47,7 +47,7 @@ export function CharacterBubble({
       </div>
       <div className="flex-1 min-w-0">
         {userNickname ? <p className="text-[13px] font-semibold" style={{ color: main }}>{userNickname}</p> : null}
-        <div className="mt-1 p-3 rounded-b-card rounded-tr-card border border-black/10 bg-black/5">
+        <div className="mt-1 p-3 rounded-b-card rounded-tr-card border border-hanji-border bg-white">
           <p className="text-sm text-ink leading-relaxed">{message}</p>
         </div>
       </div>

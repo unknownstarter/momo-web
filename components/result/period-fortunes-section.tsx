@@ -39,7 +39,7 @@ export function PeriodFortunesSection({
             type="button"
             onClick={() => setSelected(i)}
             className={`flex-1 py-2 rounded-full text-xs font-medium transition-colors ${
-              selected === i ? "text-white" : "text-ink-tertiary bg-black/5"
+              selected === i ? "text-white" : "text-ink-tertiary bg-white border border-hanji-border"
             }`}
             style={selected === i ? { backgroundColor: accent } : undefined}
           >

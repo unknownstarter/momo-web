@@ -28,7 +28,7 @@ export function TraitsChart({ traits }: { traits: Record<string, number> | null 
               <span className="text-xs text-ink-tertiary">{label}</span>
               <span className="text-xs font-semibold" style={{ color: MYSTIC_GLOW }}>{value}</span>
             </div>
-            <div className="h-1.5 rounded-full bg-black/10 overflow-hidden">
+            <div className="h-1.5 rounded-full bg-white border border-hanji-border overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-300"
                 style={{ width: `${value}%`, backgroundColor: `${MYSTIC_GLOW}B3` }}

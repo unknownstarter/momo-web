@@ -8,10 +8,11 @@ import { runAnalysis } from "@/lib/analysis";
  */
 export async function POST() {
   const supabase = await createClient();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
+  }
+  const { data: { session } } = await supabase.auth.getSession();
   if (!session?.access_token) {
     return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
   }

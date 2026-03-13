@@ -24,13 +24,23 @@ export default function LoginPage() {
             시작하려면 로그인해 주세요.
           </p>
           <p className="mt-8 text-center w-full text-xs text-ink-tertiary">
-            <Link href="/terms" className="underline hover:text-ink-muted">
+            <a
+              href="https://whatisgoingon.notion.site/momo-3228cdd370538034a1ece378d0de0bd0?source=copy_link"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-ink-muted"
+            >
               이용약관
-            </Link>
+            </a>
             {" · "}
-            <Link href="/privacy" className="underline hover:text-ink-muted">
+            <a
+              href="https://whatisgoingon.notion.site/momo-3228cdd3705380f3b71ef9160cdfbfd2?source=copy_link"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-ink-muted"
+            >
               개인정보처리방침
-            </Link>
+            </a>
           </p>
         </div>
         <CtaBar>

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { createClient } from "@/lib/supabase/client";
@@ -67,21 +66,25 @@ export function LandingLoginSheet() {
           {loading ? "연결 중…" : "카카오로 시작하기"}
         </Button>
         <div className="mt-6 pt-4 pb-6 border-t border-hanji-border flex flex-wrap items-center justify-center gap-x-1 gap-y-1 text-sm">
-          <Link
-            href="/terms"
+          <a
+            href="https://whatisgoingon.notion.site/momo-3228cdd370538034a1ece378d0de0bd0?source=copy_link"
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-ink-muted underline underline-offset-2 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded px-1 -mx-1"
           >
             이용약관
-          </Link>
+          </a>
           <span className="text-ink-tertiary select-none" aria-hidden>
             ·
           </span>
-          <Link
-            href="/privacy"
+          <a
+            href="https://whatisgoingon.notion.site/momo-3228cdd3705380f3b71ef9160cdfbfd2?source=copy_link"
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-ink-muted underline underline-offset-2 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded px-1 -mx-1"
           >
             개인정보처리방침
-          </Link>
+          </a>
         </div>
       </BottomSheet>
     </>

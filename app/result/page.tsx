@@ -7,162 +7,29 @@ import { MobileContainer } from "@/components/ui/mobile-container";
 import { Button } from "@/components/ui/button";
 import { CtaBar } from "@/components/ui/cta-bar";
 import { ROUTES } from "@/lib/constants";
-
-/**
- * 결과 데이터 연동 시 참고 (docs/design/onboarding-analysis-flow.md §6.2, §6.3)
- * - 사주: profiles + saju_profiles (year_pillar, month_pillar, day_pillar, hour_pillar, five_elements, personality_traits, ai_interpretation, yearly_fortune, period_fortunes, romance_style, romance_key_points, ideal_match)
- * - 관상: gwansang_profiles (animal_type, animal_type_korean, animal_modifier, headline, charm_keywords, samjeong, ogwan, personality_summary, romance_summary, romance_key_points, traits(5축), ideal_match_*)
- * - 이름: profiles.name
- */
-/** 앱 DestinyResultPage 사주 탭 섹션 순서 (onboarding-analysis-flow.md 5.2). 데이터는 saju_profiles 스키마 기준. */
-const SAJU_SECTIONS = [
-  { title: "캐릭터 인사", key: "greeting" },
-  { title: "사주팔자 (四柱八字)", key: "fourPillars" },
-  { title: "오행 분포 (五行)", key: "fiveElements" },
-  { title: "성격 특성", key: "personality" },
-  { title: "AI 사주 해석", key: "interpretation" },
-  { title: "올해 운세", key: "yearlyFortune" },
-  { title: "시기별 운세", key: "periodFortune" },
-  { title: "연애 스타일", key: "romanceStyle" },
-  { title: "연애 핵심 포인트", key: "romanceKeyPoints" },
-  { title: "이상형 사주", key: "idealMatch" },
-];
-
-/** 앱 DestinyResultPage 관상 탭 섹션 순서 (onboarding-analysis-flow.md 5.3). 데이터는 gwansang_profiles 스키마 기준. */
-const GWANSANG_SECTIONS = [
-  { title: "동물상 히어로", key: "animalHero" },
-  { title: "헤드라인", key: "headline" },
-  { title: "매력 키워드", key: "charmKeywords" },
-  { title: "삼정(三停) 운세", key: "samjeong" },
-  { title: "오관(五官) 해석", key: "ogwan" },
-  { title: "성격 요약", key: "personalitySummary" },
-  { title: "연애 스타일", key: "romanceStyle" },
-  { title: "연애 핵심 포인트", key: "romanceKeyPoints" },
-  { title: "성격 특성 5축", key: "fiveAxis" },
-  { title: "이상형 관상", key: "idealMatch" },
-];
-
-function ResultSectionCard({
-  title,
-  children,
-}: {
-  title: string;
-  children?: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-2xl border border-hanji-border bg-hanji-elevated p-4">
-      <h2 className="text-sm font-semibold text-ink">{title}</h2>
-      {children != null ? <div className="mt-3 text-sm text-ink leading-relaxed">{children}</div> : null}
-    </div>
-  );
-}
-
-function renderSajuSection(key: string, s: SajuProfileRow | null): React.ReactNode {
-  if (!s) return null;
-  switch (key) {
-    case "greeting":
-      return "캐릭터 인사 문구 (연동 후 표시)";
-    case "fourPillars": {
-      const y = s.year_pillar as { stem?: string; branch?: string };
-      const m = s.month_pillar as { stem?: string; branch?: string };
-      const d = s.day_pillar as { stem?: string; branch?: string };
-      const h = s.hour_pillar as { stem?: string; branch?: string } | null;
-      return (
-        <p>
-          연주 {y?.stem}{y?.branch} · 월주 {m?.stem}{m?.branch} · 일주 {d?.stem}{d?.branch}
-          {h ? ` · 시주 ${h.stem}${h.branch}` : ""}
-        </p>
-      );
-    }
-    case "fiveElements": {
-      const el = s.five_elements;
-      if (!el) return null;
-      const parts = Object.entries(el).map(([k, v]) => `${k} ${v}`).join(", ");
-      return <p>{parts}</p>;
-    }
-    case "personality":
-      return s.personality_traits?.length ? <p>{s.personality_traits.join(" · ")}</p> : null;
-    case "interpretation":
-      return s.ai_interpretation ? <p className="whitespace-pre-wrap">{s.ai_interpretation}</p> : null;
-    case "yearlyFortune": {
-      const yf = s.yearly_fortune as { year?: number; yearPillar?: string; summary?: string } | null;
-      return yf?.summary ? <p>{yf.summary}</p> : null;
-    }
-    case "periodFortune":
-      return "시기별 운세 (연동 후 표시)";
-    case "romanceStyle":
-      return s.romance_style ? <p>{s.romance_style}</p> : null;
-    case "romanceKeyPoints":
-      return s.romance_key_points?.length ? <ul className="list-disc pl-4">{s.romance_key_points.map((x, i) => <li key={i}>{x}</li>)}</ul> : null;
-    case "idealMatch": {
-      const im = s.ideal_match as { description?: string; traits?: string[] } | null;
-      return im?.description ? <p>{im.description}</p> : null;
-    }
-    default:
-      return null;
-  }
-}
-
-function renderGwansangSection(key: string, g: GwansangProfileRow | null): React.ReactNode {
-  if (!g) return null;
-  switch (key) {
-    case "animalHero":
-      return <p>{g.animal_modifier} {g.animal_type_korean}</p>;
-    case "headline":
-      return g.headline ? <p>{g.headline}</p> : null;
-    case "charmKeywords":
-      return g.charm_keywords?.length ? <p className="text-center">{g.charm_keywords.join(" · ")}</p> : null;
-    case "samjeong": {
-      const sj = g.samjeong as { upper?: string; middle?: string; lower?: string };
-      return (sj?.upper || sj?.middle || sj?.lower) ? (
-        <div className="space-y-2">
-          {sj.upper && <p>{sj.upper}</p>}
-          {sj.middle && <p>{sj.middle}</p>}
-          {sj.lower && <p>{sj.lower}</p>}
-        </div>
-      ) : null;
-    }
-    case "ogwan": {
-      const og = g.ogwan as Record<string, string>;
-      if (!og || !Object.keys(og).length) return null;
-      return (
-        <div className="space-y-1">
-          {Object.entries(og).map(([k, v]) => (v ? <p key={k}><strong>{k}:</strong> {v}</p> : null))}
-        </div>
-      );
-    }
-    case "personalitySummary":
-      return g.personality_summary ? <p>{g.personality_summary}</p> : null;
-    case "romanceStyle":
-      return g.romance_summary ? <p>{g.romance_summary}</p> : null;
-    case "romanceKeyPoints":
-      return g.romance_key_points?.length ? <ul className="list-disc pl-4">{g.romance_key_points.map((x, i) => <li key={i}>{x}</li>)}</ul> : null;
-    case "fiveAxis": {
-      const t = g.traits;
-      if (!t || !Object.keys(t).length) return null;
-      return (
-        <div className="space-y-2">
-          {Object.entries(t).map(([k, v]) => (
-            <div key={k} className="flex items-center gap-2">
-              <span className="w-24 text-ink-muted">{k}</span>
-              <div className="flex-1 h-2 bg-ink/10 rounded-full overflow-hidden">
-                <div className="h-full bg-brand rounded-full" style={{ width: `${Number(v)}%` }} />
-              </div>
-              <span className="text-xs">{v}</span>
-            </div>
-          ))}
-        </div>
-      );
-    }
-    case "idealMatch":
-      return g.ideal_match_description ? <p>{g.ideal_match_description}</p> : null;
-    default:
-      return null;
-  }
-}
+import {
+  elementKey,
+  ELEMENT_COLORS,
+  ELEMENT_KOREAN,
+  getCharacterTypeFromElement,
+} from "@/lib/result-tokens";
+import { SectionTitle } from "@/components/result/section-title";
+import { SajuCard } from "@/components/result/saju-card";
+import { PillarCard } from "@/components/result/pillar-card";
+import { FiveElementsChart } from "@/components/result/five-elements-chart";
+import { CharacterBubble } from "@/components/result/character-bubble";
+import { YearlyFortuneCard } from "@/components/result/yearly-fortune-card";
+import { PeriodFortunesSection } from "@/components/result/period-fortunes-section";
+import { RomanceStyleCard } from "@/components/result/romance-style-card";
+import { RomanceKeyPointsCard } from "@/components/result/romance-key-points-card";
+import { IdealMatchSajuCard } from "@/components/result/ideal-match-saju-card";
+import { GwansangAnimalHero } from "@/components/result/gwansang-animal-hero";
+import { SamjeongCard } from "@/components/result/samjeong-card";
+import { OgwanCard } from "@/components/result/ogwan-card";
+import { TraitsChart } from "@/components/result/traits-chart";
+import { IdealMatchGwansangCard } from "@/components/result/ideal-match-gwansang-card";
 
 interface SajuProfileRow {
-  id: string;
   year_pillar: unknown;
   month_pillar: unknown;
   day_pillar: unknown;
@@ -179,7 +46,6 @@ interface SajuProfileRow {
 }
 
 interface GwansangProfileRow {
-  id: string;
   animal_type: string;
   animal_type_korean: string;
   animal_modifier: string;
@@ -191,27 +57,32 @@ interface GwansangProfileRow {
   samjeong: unknown;
   ogwan: unknown;
   traits: Record<string, number>;
-  ideal_match_animal: string | null;
   ideal_match_animal_korean: string | null;
   ideal_match_traits: string[] | null;
   ideal_match_description: string | null;
 }
 
+interface ProfileRow {
+  name: string | null;
+  character_type: string | null;
+  animal_type: string | null;
+  dominant_element: string | null;
+  profile_images: string[] | null;
+}
+
 export default function ResultPage() {
   const [tab, setTab] = useState<"saju" | "gwansang">("saju");
-  const [headerView, setHeaderView] = useState<"name" | "animal">("name");
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [shareCopied, setShareCopied] = useState(false);
-  const [profile, setProfile] = useState<{ name: string | null; animal_type: string | null; character_type: string | null; profile_images: string[] | null } | null>(null);
+  const [profile, setProfile] = useState<ProfileRow | null>(null);
   const [sajuProfile, setSajuProfile] = useState<SajuProfileRow | null>(null);
   const [gwansangProfile, setGwansangProfile] = useState<GwansangProfileRow | null>(null);
   const [dataLoading, setDataLoading] = useState(true);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const stored = sessionStorage.getItem("momo_display_name");
-    setDisplayName(stored || null);
+    setDisplayName(sessionStorage.getItem("momo_display_name") || null);
   }, []);
 
   useEffect(() => {
@@ -224,7 +95,7 @@ export default function ResultPage() {
         if (!user || cancelled) return;
         const { data: profileRow } = await supabase
           .from("profiles")
-          .select("id, name, animal_type, character_type, profile_images, saju_profile_id, gwansang_profile_id")
+          .select("id, name, animal_type, character_type, dominant_element, profile_images, saju_profile_id, gwansang_profile_id")
           .eq("auth_id", user.id)
           .maybeSingle();
         if (!profileRow || cancelled) {
@@ -233,8 +104,9 @@ export default function ResultPage() {
         }
         setProfile({
           name: profileRow.name,
-          animal_type: profileRow.animal_type,
           character_type: profileRow.character_type,
+          animal_type: profileRow.animal_type,
+          dominant_element: profileRow.dominant_element ?? null,
           profile_images: profileRow.profile_images,
         });
         if (profileRow.saju_profile_id) {
@@ -264,7 +136,6 @@ export default function ResultPage() {
     if (profile?.name) setDisplayName(profile.name);
   }, [profile?.name]);
 
-  // 공유 URL은 서버에서 암호화 토큰으로 발급 (프로필 ID 노출 방지)
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -283,120 +154,252 @@ export default function ResultPage() {
     setTimeout(() => setShareCopied(false), 2000);
   };
 
+  const dominantEl = profile?.dominant_element ?? sajuProfile?.dominant_element ?? null;
+  const elementKeyVal = elementKey(dominantEl);
+  const elementColors = ELEMENT_COLORS[elementKeyVal];
+  const accentColor = elementColors?.main ?? ELEMENT_COLORS.metal.main;
+  const pastelColor = elementColors?.pastel ?? ELEMENT_COLORS.metal.pastel;
+  const nickname = profile?.name ?? displayName ?? "";
+  const effectiveCharacterType = profile?.character_type ?? getCharacterTypeFromElement(dominantEl) ?? "namuri";
+  const animalLabel = gwansangProfile
+    ? [gwansangProfile.animal_modifier, gwansangProfile.animal_type_korean].filter(Boolean).join(" ")
+    : "";
+
+  const hasNoData = !sajuProfile && !gwansangProfile && !dataLoading;
+
   return (
     <MobileContainer className="h-dvh max-h-dvh bg-hanji text-ink flex flex-col overflow-hidden">
-      {/* 고정 앱바: 캐릭터 + 이름/동물상 토글 + 한줄요약 영역 (앱 5.1) */}
-      <header className="shrink-0 px-5 pt-8 pb-6">
+      {/* 앱 DestinyResultPage 스타일 헤더: 캐릭터 + 동물상 배지, 뱃지 Row, 요약 */}
+      <header className="shrink-0 px-5 pt-6 pb-4">
         <div className="flex flex-col items-center">
           <div className="relative w-[140px] h-[120px] flex items-center justify-center">
-            <div className="w-24 h-24 rounded-full border-[3px] border-element-metal/30 bg-element-metal-pastel overflow-hidden shrink-0 flex items-center justify-center">
+            <div
+              className="w-24 h-24 rounded-full border-[3px] overflow-hidden shrink-0 flex items-center justify-center"
+              style={{
+                background: `radial-gradient(circle, ${pastelColor} 0%, ${pastelColor}4D 100%)`,
+                borderColor: `${accentColor}4D`,
+              }}
+            >
               <Image
-                src="/images/characters/mulgyeori/default.png"
+                src={`/images/characters/${effectiveCharacterType}/default.png`}
                 alt=""
-                width={64}
-                height={64}
-                className="object-contain"
+                width={96}
+                height={96}
+                className="object-cover w-full h-full"
                 unoptimized
               />
             </div>
-            <div className="absolute right-0 bottom-0 min-w-[48px] min-h-[48px] px-3 py-2.5 rounded-full bg-hanji border-2 border-brand/30 shadow-md flex items-center justify-center">
-              <span className="text-ink text-[13px] font-bold">동물상</span>
+            {gwansangProfile && (
+              <div className="absolute right-0 bottom-0 min-w-[48px] min-h-[48px] px-3 py-2.5 rounded-full bg-hanji border-2 shadow-md flex items-center justify-center" style={{ borderColor: `${accentColor}4D` }}>
+                <span className="text-ink text-[13px] font-bold">{gwansangProfile.animal_type_korean}상</span>
+              </div>
+            )}
+          </div>
+          <div className="mt-3 flex flex-wrap justify-center gap-2">
+            {nickname ? (
+              <span className="px-3 py-1 rounded-full text-xs font-semibold" style={{ backgroundColor: `${accentColor}1F`, color: accentColor }}>
+                {nickname}
+              </span>
+            ) : null}
+            {animalLabel && (
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-brand/20 text-ink">
+                {animalLabel}
+              </span>
+            )}
+          </div>
+          {dominantEl && (
+            <div className="mt-2 flex flex-wrap justify-center gap-2">
+              <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold" style={{ backgroundColor: `${accentColor}1F`, color: accentColor }}>
+                본성 {ELEMENT_KOREAN[elementKeyVal]}
+              </span>
             </div>
-          </div>
-          <div className="mt-4 flex flex-wrap justify-center gap-2">
-            <button
-              type="button"
-              onClick={() => setHeaderView("name")}
-              className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                headerView === "name" ? "bg-brand/20 text-ink" : "bg-ink/10 text-ink-tertiary"
-              }`}
-            >
-              이름
-            </button>
-            <button
-              type="button"
-              onClick={() => setHeaderView("animal")}
-              className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                headerView === "animal" ? "bg-brand/20 text-ink" : "bg-ink/10 text-ink-tertiary"
-              }`}
-            >
-              동물상
-            </button>
-          </div>
-          <p className="mt-2 text-sm text-ink-muted text-center min-h-[20px]">
-            {headerView === "name" && displayName
-              ? `${displayName}님의 사주`
-              : headerView === "animal" && gwansangProfile
-                ? `${gwansangProfile.animal_modifier || ""} ${gwansangProfile.animal_type_korean || "동물상"}`.trim() || "동물상 요약"
-                : !dataLoading && !displayName
-                  ? "프로필 연동 후 이름이 표시돼요"
-                  : headerView === "animal"
-                    ? "동물상 요약"
-                    : null}
+          )}
+          <p className="mt-2 text-sm text-ink-tertiary text-center min-h-[20px]">
+            {sajuProfile?.ai_interpretation
+              ? sajuProfile.ai_interpretation.slice(0, 50).replace(/\n[\s\S]*/, "") + (sajuProfile.ai_interpretation.length > 50 ? "…" : "")
+              : dominantEl
+                ? `${ELEMENT_KOREAN[elementKeyVal]} 기운의 사주`
+                : ""}
           </p>
         </div>
       </header>
 
-      {/* 탭바 고정 (사주 | 관상) */}
+      {/* TabBar — 앱과 동일, 인디케이터 색 = 오행 */}
       <div className="shrink-0 bg-hanji border-b border-hanji-border">
         <div className="flex">
           <button
             type="button"
             onClick={() => setTab("saju")}
-            className={`flex-1 py-3 text-[15px] font-semibold ${
-              tab === "saju" ? "text-ink border-b-2 border-ink" : "text-ink-tertiary"
+            className={`flex-1 py-3 text-[15px] font-semibold border-b-2 transition-colors ${
+              tab === "saju" ? "text-ink" : "text-ink-tertiary border-transparent"
             }`}
+            style={tab === "saju" ? { borderColor: accentColor } : undefined}
           >
             사주
           </button>
           <button
             type="button"
             onClick={() => setTab("gwansang")}
-            className={`flex-1 py-3 text-[15px] font-semibold ${
-              tab === "gwansang" ? "text-ink border-b-2 border-ink" : "text-ink-tertiary"
+            className={`flex-1 py-3 text-[15px] font-semibold border-b-2 transition-colors ${
+              tab === "gwansang" ? "text-ink" : "text-ink-tertiary border-transparent"
             }`}
+            style={tab === "gwansang" ? { borderColor: accentColor } : undefined}
           >
             관상
           </button>
         </div>
       </div>
 
-      {/* 스크롤 영역만 overflow — 위 앱바·탭바 고정 */}
       <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-5 pt-6 pb-8">
-        {tab === "saju" && (
-          <div className="space-y-6">
-            {SAJU_SECTIONS.map((s) => (
-              <ResultSectionCard key={s.key} title={s.title}>
-                {renderSajuSection(s.key, sajuProfile)}
-              </ResultSectionCard>
-            ))}
+        {hasNoData ? (
+          <div className="rounded-2xl border border-hanji-border bg-hanji-elevated p-6 text-center">
+            <p className="text-ink font-medium">아직 분석 결과가 없어요</p>
+            <p className="mt-2 text-sm text-ink-tertiary">확인 단계에서 &#39;분석 시작&#39;을 누르면 사주·관상 분석이 진행돼요. 분석이 끝나면 이 페이지에 결과가 표시됩니다.</p>
           </div>
-        )}
-        {tab === "gwansang" && (
-          <div className="space-y-6">
-            {GWANSANG_SECTIONS.map((s) => (
-              <ResultSectionCard key={s.key} title={s.title}>
-                {renderGwansangSection(s.key, gwansangProfile)}
-              </ResultSectionCard>
-            ))}
-          </div>
+        ) : (
+          <>
+            {tab === "saju" && sajuProfile && (
+              <div className="space-y-8 pb-12">
+                <CharacterBubble
+                  characterType={effectiveCharacterType}
+                  userNickname={nickname}
+                  message="안녕! 네 사주를 봤어. 아래에서 하나씩 알려줄게 ✨"
+                  dominantElement={dominantEl}
+                />
+                <div>
+                  <SectionTitle>사주팔자 (四柱八字)</SectionTitle>
+                  <div className="mt-4 grid grid-cols-4 gap-2">
+                    <PillarCard pillar={sajuProfile.year_pillar as { stem?: string; branch?: string }} label="연주" sublabel="年柱" />
+                    <PillarCard pillar={sajuProfile.month_pillar as { stem?: string; branch?: string }} label="월주" sublabel="月柱" />
+                    <PillarCard pillar={sajuProfile.day_pillar as { stem?: string; branch?: string }} label="일주" sublabel="日柱" />
+                    <PillarCard pillar={sajuProfile.hour_pillar as { stem?: string; branch?: string } | null} label="시주" sublabel="時柱" isMissing={!sajuProfile.hour_pillar} />
+                  </div>
+                </div>
+                <div>
+                  <SectionTitle>오행 분포 (五行)</SectionTitle>
+                  <div className="mt-4">
+                    <SajuCard variant="flat">
+                      <FiveElementsChart fiveElements={sajuProfile.five_elements ?? {}} />
+                    </SajuCard>
+                  </div>
+                </div>
+                {sajuProfile.personality_traits?.length ? (
+                  <div>
+                    <SectionTitle>성격 특성</SectionTitle>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {sajuProfile.personality_traits.map((t, i) => (
+                        <span
+                          key={i}
+                          className="px-3.5 py-1.5 rounded-2xl text-[13px] font-medium border"
+                          style={{ borderColor: `${accentColor}4D`, backgroundColor: `${accentColor}0F`, color: "var(--ink)" }}
+                        >
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+                {sajuProfile.ai_interpretation ? (
+                  <div>
+                    <SectionTitle>AI 사주 해석</SectionTitle>
+                    <div className="mt-4">
+                      <SajuCard variant="elevated" borderColor={`${accentColor}33`}>
+                        <p className="text-sm text-ink leading-relaxed whitespace-pre-wrap">{sajuProfile.ai_interpretation}</p>
+                      </SajuCard>
+                    </div>
+                  </div>
+                ) : null}
+                {sajuProfile.yearly_fortune && (sajuProfile.yearly_fortune as { summary?: string }).summary ? (
+                  <div>
+                    <SectionTitle>{(sajuProfile.yearly_fortune as { year?: number }).year ?? ""}년 운세</SectionTitle>
+                    <div className="mt-4">
+                      <YearlyFortuneCard fortune={sajuProfile.yearly_fortune as Parameters<typeof YearlyFortuneCard>[0]["fortune"]} />
+                    </div>
+                  </div>
+                ) : null}
+                {sajuProfile.period_fortunes ? (
+                  <div>
+                    <SectionTitle>시기별 운세</SectionTitle>
+                    <div className="mt-4">
+                      <PeriodFortunesSection fortunes={sajuProfile.period_fortunes as Parameters<typeof PeriodFortunesSection>[0]["fortunes"]} dominantElement={dominantEl} />
+                    </div>
+                  </div>
+                ) : null}
+                {sajuProfile.romance_style && (
+                  <RomanceStyleCard style={sajuProfile.romance_style} />
+                )}
+                {sajuProfile.romance_key_points?.length ? (
+                  <RomanceKeyPointsCard points={sajuProfile.romance_key_points} />
+                ) : null}
+                {sajuProfile.ideal_match && (sajuProfile.ideal_match as { description?: string }).description ? (
+                  <div>
+                    <SectionTitle>잘 맞는 이상형의 사주</SectionTitle>
+                    <div className="mt-4">
+                      <IdealMatchSajuCard idealMatch={sajuProfile.ideal_match as { description?: string; traits?: string[] }} dominantElement={dominantEl} />
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            )}
+            {tab === "gwansang" && !gwansangProfile && sajuProfile && (
+              <div className="py-12 text-center">
+                <p className="text-ink font-semibold">관상 분석이 준비되지 않았어요</p>
+                <p className="mt-2 text-sm text-ink-tertiary">얼굴이 잘 보이는 정면 사진으로 다시 시도해 보세요</p>
+              </div>
+            )}
+            {tab === "gwansang" && gwansangProfile && (
+              <div className="space-y-6 pb-12">
+                <GwansangAnimalHero
+                  animalTypeKorean={gwansangProfile.animal_type_korean}
+                  animalLabel={[gwansangProfile.animal_modifier, gwansangProfile.animal_type_korean].filter(Boolean).join(" ")}
+                />
+                <p className="text-center text-[15px] text-ink leading-relaxed">{gwansangProfile.headline}</p>
+                {gwansangProfile.charm_keywords?.length ? (
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {gwansangProfile.charm_keywords.map((k, i) => (
+                      <span key={i} className="px-3.5 py-1.5 rounded-2xl text-[13px] font-medium border border-brand/30 bg-brand/10 text-ink">
+                        {k}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+                <SamjeongCard samjeong={gwansangProfile.samjeong as { upper?: string; middle?: string; lower?: string }} />
+                <OgwanCard ogwan={gwansangProfile.ogwan as Record<string, string>} />
+                {gwansangProfile.personality_summary ? (
+                  <SajuCard variant="elevated">
+                    <p className="text-sm font-semibold text-ink">성격</p>
+                    <p className="mt-3 text-sm text-ink leading-relaxed">{gwansangProfile.personality_summary}</p>
+                  </SajuCard>
+                ) : null}
+                {gwansangProfile.romance_summary ? (
+                  <SajuCard variant="elevated">
+                    <p className="text-sm font-semibold text-ink">연애 스타일</p>
+                    <p className="mt-3 text-sm text-ink leading-relaxed">{gwansangProfile.romance_summary}</p>
+                  </SajuCard>
+                ) : null}
+                {gwansangProfile.romance_key_points?.length ? (
+                  <RomanceKeyPointsCard points={gwansangProfile.romance_key_points} />
+                ) : null}
+                <TraitsChart traits={gwansangProfile.traits} />
+                <IdealMatchGwansangCard
+                  idealMatchAnimalKorean={gwansangProfile.ideal_match_animal_korean}
+                  idealMatchTraits={gwansangProfile.ideal_match_traits}
+                  idealMatchDescription={gwansangProfile.ideal_match_description}
+                />
+              </div>
+            )}
+          </>
         )}
       </div>
 
       <CtaBar className="shrink-0">
         <Link href={ROUTES.COMPLETE} className="block">
-          <Button size="lg" className="w-full flex items-center justify-center gap-2">
+          <Button size="lg" className="w-full flex items-center justify-center gap-2" style={{ backgroundColor: accentColor, borderColor: accentColor }}>
             <span aria-hidden>♥</span>
             내 사주와 찰떡인 사람, 만나볼까요?
           </Button>
         </Link>
-        <Button
-          variant="outline"
-          size="md"
-          className="w-full mt-4"
-          onClick={handleShare}
-          disabled={!shareUrl}
-        >
+        <Button variant="outline" size="md" className="w-full mt-4" onClick={handleShare} disabled={!shareUrl}>
           {shareCopied ? "링크가 복사됐어요!" : "친구에게 공유하기"}
         </Button>
       </CtaBar>

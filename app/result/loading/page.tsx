@@ -4,8 +4,8 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/lib/constants";
 
-const LOADING_DURATION_MS = 10_000; // 10초 보여준 뒤 결과 확인
-const POLL_INTERVAL_MS = 10_000;   // 아직 없으면 10초마다 결과 폴링
+const LOADING_DURATION_MS = 10_000;     // 프로그레스 바 10초 만에 100%
+const RUN_ANALYSIS_TIMEOUT_MS = 120_000; // 분석 API 최대 대기 2분
 const LOADING_MESSAGES = [
   { title: "사주팔자를 계산하고 있어요...", sub: "잠시만 기다려 주세요" },
   { title: "AI가 사주를 해석하고 있어요...", sub: "조금만 더 기다려 주세요" },
@@ -37,44 +37,58 @@ export default function ResultLoadingPage() {
     if (started.current) return;
     started.current = true;
 
-    fetch("/api/run-analysis", { method: "POST" }).catch(() => {});
+    let cancelled = false;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), RUN_ANALYSIS_TIMEOUT_MS);
 
-    let pollId: ReturnType<typeof setInterval> | null = null;
+    (async () => {
+      try {
+        const res = await fetch("/api/run-analysis", {
+          method: "POST",
+          credentials: "include",
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+        if (cancelled) return;
+        const data = await res.json().catch(() => ({}));
 
-    const checkReady = async (): Promise<boolean> => {
-      const res = await fetch("/api/result-ready");
-      if (res.status === 401) {
-        router.replace(ROUTES.HOME);
-        return false;
-      }
-      const data = await res.json().catch(() => ({}));
-      return Boolean(data.ready);
-    };
-
-    const tenSecTimer = setTimeout(async () => {
-      setProgress(100);
-      setPhase(LOADING_MESSAGES.length - 1);
-      if (await checkReady()) {
-        setDone(true);
-        return;
-      }
-      pollId = setInterval(async () => {
-        if (await checkReady()) {
-          if (pollId) clearInterval(pollId);
-          setDone(true);
+        if (res.status === 401 || res.status === 404) {
+          router.replace(data.error === "no_profile" ? ROUTES.ONBOARDING : ROUTES.HOME);
+          return;
         }
-      }, POLL_INTERVAL_MS);
-    }, LOADING_DURATION_MS);
+
+        if (res.ok && (data.ok === true || data.alreadyDone === true)) {
+          setProgress(100);
+          setPhase(LOADING_MESSAGES.length - 1);
+          setDone(true);
+          // 응답 수신 직후 여기서 리다이렉트 스케줄 (useEffect 의존성 타이밍 이슈 회피)
+          setTimeout(() => router.replace(ROUTES.RESULT), 800);
+          return;
+        }
+
+        setError(data.error || "분석에 실패했어요. 다시 시도해 주세요.");
+      } catch (e) {
+        clearTimeout(timeoutId);
+        if (cancelled) return;
+        if ((e as Error).name === "AbortError") {
+          setError("분석이 오래 걸려요. 잠시 후 다시 시도해 주세요.");
+        } else {
+          setError("연결에 실패했어요. 네트워크를 확인하고 다시 시도해 주세요.");
+        }
+      }
+    })();
 
     return () => {
-      clearTimeout(tenSecTimer);
-      if (pollId) clearInterval(pollId);
+      cancelled = true;
+      clearTimeout(timeoutId);
+      controller.abort();
     };
   }, [router]);
 
+  // done 시 리다이렉트는 위 API 성공 분기에서 setTimeout으로 처리. 여기는 폴백용.
   useEffect(() => {
     if (!done) return;
-    const t = setTimeout(() => router.push(ROUTES.RESULT), 800);
+    const t = setTimeout(() => router.replace(ROUTES.RESULT), 1200);
     return () => clearTimeout(t);
   }, [done, router]);
 
@@ -94,7 +108,7 @@ export default function ResultLoadingPage() {
         </div>
         <p className="text-[13px] text-hanji-text/70">잠시만 기다려 주세요</p>
         <p className="mt-2 text-xs text-hanji-text/50">
-          약 10초 후 결과를 확인해요
+          사주·관상 분석에 1~2분 걸릴 수 있어요
         </p>
 
         {/* 단계 인디케이터 (스텝 dots) */}
@@ -127,7 +141,7 @@ export default function ResultLoadingPage() {
               style={{ width: `${progress}%` }}
             />
           </div>
-          <p className="mt-2 text-xs text-hanji-text/60">곧 결과를 보여드릴게요</p>
+          <p className="mt-2 text-xs text-hanji-text/60">완료되면 결과 페이지로 이동해요</p>
         </div>
 
         {error && (

@@ -10,6 +10,10 @@ export const metadata: Metadata = {
   ...(metadataBaseUrl ? { metadataBase: new URL(metadataBaseUrl) } : {}),
   title: "사주와 관상이 알려주는 내 인연",
   description: "진짜 나랑 잘 맞는 사람 누구야? 👀",
+  icons: {
+    icon: "/images/momo_logo_1024.png",
+    apple: "/images/momo_logo_1024.png",
+  },
   openGraph: {
     title: "사주와 관상이 알려주는 내 인연",
     description: "진짜 나랑 잘 맞는 사람 누구야? 👀",

@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/lib/constants";
 
+const LOADING_DURATION_MS = 10_000; // 10초 보여준 뒤 결과 확인
+const POLL_INTERVAL_MS = 10_000;   // 아직 없으면 10초마다 결과 폴링
 const LOADING_MESSAGES = [
   { title: "사주팔자를 계산하고 있어요...", sub: "잠시만 기다려 주세요" },
   { title: "AI가 사주를 해석하고 있어요...", sub: "조금만 더 기다려 주세요" },
@@ -14,29 +16,65 @@ export default function ResultLoadingPage() {
   const router = useRouter();
   const [phase, setPhase] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const [done, setDone] = useState(false);
+  const started = useRef(false);
 
   useEffect(() => {
     const steps = LOADING_MESSAGES.length;
-    const duration = 8000;
-    const interval = duration / (steps * 10);
+    const interval = 200;
     let t = 0;
     const timer = setInterval(() => {
       t += interval;
-      const p = Math.min(100, (t / duration) * 100);
+      const p = Math.min(100, (t / LOADING_DURATION_MS) * 100);
       setProgress(p);
-      setPhase(Math.min(steps - 1, Math.floor((t / duration) * steps)));
-      if (t >= duration) {
-        clearInterval(timer);
-      }
+      setPhase(Math.min(steps - 1, Math.floor((t / LOADING_DURATION_MS) * steps)));
     }, interval);
     return () => clearInterval(timer);
   }, []);
 
-  const done = progress >= 100;
+  useEffect(() => {
+    if (started.current) return;
+    started.current = true;
+
+    fetch("/api/run-analysis", { method: "POST" }).catch(() => {});
+
+    let pollId: ReturnType<typeof setInterval> | null = null;
+
+    const checkReady = async (): Promise<boolean> => {
+      const res = await fetch("/api/result-ready");
+      if (res.status === 401) {
+        router.replace(ROUTES.HOME);
+        return false;
+      }
+      const data = await res.json().catch(() => ({}));
+      return Boolean(data.ready);
+    };
+
+    const tenSecTimer = setTimeout(async () => {
+      setProgress(100);
+      setPhase(LOADING_MESSAGES.length - 1);
+      if (await checkReady()) {
+        setDone(true);
+        return;
+      }
+      pollId = setInterval(async () => {
+        if (await checkReady()) {
+          if (pollId) clearInterval(pollId);
+          setDone(true);
+        }
+      }, POLL_INTERVAL_MS);
+    }, LOADING_DURATION_MS);
+
+    return () => {
+      clearTimeout(tenSecTimer);
+      if (pollId) clearInterval(pollId);
+    };
+  }, [router]);
 
   useEffect(() => {
     if (!done) return;
-    const t = setTimeout(() => router.push(ROUTES.RESULT), 1500);
+    const t = setTimeout(() => router.push(ROUTES.RESULT), 800);
     return () => clearTimeout(t);
   }, [done, router]);
 
@@ -55,8 +93,8 @@ export default function ResultLoadingPage() {
           />
         </div>
         <p className="text-[13px] text-hanji-text/70">잠시만 기다려 주세요</p>
-        <p className="mt-1.5 text-xs text-hanji-text/50">
-          분석이 끝날 때까지 화면을 유지해 주세요
+        <p className="mt-2 text-xs text-hanji-text/50">
+          약 10초 후 결과를 확인해요
         </p>
 
         {/* 단계 인디케이터 (스텝 dots) */}
@@ -89,8 +127,21 @@ export default function ResultLoadingPage() {
               style={{ width: `${progress}%` }}
             />
           </div>
-          <p className="mt-2 text-xs text-hanji-text/60">약 1분 정도 걸릴 수 있어요</p>
+          <p className="mt-2 text-xs text-hanji-text/60">곧 결과를 보여드릴게요</p>
         </div>
+
+        {error && (
+          <div className="mt-6 text-center">
+            <p className="text-sm text-red-400">{error}</p>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="mt-3 text-sm text-brand underline"
+            >
+              다시 시도
+            </button>
+          </div>
+        )}
       </div>
       {done && (
         <p className="text-center text-sm text-hanji-text/80 pb-6 px-5">

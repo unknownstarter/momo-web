@@ -170,6 +170,27 @@ momo-web/
 - 색상/간격/타이포/라운딩 → Tailwind config 커스텀 토큰으로 관리
 - 오행 캐릭터 에셋은 Flutter 프로젝트에서 복사 (`/public/characters/`)
 - 다크 모드: 결과 페이지만 (사주/관상 결과 = 다크, 나머지 = 라이트)
+- **레이아웃·간격**: 토스 TDS 철학 반영 — 4px 그리드, 시맨틱 간격(섹션 간 32px·넉넉히 48px). 페이지 좌우 `px-5`, 카드 내부 `p-4`. 상세는 `docs/design/design-system.md` 3.1절.
+- **CTA 하단 고정 (MANDATORY)**: 모든 스크린에서 CTA 버튼은 **뷰포트 하단에 고정**. 콘텐츠 영역만 `flex-1 min-h-0 overflow-auto`로 스크롤, CtaBar는 `shrink-0`로 항상 하단 유지. 세로가 긴 화면에서도 버튼이 중간에 떠 있지 않게 할 것.
+
+### 영역 안 캐릭터 표시 규칙 (MANDATORY)
+**원형·카드 등 “영역” 안에 오행이 캐릭터를 넣을 때는 아래를 통일해서 적용한다.**
+
+- **목적**: 영역에 가리지 않고 **캐릭터 전체 모습**이 보이게, **정가운데** 배치.
+- **컨테이너**: `rounded-full overflow-hidden border-2 border-hanji flex items-center justify-center bg-hanji-secondary` (또는 영역에 맞는 파스텔 배경). 크기는 용도에 따라 `w-12 h-12`(48px) 등.
+- **이미지**: 반드시 **`object-contain`** 사용 (잘리지 않도록). **`object-cover` 사용 금지.**
+- **크기**: 영역보다 **작은** width/height로 넣어서 여백을 두고 전체가 들어가게 (예: 48px 원 안이면 이미지 28~36px). 영역에 가려지면 이미지 수치를 더 줄인다.
+- **정렬**: 컨테이너는 **`items-center justify-center`**로 캐릭터를 **정 가운데**에 둔다. `items-end`·`object-bottom` 등으로 밑으로 치우치지 않게 한다.
+- **여러 캐릭터 나란히**: 바깥 flex에 `items-center`, 원들은 `-space-x-1` 등으로 겹침 처리.
+
+```tsx
+// 예시 (48px 원, 캐릭터 28px로 전체 노출 + 중앙 정렬)
+<div className="w-12 h-12 rounded-full overflow-hidden border-2 border-hanji flex items-center justify-center bg-hanji-secondary">
+  <Image src="/images/characters/.../poses/waving.png" alt="" width={28} height={28} className="object-contain" unoptimized />
+</div>
+```
+
+- **동일한 “영역 안 캐릭터” UI**가 나오는 곳(랜딩, 바텀시트, 결과 등)은 모두 위 규칙을 따르도록 구현·수정한다.
 
 ### Git Workflow
 - 브랜치: `feature/`, `fix/`
@@ -250,3 +271,4 @@ momo-web/
 7. **서버 컴포넌트 우선**: `'use client'` 최소화, 데이터 페칭은 서버에서
 8. **OG 태그 SSR**: 공유 링크의 미리보기를 위해 메타데이터는 서버에서 생성
 9. **디자인**: 기존 앱 디자인 컨셉과 최대한 동일 — `docs/design/design-system.md` 준수
+10. **영역 안 캐릭터**: 원형·카드 등 영역 안 캐릭터는 `object-contain` + 컨테이너보다 작은 크기 + `items-center justify-center`로 전체 노출·중앙 정렬 (위 “영역 안 캐릭터 표시 규칙” 참고)

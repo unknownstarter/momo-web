@@ -2,10 +2,12 @@
 
 import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { MobileContainer } from "@/components/ui/mobile-container";
 import { Button } from "@/components/ui/button";
 import { CharacterBubble } from "@/components/onboarding/character-bubble";
 import { ProgressBar } from "@/components/onboarding/progress-bar";
+import { CtaBar } from "@/components/ui/cta-bar";
 import {
   ROUTES,
   SIJIN_OPTIONS,
@@ -23,6 +25,8 @@ export interface OnboardingFormData {
   birthDate: string;
   birthTime: string | null;
   photoPreview: string | null;
+  /** 업로드용 원본 파일 (Storage 업로드 시 사용) */
+  photoFile: File | null;
   height: string;
   occupation: string;
   location: string | null;
@@ -39,6 +43,7 @@ const initialForm: OnboardingFormData = {
   birthDate: "",
   birthTime: null,
   photoPreview: null,
+  photoFile: null,
   height: "",
   occupation: "",
   location: null,
@@ -56,8 +61,11 @@ function formatDateDisplay(dateStr: string): string {
 }
 
 export default function OnboardingPage() {
+  const router = useRouter();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<OnboardingFormData>(initialForm);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const goNext = useCallback(() => {
     if (step < ONBOARDING_STEP_COUNT - 1) setStep((s) => s + 1);
@@ -78,7 +86,7 @@ export default function OnboardingPage() {
     if (!file) return;
     setForm((f) => {
       if (f.photoPreview) URL.revokeObjectURL(f.photoPreview);
-      return { ...f, photoPreview: URL.createObjectURL(file) };
+      return { ...f, photoPreview: URL.createObjectURL(file), photoFile: file };
     });
   };
 
@@ -87,6 +95,14 @@ export default function OnboardingPage() {
       if (form.photoPreview) URL.revokeObjectURL(form.photoPreview);
     };
   }, [form.photoPreview]);
+
+  useEffect(() => {
+    (async () => {
+      const { createClient } = await import("@/lib/supabase/client");
+      const { data: { user } } = await createClient().auth.getUser();
+      if (!user) router.replace(ROUTES.HOME);
+    })();
+  }, [router]);
 
   return (
     <MobileContainer className="flex flex-col min-h-dvh bg-hanji">
@@ -109,7 +125,7 @@ export default function OnboardingPage() {
         <ProgressBar currentStep={step} />
       </div>
 
-      <main className="flex-1 px-5 pt-4 pb-8 flex flex-col">
+      <main className="flex-1 px-5 pt-6 pb-8 flex flex-col">
         {/* Step 0: 이름 */}
         {step === 0 && (
           <>
@@ -117,7 +133,7 @@ export default function OnboardingPage() {
               character="mulgyeori"
               message="반가워요! 이름이 뭐예요?"
             />
-            <div className="mt-6">
+            <div className="mt-8">
               <input
                 type="text"
                 value={form.name}
@@ -138,7 +154,7 @@ export default function OnboardingPage() {
                 {form.name.length}/10자
               </p>
             </div>
-            <div className="mt-auto pt-8">
+            <CtaBar className="mt-auto">
               <Button
                 size="lg"
                 className="w-full"
@@ -147,7 +163,7 @@ export default function OnboardingPage() {
               >
                 다음
               </Button>
-            </div>
+            </CtaBar>
           </>
         )}
 
@@ -158,11 +174,11 @@ export default function OnboardingPage() {
               character="mulgyeori"
               message={`${form.name}님, 성별을 알려주세요`}
             />
-            <div className="mt-6 flex gap-3">
+            <div className="mt-8 flex gap-3">
               <Button
-                variant={form.gender === "male" ? "primary" : "outline"}
+                variant="outline"
                 size="lg"
-                className="flex-1 min-h-[52px]"
+                className={`flex-1 min-h-[52px] ${form.gender === "male" ? "!bg-brand !border-brand text-ink" : ""}`}
                 onClick={() => {
                   setForm((f) => ({ ...f, gender: "male" }));
                   setTimeout(goNext, 300);
@@ -171,9 +187,9 @@ export default function OnboardingPage() {
                 남성
               </Button>
               <Button
-                variant={form.gender === "female" ? "primary" : "outline"}
+                variant="outline"
                 size="lg"
-                className="flex-1 min-h-[52px]"
+                className={`flex-1 min-h-[52px] ${form.gender === "female" ? "!bg-accent !border-accent text-ink" : ""}`}
                 onClick={() => {
                   setForm((f) => ({ ...f, gender: "female" }));
                   setTimeout(goNext, 300);
@@ -192,8 +208,8 @@ export default function OnboardingPage() {
               character="mulgyeori"
               message="생년월일을 알려주세요"
             />
-            <div className="mt-6">
-              <label className="block text-ink text-sm mb-1">생년월일</label>
+            <div className="mt-8">
+              <label className="block text-ink text-sm mb-2">생년월일</label>
               <input
                 type="date"
                 value={form.birthDate}
@@ -203,7 +219,7 @@ export default function OnboardingPage() {
                 className="w-full h-12 px-4 rounded-lg border border-hanji-border bg-hanji-elevated text-ink focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand"
               />
             </div>
-            <div className="mt-auto pt-8">
+            <CtaBar className="mt-auto">
               <Button
                 size="lg"
                 className="w-full"
@@ -212,7 +228,7 @@ export default function OnboardingPage() {
               >
                 다음
               </Button>
-            </div>
+            </CtaBar>
           </>
         )}
 
@@ -223,7 +239,7 @@ export default function OnboardingPage() {
               character="mulgyeori"
               message="태어난 시간까지 알면 훨씬 정확해져요! 몰라도 전혀 괜찮아요~"
             />
-            <div className="mt-6">
+            <div className="mt-8">
               <p className="text-ink text-sm mb-2">태어난 시간 (선택)</p>
               <div className="grid grid-cols-3 gap-2">
                 {SIJIN_OPTIONS.map((opt) => (
@@ -256,26 +272,26 @@ export default function OnboardingPage() {
               >
                 모르겠어요
               </button>
-              <p className="mt-3 text-xs text-ink-muted">
+              <p className="mt-4 text-xs text-ink-muted">
                 태어난 시간을 모르면 일주(日柱) 기반으로 분석해요. 나중에 수정할 수 있어요!
               </p>
             </div>
-            <div className="mt-auto pt-8">
+            <CtaBar className="mt-auto">
               <Button size="lg" className="w-full" onClick={goNext}>
                 다음
               </Button>
-            </div>
+            </CtaBar>
           </>
         )}
 
-        {/* Step 4: 사진 (궁합 매칭 활용 안내) */}
+        {/* Step 4: 사진 — 다음 누르면 프로필 저장 후 분석 API 백그라운드 호출 */}
         {step === 4 && (
           <>
             <CharacterBubble
               character="bulkkori"
               message="얼굴에 숨은 동물상이 궁금하지 않아요? 셀카 한 장이면 충분해요!"
             />
-            <div className="mt-4 p-4 rounded-xl bg-element-fire-pastel/40 border border-element-fire/30">
+            <div className="mt-8 p-4 rounded-xl bg-element-fire-pastel/40 border border-element-fire/30">
               <p className="text-ink-muted text-sm leading-relaxed">
                 정면을 바라본 사진이 가장 정확해요. AI가 관상을 분석해 동물상을 알려줄게요!
               </p>
@@ -283,7 +299,7 @@ export default function OnboardingPage() {
             <p className="mt-2 text-[11px] text-ink-tertiary">
               이 사진은 관상 분석과 앱에서 궁합 매칭할 때 활용돼요.
             </p>
-            <div className="mt-6">
+            <div className="mt-8">
               {form.photoPreview ? (
                 <div className="relative w-32 h-32 mx-auto rounded-full overflow-hidden border-2 border-hanji-border">
                   <img
@@ -313,16 +329,66 @@ export default function OnboardingPage() {
                 </label>
               )}
             </div>
-            <div className="mt-auto pt-8">
+            <CtaBar className="mt-auto">
               <Button
                 size="lg"
                 className="w-full"
-                disabled={!canProceedStep4}
-                onClick={goNext}
+                disabled={!canProceedStep4 || submitting}
+                onClick={async () => {
+                  setSubmitting(true);
+                  setSubmitError(null);
+                  try {
+                    const { createClient } = await import("@/lib/supabase/client");
+                    const supabase = createClient();
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (user) {
+                      let photoUrl: string | null = null;
+                      if (form.photoFile) {
+                        const path = `${user.id}/${Date.now()}.jpg`;
+                        const { error: upErr } = await supabase.storage
+                          .from("profile-images")
+                          .upload(path, form.photoFile, { contentType: form.photoFile.type || "image/jpeg", upsert: true });
+                        if (!upErr) {
+                          const { data: { publicUrl } } = supabase.storage.from("profile-images").getPublicUrl(path);
+                          photoUrl = publicUrl;
+                        }
+                      }
+                      const birthTime = form.birthTime ? `${form.birthTime}:00` : null;
+                      const { data: existing } = await supabase.from("profiles").select("id").eq("auth_id", user.id).maybeSingle();
+                      const payload = {
+                        name: form.name.trim(),
+                        gender: form.gender,
+                        birth_date: form.birthDate,
+                        birth_time: birthTime,
+                        ...(photoUrl ? { profile_images: [photoUrl] } : {}),
+                        last_active_at: new Date().toISOString(),
+                      };
+                      if (existing) {
+                        await supabase.from("profiles").update(payload).eq("auth_id", user.id);
+                      } else {
+                        await supabase.from("profiles").insert({
+                          auth_id: user.id,
+                          ...payload,
+                          profile_images: photoUrl ? [photoUrl] : [],
+                          is_saju_complete: false,
+                          is_gwansang_complete: false,
+                          is_profile_complete: false,
+                        });
+                      }
+                      fetch("/api/run-analysis", { method: "POST" }).catch(() => {});
+                    }
+                  } catch {
+                    setSubmitError("저장에 실패했어요. 확인 단계에서 다시 시도해 주세요.");
+                    setSubmitting(false);
+                    return;
+                  }
+                  setSubmitting(false);
+                  goNext();
+                }}
               >
-                다음
+                {submitting ? "저장 중…" : "다음"}
               </Button>
-            </div>
+            </CtaBar>
           </>
         )}
 
@@ -333,8 +399,8 @@ export default function OnboardingPage() {
               character="namuri"
               message="키가 어떻게 되세요?"
             />
-            <div className="mt-6">
-              <label className="block text-ink text-sm mb-1">키 (cm)</label>
+            <div className="mt-8">
+              <label className="block text-ink text-sm mb-2">키 (cm)</label>
               <input
                 type="text"
                 inputMode="numeric"
@@ -347,7 +413,7 @@ export default function OnboardingPage() {
                 className="w-full h-12 px-4 rounded-lg border border-hanji-border bg-hanji-elevated text-ink placeholder:text-ink-tertiary focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand"
               />
             </div>
-            <div className="mt-auto pt-8">
+            <CtaBar className="mt-auto">
               <Button
                 size="lg"
                 className="w-full"
@@ -356,7 +422,7 @@ export default function OnboardingPage() {
               >
                 다음
               </Button>
-            </div>
+            </CtaBar>
           </>
         )}
 
@@ -367,8 +433,8 @@ export default function OnboardingPage() {
               character="namuri"
               message="어떤 일을 하고 계세요?"
             />
-            <div className="mt-6">
-              <label className="block text-ink text-sm mb-1">직업</label>
+            <div className="mt-8">
+              <label className="block text-ink text-sm mb-2">직업</label>
               <input
                 type="text"
                 value={form.occupation}
@@ -377,7 +443,7 @@ export default function OnboardingPage() {
                 className="w-full h-12 px-4 rounded-lg border border-hanji-border bg-hanji-elevated text-ink placeholder:text-ink-tertiary focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand"
               />
             </div>
-            <div className="mt-auto pt-8">
+            <CtaBar className="mt-auto">
               <Button
                 size="lg"
                 className="w-full"
@@ -386,7 +452,7 @@ export default function OnboardingPage() {
               >
                 다음
               </Button>
-            </div>
+            </CtaBar>
           </>
         )}
 
@@ -397,7 +463,7 @@ export default function OnboardingPage() {
               character="heuksuni"
               message="주로 어디서 활동하세요?"
             />
-            <div className="mt-6 flex flex-wrap gap-2">
+            <div className="mt-8 flex flex-wrap gap-2">
               {LOCATION_OPTIONS.map((loc) => (
                 <button
                   key={loc}
@@ -426,7 +492,7 @@ export default function OnboardingPage() {
               character="bulkkori"
               message="체형을 알려주세요!"
             />
-            <div className="mt-6 flex flex-wrap gap-2">
+            <div className="mt-8 flex flex-wrap gap-2">
               {BODY_TYPE_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
@@ -455,7 +521,7 @@ export default function OnboardingPage() {
               character="soedongi"
               message="종교가 있으신가요?"
             />
-            <div className="mt-6 flex flex-wrap gap-2">
+            <div className="mt-8 flex flex-wrap gap-2">
               {RELIGION_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
@@ -484,8 +550,8 @@ export default function OnboardingPage() {
               character="mulgyeori"
               message="자기소개를 적어주세요! 건너뛰어도 괜찮아요~"
             />
-            <div className="mt-6">
-              <label className="block text-ink text-sm mb-1">자기소개</label>
+            <div className="mt-8">
+              <label className="block text-ink text-sm mb-2">자기소개</label>
               <textarea
                 value={form.bio}
                 onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value.slice(0, 300) }))}
@@ -495,14 +561,16 @@ export default function OnboardingPage() {
               />
               <p className="mt-1 text-right text-xs text-ink-tertiary">{form.bio.length}/300</p>
             </div>
-            <div className="mt-auto pt-8 flex gap-3">
-              <Button variant="outline" size="lg" className="flex-1" onClick={goNext}>
-                건너뛰기
-              </Button>
-              <Button size="lg" className="flex-1" onClick={goNext}>
-                다음
-              </Button>
-            </div>
+            <CtaBar className="mt-auto">
+              <div className="flex gap-3">
+                <Button variant="outline" size="lg" className="flex-1" onClick={goNext}>
+                  건너뛰기
+                </Button>
+                <Button size="lg" className="flex-1" onClick={goNext}>
+                  다음
+                </Button>
+              </div>
+            </CtaBar>
           </>
         )}
 
@@ -513,8 +581,8 @@ export default function OnboardingPage() {
               character="namuri"
               message="관심사를 골라주세요! 건너뛰어도 돼요~"
             />
-            <div className="mt-6">
-              <p className="text-ink-muted text-xs mb-3">
+            <div className="mt-8">
+              <p className="text-ink-muted text-xs mb-4">
                 {form.interests.length}/{INTEREST_MAX_SELECT}개 선택
                 {form.interests.length >= INTEREST_MAX_SELECT && (
                   <span className="text-red-600 ml-1">(최대)</span>
@@ -547,14 +615,16 @@ export default function OnboardingPage() {
                 })}
               </div>
             </div>
-            <div className="mt-auto pt-8 flex gap-3">
-              <Button variant="outline" size="lg" className="flex-1" onClick={goNext}>
-                건너뛰기
-              </Button>
-              <Button size="lg" className="flex-1" onClick={goNext}>
-                다음
-              </Button>
-            </div>
+            <CtaBar className="mt-auto">
+              <div className="flex gap-3">
+                <Button variant="outline" size="lg" className="flex-1" onClick={goNext}>
+                  건너뛰기
+                </Button>
+                <Button size="lg" className="flex-1" onClick={goNext}>
+                  다음
+                </Button>
+              </div>
+            </CtaBar>
           </>
         )}
 
@@ -565,8 +635,8 @@ export default function OnboardingPage() {
               character="bulkkori"
               message="어떤 사람을 만나고 싶어요? 건너뛰어도 돼요~"
             />
-            <div className="mt-6">
-              <label className="block text-ink text-sm mb-1">이상형</label>
+            <div className="mt-8">
+              <label className="block text-ink text-sm mb-2">이상형</label>
               <textarea
                 value={form.idealType}
                 onChange={(e) => setForm((f) => ({ ...f, idealType: e.target.value.slice(0, 200) }))}
@@ -576,14 +646,16 @@ export default function OnboardingPage() {
               />
               <p className="mt-1 text-right text-xs text-ink-tertiary">{form.idealType.length}/200</p>
             </div>
-            <div className="mt-auto pt-8 flex gap-3">
-              <Button variant="outline" size="lg" className="flex-1" onClick={goNext}>
-                건너뛰기
-              </Button>
-              <Button size="lg" className="flex-1" onClick={goNext}>
-                다음
-              </Button>
-            </div>
+            <CtaBar className="mt-auto">
+              <div className="flex gap-3">
+                <Button variant="outline" size="lg" className="flex-1" onClick={goNext}>
+                  건너뛰기
+                </Button>
+                <Button size="lg" className="flex-1" onClick={goNext}>
+                  다음
+                </Button>
+              </div>
+            </CtaBar>
           </>
         )}
 
@@ -594,7 +666,7 @@ export default function OnboardingPage() {
               character="mulgyeori"
               message="좋아요! 이제 조상님의 지혜를 빌려볼게요~"
             />
-            <div className="mt-6 bg-hanji-elevated rounded-2xl border border-hanji-border p-4 space-y-3 text-sm">
+            <div className="mt-8 bg-hanji-elevated rounded-2xl border border-hanji-border p-4 space-y-3 text-sm">
               {[
                 { label: "이름", value: form.name || "-", stepIndex: 0 },
                 { label: "성별", value: form.gender === "male" ? "남성" : form.gender === "female" ? "여성" : "-", stepIndex: 1 },
@@ -662,13 +734,96 @@ export default function OnboardingPage() {
                 </div>
               ))}
             </div>
-            <div className="mt-auto pt-8">
-              <Link href={ROUTES.RESULT_LOADING} className="block w-full">
-                <Button size="lg" className="w-full">
-                  분석 시작
-                </Button>
-              </Link>
-            </div>
+            <CtaBar className="mt-auto">
+              {submitError && (
+                <p className="text-sm text-red-600 mb-2" role="alert">
+                  {submitError}
+                </p>
+              )}
+              <Button
+                size="lg"
+                className="w-full"
+                disabled={submitting}
+                onClick={async () => {
+                  setSubmitError(null);
+                  setSubmitting(true);
+                  try {
+                    const { createClient } = await import("@/lib/supabase/client");
+                    const supabase = createClient();
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (!user) {
+                      router.push(ROUTES.HOME);
+                      return;
+                    }
+                    let photoUrl: string | null = null;
+                    if (form.photoFile) {
+                      const path = `${user.id}/${Date.now()}.jpg`;
+                      const { error: upErr } = await supabase.storage
+                        .from("profile-images")
+                        .upload(path, form.photoFile, { contentType: form.photoFile.type || "image/jpeg", upsert: true });
+                      if (upErr) {
+                        setSubmitError("사진 업로드에 실패했어요. 다시 시도해 주세요.");
+                        setSubmitting(false);
+                        return;
+                      }
+                      const { data: { publicUrl } } = supabase.storage.from("profile-images").getPublicUrl(path);
+                      photoUrl = publicUrl;
+                    }
+                    const birthTime = form.birthTime ? `${form.birthTime}:00` : null;
+                    const { data: existing } = await supabase.from("profiles").select("id").eq("auth_id", user.id).maybeSingle();
+                    const updatePayload = {
+                      name: form.name.trim(),
+                      gender: form.gender,
+                      birth_date: form.birthDate,
+                      birth_time: birthTime,
+                      ...(photoUrl ? { profile_images: [photoUrl] } : {}),
+                      height: form.height ? parseInt(form.height, 10) : null,
+                      occupation: form.occupation.trim() || null,
+                      location: form.location,
+                      body_type: form.bodyType,
+                      religion: form.religion,
+                      bio: form.bio.trim() || null,
+                      interests: form.interests.length ? form.interests : [],
+                      ideal_type: form.idealType.trim() || null,
+                      last_active_at: new Date().toISOString(),
+                      is_saju_complete: false,
+                      is_gwansang_complete: false,
+                      saju_profile_id: null,
+                      gwansang_profile_id: null,
+                    };
+                    if (existing) {
+                      const { error: upErr } = await supabase.from("profiles").update(updatePayload).eq("auth_id", user.id);
+                      if (upErr) {
+                        setSubmitError("저장에 실패했어요. 다시 시도해 주세요.");
+                        setSubmitting(false);
+                        return;
+                      }
+                    } else {
+                      const { error: inErr } = await supabase.from("profiles").insert({
+                        auth_id: user.id,
+                        ...updatePayload,
+                        profile_images: photoUrl ? [photoUrl] : [],
+                        is_profile_complete: false,
+                      });
+                      if (inErr) {
+                        setSubmitError("저장에 실패했어요. 다시 시도해 주세요.");
+                        setSubmitting(false);
+                        return;
+                      }
+                      fetch("/api/run-analysis", { method: "POST" }).catch(() => {});
+                    }
+                    if (typeof window !== "undefined") sessionStorage.setItem("momo_display_name", form.name.trim());
+                    router.push(ROUTES.RESULT_LOADING);
+                  } catch {
+                    setSubmitError("오류가 났어요. 다시 시도해 주세요.");
+                  } finally {
+                    setSubmitting(false);
+                  }
+                }}
+              >
+                {submitting ? "저장 중…" : "분석 시작"}
+              </Button>
+            </CtaBar>
           </>
         )}
       </main>

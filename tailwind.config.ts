@@ -48,6 +48,8 @@ const config: Config = {
           good: "#A8B0A0",
           average: "#959EA2",
         },
+        /** 랜딩 인트로 훅 액센트 (design-system 인트로 골드) */
+        intro: { gold: "#B8A080" },
       },
       borderRadius: {
         card: "16px",

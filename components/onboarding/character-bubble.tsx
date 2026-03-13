@@ -22,16 +22,16 @@ export function CharacterBubble({ character, message }: CharacterBubbleProps) {
 
   return (
     <div className="flex gap-3 items-start">
-      <div className="relative w-14 h-14 shrink-0 rounded-full overflow-hidden bg-hanji-border flex items-center justify-center">
+      <div className="relative w-14 h-14 shrink-0 rounded-full overflow-hidden border-2 border-hanji bg-hanji-secondary flex items-center justify-center">
         {imgError ? (
           <span className="text-ink-tertiary text-lg" aria-hidden>👤</span>
         ) : (
           <Image
             src={src}
             alt=""
-            width={56}
-            height={56}
-            className="object-cover"
+            width={36}
+            height={36}
+            className="object-contain"
             unoptimized
             onError={() => setImgError(true)}
           />

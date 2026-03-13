@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { MobileContainer } from "@/components/ui/mobile-container";
 import { Button } from "@/components/ui/button";
+import { CtaBar } from "@/components/ui/cta-bar";
 
 function normalizePhone(value: string): string {
   return value.replace(/\D/g, "");
@@ -35,27 +37,77 @@ export default function CompletePage() {
 
   if (submitted) {
     return (
-      <MobileContainer className="min-h-dvh bg-hanji flex flex-col items-center justify-center px-5 text-center">
-        <p className="text-2xl font-bold text-ink">🎉 신청 완료!</p>
-        <p className="mt-4 text-ink-muted">
-          앱 출시 시 알려드릴게요!
-        </p>
+      <MobileContainer className="min-h-dvh bg-hanji flex flex-col">
+        <div className="flex-1 flex flex-col items-center justify-center px-5 text-center">
+          {/* 완료 아이콘 — 브랜드 톤 */}
+          <div className="w-16 h-16 rounded-full bg-brand/20 flex items-center justify-center shrink-0" aria-hidden>
+            <span className="text-3xl text-brand">✓</span>
+          </div>
+          <h1 className="mt-6 text-[22px] font-bold text-ink tracking-tight">
+            신청 완료!
+          </h1>
+          <p className="mt-3 text-[15px] text-ink-muted leading-relaxed max-w-[280px]">
+            앱 출시 시 등록하신 번호로
+            <br />
+            <strong className="text-ink font-medium">가장 먼저</strong> 알려드릴게요.
+          </p>
+          <div className="mt-8 w-full max-w-[320px] rounded-2xl border border-hanji-border bg-hanji-elevated p-5 text-left">
+            <p className="text-sm font-medium text-ink">이렇게 할게요</p>
+            <ul className="mt-3 space-y-2 text-sm text-ink-muted leading-relaxed">
+              <li className="flex gap-2">
+                <span className="text-brand shrink-0">1.</span>
+                앱이 나오면 문자로 알려드려요.
+              </li>
+              <li className="flex gap-2">
+                <span className="text-brand shrink-0">2.</span>
+                앱에서 지금 만든 프로필로 바로 로그인할 수 있어요.
+              </li>
+              <li className="flex gap-2">
+                <span className="text-brand shrink-0">3.</span>
+                사주·궁합 맞는 인연 추천을 받을 수 있어요.
+              </li>
+            </ul>
+          </div>
+          <p className="mt-6 text-sm text-ink-tertiary">
+            그때까지 momo가 기다릴게요 ♥
+          </p>
+        </div>
+        <CtaBar className="flex flex-col gap-3">
+          <Link href="/result" className="block w-full">
+            <Button type="button" size="lg" className="w-full" variant="primary">
+              사주와 관상 결과보기
+            </Button>
+          </Link>
+          <Button
+            type="button"
+            size="lg"
+            variant="outline"
+            className="w-full"
+            onClick={async () => {
+              const { createClient } = await import("@/lib/supabase/client");
+              await createClient().auth.signOut();
+              window.location.href = "/";
+            }}
+          >
+            처음으로
+          </Button>
+        </CtaBar>
       </MobileContainer>
     );
   }
 
   return (
-    <MobileContainer className="min-h-dvh bg-hanji flex flex-col px-5 py-8">
-      <div className="flex-1">
+    <MobileContainer className="min-h-dvh bg-hanji flex flex-col px-5">
+      <div className="flex-1 min-h-0 overflow-auto py-8">
         <h1 className="text-xl font-bold text-ink">
           딱 맞는 인연을 찾을 수 있는 APP이 준비 중이에요.
         </h1>
-        <p className="mt-3 text-ink-muted text-sm leading-relaxed">
+        <p className="mt-2 text-ink-muted text-sm leading-relaxed">
           완료되면 인증하신 전화번호로 알려드릴게요!
         </p>
-        <form onSubmit={handleSubmit} className="mt-8 space-y-4">
+        <form id="complete-form" onSubmit={handleSubmit} className="mt-8 space-y-4">
           <div>
-            <label htmlFor="phone" className="block text-ink text-sm mb-1">
+            <label htmlFor="phone" className="block text-ink text-sm mb-2">
               전화번호
             </label>
             <input
@@ -88,16 +140,19 @@ export default function CompletePage() {
               문자 수신에 동의합니다 (앱 출시 알림)
             </span>
           </label>
-          <Button
-            type="submit"
-            size="lg"
-            className="w-full mt-6"
-            disabled={!canSubmit}
-          >
-            알림 받기
-          </Button>
         </form>
       </div>
+      <CtaBar>
+        <Button
+          type="submit"
+          form="complete-form"
+          size="lg"
+          className="w-full"
+          disabled={!canSubmit}
+        >
+          알림 받기
+        </Button>
+      </CtaBar>
     </MobileContainer>
   );
 }

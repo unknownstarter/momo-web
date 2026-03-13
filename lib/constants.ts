@@ -4,15 +4,12 @@
 export const ROUTES = {
   HOME: "/",
   LOGIN: "/login",
+  CALLBACK: "/callback",
   ONBOARDING: "/onboarding",
   RESULT_LOADING: "/result/loading",
   RESULT: "/result",
   COMPLETE: "/complete",
 } as const;
-
-export function getShareUrl(profileId: string, origin: string): string {
-  return `${origin}/share/${profileId}`;
-}
 
 /** 12시진 (자시 ~ 해시). DB값은 해당 시간대 대표 시각 HH:mm */
 export const SIJIN_OPTIONS = [

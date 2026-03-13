@@ -44,21 +44,21 @@ export function BottomSheet({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col justify-end"
+      className="fixed inset-0 z-50 flex flex-col justify-end items-center"
       aria-modal="true"
       role="dialog"
       aria-label="로그인"
     >
-      {/* 백드롭 */}
+      {/* 백드롭 — 전체 화면 */}
       <button
         type="button"
         onClick={onClose}
         className="absolute inset-0 bg-black/40"
         aria-label="닫기"
       />
-      {/* 시트 패널 */}
+      {/* 시트 패널 — 모바일 뷰와 동일한 최대 너비(430px)로 제한 */}
       <div
-        className={`relative bg-hanji rounded-t-2xl shadow-lg max-h-[85dvh] flex flex-col transition-transform duration-300 ease-out ${
+        className={`relative w-full max-w-mobile bg-hanji rounded-t-2xl shadow-lg max-h-[85dvh] flex flex-col transition-transform duration-300 ease-out ${
           mounted ? "translate-y-0" : "translate-y-full"
         }`}
         onClick={(e) => e.stopPropagation()}
@@ -68,7 +68,7 @@ export function BottomSheet({
             <span className="w-10 h-1 rounded-full bg-ink-tertiary/40" aria-hidden />
           </div>
         )}
-        <div className="px-5 pb-[env(safe-area-inset-bottom)] pb-6 overflow-auto">
+        <div className="px-5 pb-8 pb-[max(2rem,env(safe-area-inset-bottom))] overflow-auto">
           {children}
         </div>
       </div>

@@ -10,6 +10,6 @@
     @apply antialiased;
   }
   body {
-    @apply bg-hanji text-ink font-pretendard min-h-dvh;
+    @apply bg-hanji text-ink font-pretendard min-h-dvh overflow-x-hidden;
   }
 }

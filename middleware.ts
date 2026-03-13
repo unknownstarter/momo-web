@@ -25,7 +25,14 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // 로그인된 유저가 홈(/) 접속 시 → 사주·관상 결과 페이지로
+  if (user && request.nextUrl.pathname === "/") {
+    return NextResponse.redirect(new URL("/result", request.url));
+  }
 
   return response;
 }

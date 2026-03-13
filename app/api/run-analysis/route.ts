@@ -36,12 +36,10 @@ export async function POST() {
     return NextResponse.json({ ok: true, alreadyDone: true });
   }
 
-  if (p.saju_profile_id) {
-    await supabase.from("saju_profiles").delete().eq("id", p.saju_profile_id);
-  }
-  if (p.gwansang_profile_id) {
-    await supabase.from("gwansang_profiles").delete().eq("id", p.gwansang_profile_id);
-  }
+  // user_id 기반으로 삭제: step 4 백그라운드 분석이 먼저 완료된 후
+  // step 13에서 saju_profile_id를 null로 리셋하면 orphaned row가 남는 문제 방지
+  await supabase.from("saju_profiles").delete().eq("user_id", profile.id);
+  await supabase.from("gwansang_profiles").delete().eq("user_id", profile.id);
 
   const result = await runAnalysis(
     {

@@ -87,7 +87,7 @@ export async function runAnalysis(
 
     const { data: sajuRow, error: sajuErr } = await supabase
       .from("saju_profiles")
-      .insert({
+      .upsert({
         user_id: profile.id,
         year_pillar: yearPillar,
         month_pillar: monthPillar,
@@ -102,7 +102,7 @@ export async function runAnalysis(
         romance_key_points: (insight.romanceKeyPoints ?? insight.romance_key_points) ?? [],
         period_fortunes: insight.periodFortunes ?? insight.period_fortunes ?? null,
         yearly_fortune: insight.yearlyFortune ?? insight.yearly_fortune ?? null,
-      })
+      }, { onConflict: "user_id" })
       .select("id")
       .single();
 
@@ -112,7 +112,7 @@ export async function runAnalysis(
 
     const { data: gwansangRow, error: gwErr } = await supabase
       .from("gwansang_profiles")
-      .insert({
+      .upsert({
         user_id: profile.id,
         animal_type: (gwansang.animal_type as string) ?? "",
         animal_type_korean: (gwansang.animal_type_korean as string) ?? "",
@@ -132,7 +132,7 @@ export async function runAnalysis(
         ideal_match_traits: (gwansang.ideal_match_traits as string[]) ?? null,
         ideal_match_description: (gwansang.ideal_match_description as string) ?? null,
         photo_urls: photoUrl ? [photoUrl] : [],
-      })
+      }, { onConflict: "user_id" })
       .select("id")
       .single();
 

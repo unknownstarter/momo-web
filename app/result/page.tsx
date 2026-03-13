@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { MobileContainer } from "@/components/ui/mobile-container";
 import { Button } from "@/components/ui/button";
 import { CtaBar } from "@/components/ui/cta-bar";
@@ -72,6 +73,7 @@ interface ProfileRow {
 }
 
 export default function ResultPage() {
+  const router = useRouter();
   const [tab, setTab] = useState<"saju" | "gwansang">("saju");
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
@@ -169,6 +171,29 @@ export default function ResultPage() {
 
   const hasNoData = !sajuProfile && !gwansangProfile && !dataLoading;
 
+  useEffect(() => {
+    if (!hasNoData) return;
+    let cancelled = false;
+    (async () => {
+      const res = await fetch("/api/onboarding-step", { credentials: "include" });
+      if (!res.ok || cancelled) return;
+      const data = await res.json();
+      if (cancelled) return;
+      const step = data.step === "result" ? 0 : Number(data.step);
+      if (Number.isNaN(step) || step < 0) return;
+      router.replace(`${ROUTES.ONBOARDING}?step=${step}`);
+    })();
+    return () => { cancelled = true; };
+  }, [hasNoData, router]);
+
+  if (hasNoData) {
+    return (
+      <MobileContainer className="min-h-dvh bg-hanji flex flex-col items-center justify-center px-5">
+        <p className="text-ink-muted text-sm">이동 중…</p>
+      </MobileContainer>
+    );
+  }
+
   return (
     <MobileContainer className="h-dvh max-h-dvh bg-hanji text-ink flex flex-col overflow-hidden">
       {/* 앱 DestinyResultPage 스타일 헤더: 캐릭터 + 동물상 배지, 뱃지 Row, 요약 */}
@@ -253,13 +278,7 @@ export default function ResultPage() {
       </div>
 
       <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-5 pt-6 pb-8">
-        {hasNoData ? (
-          <div className="rounded-2xl border border-hanji-border bg-hanji-elevated p-6 text-center">
-            <p className="text-ink font-medium">아직 분석 결과가 없어요</p>
-            <p className="mt-2 text-sm text-ink-tertiary">확인 단계에서 &#39;분석 시작&#39;을 누르면 사주·관상 분석이 진행돼요. 분석이 끝나면 이 페이지에 결과가 표시됩니다.</p>
-          </div>
-        ) : (
-          <>
+        <>
             {tab === "saju" && sajuProfile && (
               <div className="space-y-8 pb-12">
                 <CharacterBubble
@@ -390,8 +409,7 @@ export default function ResultPage() {
                 />
               </div>
             )}
-          </>
-        )}
+        </>
       </div>
 
       <CtaBar className="shrink-0">

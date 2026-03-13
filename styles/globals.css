@@ -13,3 +13,9 @@
     @apply bg-hanji text-ink font-pretendard min-h-dvh overflow-x-hidden;
   }
 }
+
+@layer utilities {
+  .scroll-touch {
+    -webkit-overflow-scrolling: touch;
+  }
+}

@@ -1,7 +1,13 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "../styles/globals.css";
 import { LayoutContent } from "@/components/layout-content";
 import { GoogleAnalytics } from "@/components/google-analytics";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
 
 const metadataBaseUrl =
   process.env.NEXT_PUBLIC_APP_URL ||

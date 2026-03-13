@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { MobileContainer } from "@/components/ui/mobile-container";
 import { Button } from "@/components/ui/button";
 import { CharacterBubble } from "@/components/onboarding/character-bubble";
@@ -61,12 +61,14 @@ function formatDateDisplay(dateStr: string): string {
   return `${y}년 ${m}월 ${d}일`;
 }
 
-export default function OnboardingPage() {
+function OnboardingContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<OnboardingFormData>(initialForm);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const stepInitialized = useRef(false);
 
   const goNext = useCallback(() => {
     if (step === 0) trackClickNextInNickname();
@@ -101,10 +103,61 @@ export default function OnboardingPage() {
   useEffect(() => {
     (async () => {
       const { createClient } = await import("@/lib/supabase/client");
-      const { data: { user } } = await createClient().auth.getUser();
-      if (!user) router.replace(ROUTES.HOME);
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.replace(ROUTES.HOME);
+        return;
+      }
+      if (stepInitialized.current) return;
+      stepInitialized.current = true;
+
+      const stepParam = searchParams.get("step");
+      let targetStep = stepParam !== null ? parseInt(stepParam, 10) : NaN;
+      if (Number.isNaN(targetStep) || targetStep < 0 || targetStep >= ONBOARDING_STEP_COUNT) {
+        const res = await fetch("/api/onboarding-step", { credentials: "include" });
+        if (res.ok) {
+          const data = await res.json();
+          targetStep = data.step === "result" ? 0 : Number(data.step);
+          if (Number.isNaN(targetStep) || targetStep < 0) targetStep = 0;
+        } else {
+          targetStep = 0;
+        }
+      }
+
+      if (targetStep > 0) {
+        const { data: profileRow } = await supabase
+          .from("profiles")
+          .select("name, gender, birth_date, birth_time, profile_images, height, occupation, location, body_type, religion, bio, interests, ideal_type")
+          .eq("auth_id", user.id)
+          .maybeSingle();
+        if (profileRow) {
+          const birthTime = profileRow.birth_time
+            ? String(profileRow.birth_time).replace(/:00$/, "") ?? null
+            : null;
+          setForm({
+            name: profileRow.name ?? "",
+            gender: (profileRow.gender as "male" | "female") ?? null,
+            birthDate: profileRow.birth_date ?? "",
+            birthTime,
+            photoPreview: Array.isArray(profileRow.profile_images) && profileRow.profile_images[0]
+              ? profileRow.profile_images[0]
+              : null,
+            photoFile: null,
+            height: profileRow.height != null ? String(profileRow.height) : "",
+            occupation: profileRow.occupation ?? "",
+            location: profileRow.location ?? null,
+            bodyType: profileRow.body_type ?? null,
+            religion: profileRow.religion ?? null,
+            bio: profileRow.bio ?? "",
+            interests: Array.isArray(profileRow.interests) ? profileRow.interests : [],
+            idealType: profileRow.ideal_type ?? "",
+          });
+        }
+      }
+      setStep(targetStep);
     })();
-  }, [router]);
+  }, [router, searchParams]);
 
   useEffect(() => {
     if (step === 0) trackViewNickname();
@@ -131,7 +184,7 @@ export default function OnboardingPage() {
         <ProgressBar currentStep={step} />
       </div>
 
-      <main className="flex-1 px-5 pt-6 pb-8 flex flex-col">
+      <main className="flex-1 min-h-0 px-5 pt-6 pb-8 flex flex-col">
         {/* Step 0: 이름 */}
         {step === 0 && (
           <>
@@ -834,5 +887,19 @@ export default function OnboardingPage() {
         )}
       </main>
     </MobileContainer>
+  );
+}
+
+export default function OnboardingPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-dvh flex items-center justify-center bg-hanji">
+          <p className="text-ink-muted text-sm">로딩 중…</p>
+        </div>
+      }
+    >
+      <OnboardingContent />
+    </Suspense>
   );
 }

@@ -1,10 +1,13 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { ROUTES } from "@/lib/constants";
+import { getOnboardingStep } from "@/lib/onboarding-redirect";
 
 /**
- * 카카오 OAuth 콜백. Supabase가 code를 담아 리다이렉트함.
- * exchangeCodeForSession 후 profiles 존재 여부에 따라 /onboarding 또는 /result로 보냄.
+ * 카카오 OAuth 콜백. exchangeCodeForSession 후:
+ * - 결과 있음 → /result
+ * - 필수값 전부 있음(선택값 제외) → /onboarding?step=13
+ * - 그 외 → /onboarding?step=N (첫 번째 비어 있는 스텝)
  */
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
@@ -47,14 +50,15 @@ export async function GET(request: NextRequest) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, is_profile_complete, saju_profile_id")
+    .select("name, gender, birth_date, birth_time, profile_images, height, occupation, location, body_type, religion, saju_profile_id")
     .eq("auth_id", user.id)
     .maybeSingle();
 
-  // 프로필 없음 → 온보딩(닉네임부터). 프로필 미완료 → 온보딩. 프로필 완료 + 분석 결과 있음 → 결과.
-  const profileComplete = Boolean(profile?.is_profile_complete);
-  const hasResult = Boolean(profile?.saju_profile_id);
-  const redirectPath = !profile || !profileComplete || !hasResult ? ROUTES.ONBOARDING : ROUTES.RESULT;
+  const target = getOnboardingStep(profile);
+  const redirectPath =
+    target === "result"
+      ? ROUTES.RESULT
+      : `${ROUTES.ONBOARDING}?step=${target}`;
 
   return redirectWithCookies(origin + redirectPath, sessionCookies);
 }

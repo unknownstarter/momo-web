@@ -196,89 +196,104 @@ export default function ResultPage() {
 
   return (
     <MobileContainer className="h-dvh max-h-dvh bg-hanji text-ink flex flex-col overflow-hidden">
-      {/* 앱 DestinyResultPage 스타일 헤더: 캐릭터 + 동물상 배지, 뱃지 Row, 요약 */}
-      <header className="shrink-0 px-5 pt-6 pb-4">
-        <div className="flex flex-col items-center">
-          <div className="relative w-[140px] h-[120px] flex items-center justify-center">
-            <div
-              className="w-24 h-24 rounded-full border-[3px] overflow-hidden shrink-0 flex items-center justify-center"
-              style={{
-                background: `radial-gradient(circle, ${pastelColor} 0%, ${pastelColor}4D 100%)`,
-                borderColor: `${accentColor}4D`,
-              }}
-            >
-              <Image
-                src={`/images/characters/${effectiveCharacterType}/default.png`}
-                alt=""
-                width={96}
-                height={96}
-                className="object-cover w-full h-full"
-                unoptimized
-              />
+      {/* 헤더 + 탭 + 내용 전체를 내부 스크롤 컨테이너로 감싸기 */}
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden scroll-touch">
+        {/* 앱 DestinyResultPage 스타일 헤더: 캐릭터 + 동물상 배지, 뱃지 Row, 요약 */}
+        <header className="shrink-0 px-5 pt-6 pb-4">
+          <div className="flex flex-col items-center">
+            <div className="relative w-[140px] h-[120px] flex items-center justify-center">
+              <div
+                className="w-24 h-24 rounded-full border-[3px] overflow-hidden shrink-0 flex items-center justify-center"
+                style={{
+                  background: `radial-gradient(circle, ${pastelColor} 0%, ${pastelColor}4D 100%)`,
+                  borderColor: `${accentColor}4D`,
+                }}
+              >
+                <Image
+                  src={`/images/characters/${effectiveCharacterType}/default.png`}
+                  alt=""
+                  width={96}
+                  height={96}
+                  className="object-cover w-full h-full"
+                  unoptimized
+                />
+              </div>
+              {gwansangProfile && (
+                <div
+                  className="absolute right-0 bottom-0 min-w-[48px] min-h-[48px] px-3 py-2.5 rounded-full bg-hanji border-2 shadow-md flex items-center justify-center"
+                  style={{ borderColor: `${accentColor}4D` }}
+                >
+                  <span className="text-ink text-[13px] font-bold">
+                    {gwansangProfile.animal_type_korean}상
+                  </span>
+                </div>
+              )}
             </div>
-            {gwansangProfile && (
-              <div className="absolute right-0 bottom-0 min-w-[48px] min-h-[48px] px-3 py-2.5 rounded-full bg-hanji border-2 shadow-md flex items-center justify-center" style={{ borderColor: `${accentColor}4D` }}>
-                <span className="text-ink text-[13px] font-bold">{gwansangProfile.animal_type_korean}상</span>
+            <div className="mt-3 flex flex-wrap justify-center gap-2">
+              {nickname ? (
+                <span
+                  className="px-3 py-1 rounded-full text-xs font-semibold"
+                  style={{ backgroundColor: `${accentColor}1F`, color: accentColor }}
+                >
+                  {nickname}
+                </span>
+              ) : null}
+              {animalLabel && (
+                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-brand/20 text-ink">
+                  {animalLabel}
+                </span>
+              )}
+            </div>
+            {dominantEl && (
+              <div className="mt-2 flex flex-wrap justify-center gap-2">
+                <span
+                  className="px-2 py-0.5 rounded-full text-[11px] font-semibold"
+                  style={{ backgroundColor: `${accentColor}1F`, color: accentColor }}
+                >
+                  본성 {ELEMENT_KOREAN[elementKeyVal]}
+                </span>
               </div>
             )}
+            <p className="mt-2 text-sm text-ink-tertiary text-center min-h-[20px]">
+              {sajuProfile?.ai_interpretation
+                ? sajuProfile.ai_interpretation
+                    .slice(0, 50)
+                    .replace(/\n[\s\S]*/, "") +
+                  (sajuProfile.ai_interpretation.length > 50 ? "…" : "")
+                : dominantEl
+                  ? `${ELEMENT_KOREAN[elementKeyVal]} 기운의 사주`
+                  : ""}
+            </p>
           </div>
-          <div className="mt-3 flex flex-wrap justify-center gap-2">
-            {nickname ? (
-              <span className="px-3 py-1 rounded-full text-xs font-semibold" style={{ backgroundColor: `${accentColor}1F`, color: accentColor }}>
-                {nickname}
-              </span>
-            ) : null}
-            {animalLabel && (
-              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-brand/20 text-ink">
-                {animalLabel}
-              </span>
-            )}
+        </header>
+
+        {/* TabBar — 내부 스크롤 기준 sticky, 하단 CTA는 별도 고정 */}
+        <div className="sticky top-0 z-10 bg-hanji border-b border-hanji-border">
+          <div className="flex">
+            <button
+              type="button"
+              onClick={() => setTab("saju")}
+              className={`flex-1 py-3 text-[15px] font-semibold border-b-2 transition-colors ${
+                tab === "saju" ? "text-ink" : "text-ink-tertiary border-transparent"
+              }`}
+              style={tab === "saju" ? { borderColor: accentColor } : undefined}
+            >
+              사주
+            </button>
+            <button
+              type="button"
+              onClick={() => setTab("gwansang")}
+              className={`flex-1 py-3 text-[15px] font-semibold border-b-2 transition-colors ${
+                tab === "gwansang" ? "text-ink" : "text-ink-tertiary border-transparent"
+              }`}
+              style={tab === "gwansang" ? { borderColor: accentColor } : undefined}
+            >
+              관상
+            </button>
           </div>
-          {dominantEl && (
-            <div className="mt-2 flex flex-wrap justify-center gap-2">
-              <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold" style={{ backgroundColor: `${accentColor}1F`, color: accentColor }}>
-                본성 {ELEMENT_KOREAN[elementKeyVal]}
-              </span>
-            </div>
-          )}
-          <p className="mt-2 text-sm text-ink-tertiary text-center min-h-[20px]">
-            {sajuProfile?.ai_interpretation
-              ? sajuProfile.ai_interpretation.slice(0, 50).replace(/\n[\s\S]*/, "") + (sajuProfile.ai_interpretation.length > 50 ? "…" : "")
-              : dominantEl
-                ? `${ELEMENT_KOREAN[elementKeyVal]} 기운의 사주`
-                : ""}
-          </p>
         </div>
-      </header>
 
-      {/* TabBar — 스크롤 시 상단 고정, 하단 CTA는 별도 고정 */}
-      <div className="sticky top-0 z-10 bg-hanji border-b border-hanji-border">
-        <div className="flex">
-          <button
-            type="button"
-            onClick={() => setTab("saju")}
-            className={`flex-1 py-3 text-[15px] font-semibold border-b-2 transition-colors ${
-              tab === "saju" ? "text-ink" : "text-ink-tertiary border-transparent"
-            }`}
-            style={tab === "saju" ? { borderColor: accentColor } : undefined}
-          >
-            사주
-          </button>
-          <button
-            type="button"
-            onClick={() => setTab("gwansang")}
-            className={`flex-1 py-3 text-[15px] font-semibold border-b-2 transition-colors ${
-              tab === "gwansang" ? "text-ink" : "text-ink-tertiary border-transparent"
-            }`}
-            style={tab === "gwansang" ? { borderColor: accentColor } : undefined}
-          >
-            관상
-          </button>
-        </div>
-      </div>
-
-      <div className="flex-1 min-h-0 px-5 pt-6 pb-8">
-        <>
+        <div className="px-5 pt-6 pb-8">
             {tab === "saju" && sajuProfile && (
               <div className="space-y-8 pb-12">
                 <CharacterBubble
@@ -409,7 +424,7 @@ export default function ResultPage() {
                 />
               </div>
             )}
-        </>
+        </div>
       </div>
 
       <CtaBar className="shrink-0">

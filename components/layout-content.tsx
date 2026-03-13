@@ -11,7 +11,7 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="w-full max-w-mobile h-dvh mx-auto bg-hanji border-x border-[#E0DCD7] box-border overflow-hidden flex flex-col">
-      <div className="scroll-touch min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-behavior-y-contain">{children}</div>
+      <div className="min-h-0 flex-1 overflow-hidden">{children}</div>
       {showFooter && (
         <footer className="py-4 px-4 sm:px-5 border-t border-hanji-border shrink-0">
           <p className="text-xs text-ink-tertiary">Dropdown © 2026</p>

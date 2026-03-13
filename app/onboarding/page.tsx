@@ -205,6 +205,9 @@ function OnboardingContent() {
             is_profile_complete: false,
           });
         }
+        // 사주·관상 분석을 미리 시작 (이름/생년월일/생시/사진 확정됨)
+        // upsert(onConflict: "user_id")로 동시 호출 안전
+        fetch("/api/run-analysis", { method: "POST" }).catch(() => {});
       }
     } catch {
       setSubmitError("저장에 실패했어요. 확인 단계에서 다시 시도해 주세요.");

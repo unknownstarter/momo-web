@@ -36,11 +36,9 @@ export async function POST() {
     return NextResponse.json({ ok: true, alreadyDone: true });
   }
 
-  // user_id 기반으로 삭제: step 4 백그라운드 분석이 먼저 완료된 후
-  // step 13에서 saju_profile_id를 null로 리셋하면 orphaned row가 남는 문제 방지
-  await supabase.from("saju_profiles").delete().eq("user_id", profile.id);
-  await supabase.from("gwansang_profiles").delete().eq("user_id", profile.id);
-
+  // DELETE 없이 upsert(onConflict: "user_id")만으로 처리.
+  // DELETE가 있으면 동시 호출(step4 fire-and-forget + loading) 시
+  // 한쪽이 만든 row를 다른 쪽이 삭제해 saju_profile_id가 깨질 수 있음.
   const result = await runAnalysis(
     {
       id: profile.id,

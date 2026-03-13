@@ -47,15 +47,14 @@ export async function GET(request: NextRequest) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, is_saju_complete, is_profile_complete")
+    .select("id, is_profile_complete, saju_profile_id")
     .eq("auth_id", user.id)
     .maybeSingle();
 
-  const redirectPath = !profile
-    ? ROUTES.ONBOARDING
-    : profile.is_saju_complete
-      ? ROUTES.RESULT
-      : ROUTES.ONBOARDING;
+  // 프로필 없음 → 온보딩(닉네임부터). 프로필 미완료 → 온보딩. 프로필 완료 + 분석 결과 있음 → 결과.
+  const profileComplete = Boolean(profile?.is_profile_complete);
+  const hasResult = Boolean(profile?.saju_profile_id);
+  const redirectPath = !profile || !profileComplete || !hasResult ? ROUTES.ONBOARDING : ROUTES.RESULT;
 
   return redirectWithCookies(origin + redirectPath, sessionCookies);
 }

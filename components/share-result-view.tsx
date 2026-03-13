@@ -253,9 +253,9 @@ export function ShareResultView({
                 />
               </div>
             )}
-          </>
+            </>
+          )}
         </div>
-      </div>
       </div>
 
       <CtaBar className="shrink-0">

@@ -163,10 +163,141 @@ function OnboardingContent() {
     if (step === 0) trackViewNickname();
   }, [step]);
 
+  /* Step 4: 사진 저장 + 분석 백그라운드 호출 */
+  const handleStep4Submit = async () => {
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const { createClient } = await import("@/lib/supabase/client");
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        let photoUrl: string | null = null;
+        if (form.photoFile) {
+          const path = `${user.id}/${Date.now()}.jpg`;
+          const { error: upErr } = await supabase.storage
+            .from("profile-images")
+            .upload(path, form.photoFile, { contentType: form.photoFile.type || "image/jpeg", upsert: true });
+          if (!upErr) {
+            const { data: { publicUrl } } = supabase.storage.from("profile-images").getPublicUrl(path);
+            photoUrl = publicUrl;
+          }
+        }
+        const birthTime = form.birthTime ? `${form.birthTime}:00` : null;
+        const { data: existing } = await supabase.from("profiles").select("id").eq("auth_id", user.id).maybeSingle();
+        const payload = {
+          name: form.name.trim(),
+          gender: form.gender,
+          birth_date: form.birthDate,
+          birth_time: birthTime,
+          ...(photoUrl ? { profile_images: [photoUrl] } : {}),
+          last_active_at: new Date().toISOString(),
+        };
+        if (existing) {
+          await supabase.from("profiles").update(payload).eq("auth_id", user.id);
+        } else {
+          await supabase.from("profiles").insert({
+            auth_id: user.id,
+            ...payload,
+            profile_images: photoUrl ? [photoUrl] : [],
+            is_saju_complete: false,
+            is_gwansang_complete: false,
+            is_profile_complete: false,
+          });
+        }
+        fetch("/api/run-analysis", { method: "POST" }).catch(() => {});
+      }
+    } catch {
+      setSubmitError("저장에 실패했어요. 확인 단계에서 다시 시도해 주세요.");
+      setSubmitting(false);
+      return;
+    }
+    setSubmitting(false);
+    goNext();
+  };
+
+  /* Step 13: 최종 저장 + 분석 시작 */
+  const handleStep13Submit = async () => {
+    setSubmitError(null);
+    setSubmitting(true);
+    try {
+      const { createClient } = await import("@/lib/supabase/client");
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push(ROUTES.HOME);
+        return;
+      }
+      let photoUrl: string | null = null;
+      if (form.photoFile) {
+        const path = `${user.id}/${Date.now()}.jpg`;
+        const { error: upErr } = await supabase.storage
+          .from("profile-images")
+          .upload(path, form.photoFile, { contentType: form.photoFile.type || "image/jpeg", upsert: true });
+        if (upErr) {
+          setSubmitError("사진 업로드에 실패했어요. 다시 시도해 주세요.");
+          setSubmitting(false);
+          return;
+        }
+        const { data: { publicUrl } } = supabase.storage.from("profile-images").getPublicUrl(path);
+        photoUrl = publicUrl;
+      }
+      const birthTime = form.birthTime ? `${form.birthTime}:00` : null;
+      const { data: existing } = await supabase.from("profiles").select("id").eq("auth_id", user.id).maybeSingle();
+      const updatePayload = {
+        name: form.name.trim(),
+        gender: form.gender,
+        birth_date: form.birthDate,
+        birth_time: birthTime,
+        ...(photoUrl ? { profile_images: [photoUrl] } : {}),
+        height: form.height ? parseInt(form.height, 10) : null,
+        occupation: form.occupation.trim() || null,
+        location: form.location,
+        body_type: form.bodyType,
+        religion: form.religion,
+        bio: form.bio.trim() || null,
+        interests: form.interests.length ? form.interests : [],
+        ideal_type: form.idealType.trim() || null,
+        last_active_at: new Date().toISOString(),
+        is_saju_complete: false,
+        is_gwansang_complete: false,
+        saju_profile_id: null,
+        gwansang_profile_id: null,
+      };
+      if (existing) {
+        const { error: upErr } = await supabase.from("profiles").update(updatePayload).eq("auth_id", user.id);
+        if (upErr) {
+          setSubmitError("저장에 실패했어요. 다시 시도해 주세요.");
+          setSubmitting(false);
+          return;
+        }
+      } else {
+        const { error: inErr } = await supabase.from("profiles").insert({
+          auth_id: user.id,
+          ...updatePayload,
+          profile_images: photoUrl ? [photoUrl] : [],
+          is_profile_complete: false,
+        });
+        if (inErr) {
+          setSubmitError("저장에 실패했어요. 다시 시도해 주세요.");
+          setSubmitting(false);
+          return;
+        }
+        fetch("/api/run-analysis", { method: "POST" }).catch(() => {});
+      }
+      if (typeof window !== "undefined") sessionStorage.setItem("momo_display_name", form.name.trim());
+      router.push(ROUTES.RESULT_LOADING);
+    } catch {
+      setSubmitError("오류가 났어요. 다시 시도해 주세요.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
-    <MobileContainer className="flex flex-col min-h-dvh bg-hanji">
+    <MobileContainer className="h-dvh max-h-dvh flex flex-col bg-hanji overflow-hidden">
       {/* 뒤로가기: 맨 위, 터치 영역 넉넉하게 */}
-      <div className="px-5 pt-4 pb-2 flex items-center justify-between">
+      <div className="shrink-0 px-5 pt-4 pb-2 flex items-center justify-between">
         {step > 0 ? (
           <button
             type="button"
@@ -180,11 +311,12 @@ function OnboardingContent() {
           <span className="min-w-[48px]" aria-hidden />
         )}
       </div>
-      <div className="px-5 pb-4">
+      <div className="shrink-0 px-5 pb-4">
         <ProgressBar currentStep={step} />
       </div>
 
-      <main className="flex-1 min-h-0 px-5 pt-6 pb-8 flex flex-col overflow-y-auto overflow-x-hidden scroll-touch">
+      {/* 콘텐츠 스크롤 영역 — CTA는 이 바깥에서 고정 */}
+      <main className="flex-1 min-h-0 px-5 pt-6 pb-8 overflow-y-auto overflow-x-hidden scroll-touch">
         {/* Step 0: 이름 */}
         {step === 0 && (
           <>
@@ -213,16 +345,6 @@ function OnboardingContent() {
                 {form.name.length}/10자
               </p>
             </div>
-            <CtaBar className="mt-auto">
-              <Button
-                size="lg"
-                className="w-full"
-                disabled={!canProceedStep0}
-                onClick={goNext}
-              >
-                다음
-              </Button>
-            </CtaBar>
           </>
         )}
 
@@ -278,16 +400,6 @@ function OnboardingContent() {
                 className="w-full h-12 px-4 rounded-lg border border-hanji-border bg-hanji-elevated text-ink focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand"
               />
             </div>
-            <CtaBar className="mt-auto">
-              <Button
-                size="lg"
-                className="w-full"
-                disabled={!canProceedStep2}
-                onClick={goNext}
-              >
-                다음
-              </Button>
-            </CtaBar>
           </>
         )}
 
@@ -335,15 +447,10 @@ function OnboardingContent() {
                 태어난 시간을 모르면 일주(日柱) 기반으로 분석해요. 나중에 수정할 수 있어요!
               </p>
             </div>
-            <CtaBar className="mt-auto">
-              <Button size="lg" className="w-full" onClick={goNext}>
-                다음
-              </Button>
-            </CtaBar>
           </>
         )}
 
-        {/* Step 4: 사진 — 다음 누르면 프로필 저장 후 분석 API 백그라운드 호출 */}
+        {/* Step 4: 사진 */}
         {step === 4 && (
           <>
             <CharacterBubble
@@ -388,66 +495,6 @@ function OnboardingContent() {
                 </label>
               )}
             </div>
-            <CtaBar className="mt-auto">
-              <Button
-                size="lg"
-                className="w-full"
-                disabled={!canProceedStep4 || submitting}
-                onClick={async () => {
-                  setSubmitting(true);
-                  setSubmitError(null);
-                  try {
-                    const { createClient } = await import("@/lib/supabase/client");
-                    const supabase = createClient();
-                    const { data: { user } } = await supabase.auth.getUser();
-                    if (user) {
-                      let photoUrl: string | null = null;
-                      if (form.photoFile) {
-                        const path = `${user.id}/${Date.now()}.jpg`;
-                        const { error: upErr } = await supabase.storage
-                          .from("profile-images")
-                          .upload(path, form.photoFile, { contentType: form.photoFile.type || "image/jpeg", upsert: true });
-                        if (!upErr) {
-                          const { data: { publicUrl } } = supabase.storage.from("profile-images").getPublicUrl(path);
-                          photoUrl = publicUrl;
-                        }
-                      }
-                      const birthTime = form.birthTime ? `${form.birthTime}:00` : null;
-                      const { data: existing } = await supabase.from("profiles").select("id").eq("auth_id", user.id).maybeSingle();
-                      const payload = {
-                        name: form.name.trim(),
-                        gender: form.gender,
-                        birth_date: form.birthDate,
-                        birth_time: birthTime,
-                        ...(photoUrl ? { profile_images: [photoUrl] } : {}),
-                        last_active_at: new Date().toISOString(),
-                      };
-                      if (existing) {
-                        await supabase.from("profiles").update(payload).eq("auth_id", user.id);
-                      } else {
-                        await supabase.from("profiles").insert({
-                          auth_id: user.id,
-                          ...payload,
-                          profile_images: photoUrl ? [photoUrl] : [],
-                          is_saju_complete: false,
-                          is_gwansang_complete: false,
-                          is_profile_complete: false,
-                        });
-                      }
-                      fetch("/api/run-analysis", { method: "POST" }).catch(() => {});
-                    }
-                  } catch {
-                    setSubmitError("저장에 실패했어요. 확인 단계에서 다시 시도해 주세요.");
-                    setSubmitting(false);
-                    return;
-                  }
-                  setSubmitting(false);
-                  goNext();
-                }}
-              >
-                {submitting ? "저장 중…" : "다음"}
-              </Button>
-            </CtaBar>
           </>
         )}
 
@@ -472,16 +519,6 @@ function OnboardingContent() {
                 className="w-full h-12 px-4 rounded-lg border border-hanji-border bg-hanji-elevated text-ink placeholder:text-ink-tertiary focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand"
               />
             </div>
-            <CtaBar className="mt-auto">
-              <Button
-                size="lg"
-                className="w-full"
-                disabled={!canProceedStep5}
-                onClick={goNext}
-              >
-                다음
-              </Button>
-            </CtaBar>
           </>
         )}
 
@@ -502,16 +539,6 @@ function OnboardingContent() {
                 className="w-full h-12 px-4 rounded-lg border border-hanji-border bg-hanji-elevated text-ink placeholder:text-ink-tertiary focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand"
               />
             </div>
-            <CtaBar className="mt-auto">
-              <Button
-                size="lg"
-                className="w-full"
-                disabled={!canProceedStep6}
-                onClick={goNext}
-              >
-                다음
-              </Button>
-            </CtaBar>
           </>
         )}
 
@@ -620,16 +647,6 @@ function OnboardingContent() {
               />
               <p className="mt-1 text-right text-xs text-ink-tertiary">{form.bio.length}/300</p>
             </div>
-            <CtaBar className="mt-auto">
-              <div className="flex gap-3">
-                <Button variant="outline" size="lg" className="flex-1" onClick={goNext}>
-                  건너뛰기
-                </Button>
-                <Button size="lg" className="flex-1" onClick={goNext}>
-                  다음
-                </Button>
-              </div>
-            </CtaBar>
           </>
         )}
 
@@ -674,16 +691,6 @@ function OnboardingContent() {
                 })}
               </div>
             </div>
-            <CtaBar className="mt-auto">
-              <div className="flex gap-3">
-                <Button variant="outline" size="lg" className="flex-1" onClick={goNext}>
-                  건너뛰기
-                </Button>
-                <Button size="lg" className="flex-1" onClick={goNext}>
-                  다음
-                </Button>
-              </div>
-            </CtaBar>
           </>
         )}
 
@@ -705,20 +712,10 @@ function OnboardingContent() {
               />
               <p className="mt-1 text-right text-xs text-ink-tertiary">{form.idealType.length}/200</p>
             </div>
-            <CtaBar className="mt-auto">
-              <div className="flex gap-3">
-                <Button variant="outline" size="lg" className="flex-1" onClick={goNext}>
-                  건너뛰기
-                </Button>
-                <Button size="lg" className="flex-1" onClick={goNext}>
-                  다음
-                </Button>
-              </div>
-            </CtaBar>
           </>
         )}
 
-        {/* Step 13: 확인 요약 → 행별 수정하기 + 분석 시작 */}
+        {/* Step 13: 확인 요약 */}
         {step === 13 && (
           <>
             <CharacterBubble
@@ -793,99 +790,101 @@ function OnboardingContent() {
                 </div>
               ))}
             </div>
-            <CtaBar className="mt-auto">
-              {submitError && (
-                <p className="text-sm text-red-600 mb-2" role="alert">
-                  {submitError}
-                </p>
-              )}
-              <Button
-                size="lg"
-                className="w-full"
-                disabled={submitting}
-                onClick={async () => {
-                  setSubmitError(null);
-                  setSubmitting(true);
-                  try {
-                    const { createClient } = await import("@/lib/supabase/client");
-                    const supabase = createClient();
-                    const { data: { user } } = await supabase.auth.getUser();
-                    if (!user) {
-                      router.push(ROUTES.HOME);
-                      return;
-                    }
-                    let photoUrl: string | null = null;
-                    if (form.photoFile) {
-                      const path = `${user.id}/${Date.now()}.jpg`;
-                      const { error: upErr } = await supabase.storage
-                        .from("profile-images")
-                        .upload(path, form.photoFile, { contentType: form.photoFile.type || "image/jpeg", upsert: true });
-                      if (upErr) {
-                        setSubmitError("사진 업로드에 실패했어요. 다시 시도해 주세요.");
-                        setSubmitting(false);
-                        return;
-                      }
-                      const { data: { publicUrl } } = supabase.storage.from("profile-images").getPublicUrl(path);
-                      photoUrl = publicUrl;
-                    }
-                    const birthTime = form.birthTime ? `${form.birthTime}:00` : null;
-                    const { data: existing } = await supabase.from("profiles").select("id").eq("auth_id", user.id).maybeSingle();
-                    const updatePayload = {
-                      name: form.name.trim(),
-                      gender: form.gender,
-                      birth_date: form.birthDate,
-                      birth_time: birthTime,
-                      ...(photoUrl ? { profile_images: [photoUrl] } : {}),
-                      height: form.height ? parseInt(form.height, 10) : null,
-                      occupation: form.occupation.trim() || null,
-                      location: form.location,
-                      body_type: form.bodyType,
-                      religion: form.religion,
-                      bio: form.bio.trim() || null,
-                      interests: form.interests.length ? form.interests : [],
-                      ideal_type: form.idealType.trim() || null,
-                      last_active_at: new Date().toISOString(),
-                      is_saju_complete: false,
-                      is_gwansang_complete: false,
-                      saju_profile_id: null,
-                      gwansang_profile_id: null,
-                    };
-                    if (existing) {
-                      const { error: upErr } = await supabase.from("profiles").update(updatePayload).eq("auth_id", user.id);
-                      if (upErr) {
-                        setSubmitError("저장에 실패했어요. 다시 시도해 주세요.");
-                        setSubmitting(false);
-                        return;
-                      }
-                    } else {
-                      const { error: inErr } = await supabase.from("profiles").insert({
-                        auth_id: user.id,
-                        ...updatePayload,
-                        profile_images: photoUrl ? [photoUrl] : [],
-                        is_profile_complete: false,
-                      });
-                      if (inErr) {
-                        setSubmitError("저장에 실패했어요. 다시 시도해 주세요.");
-                        setSubmitting(false);
-                        return;
-                      }
-                      fetch("/api/run-analysis", { method: "POST" }).catch(() => {});
-                    }
-                    if (typeof window !== "undefined") sessionStorage.setItem("momo_display_name", form.name.trim());
-                    router.push(ROUTES.RESULT_LOADING);
-                  } catch {
-                    setSubmitError("오류가 났어요. 다시 시도해 주세요.");
-                  } finally {
-                    setSubmitting(false);
-                  }
-                }}
-              >
-                {submitting ? "저장 중…" : "분석 시작"}
-              </Button>
-            </CtaBar>
           </>
         )}
       </main>
+
+      {/* ── CTA 영역: 스크롤 밖, 뷰포트 하단에 항상 고정 ── */}
+      {step === 0 && (
+        <CtaBar>
+          <Button size="lg" className="w-full" disabled={!canProceedStep0} onClick={goNext}>
+            다음
+          </Button>
+        </CtaBar>
+      )}
+      {step === 2 && (
+        <CtaBar>
+          <Button size="lg" className="w-full" disabled={!canProceedStep2} onClick={goNext}>
+            다음
+          </Button>
+        </CtaBar>
+      )}
+      {step === 3 && (
+        <CtaBar>
+          <Button size="lg" className="w-full" onClick={goNext}>
+            다음
+          </Button>
+        </CtaBar>
+      )}
+      {step === 4 && (
+        <CtaBar>
+          <Button size="lg" className="w-full" disabled={!canProceedStep4 || submitting} onClick={handleStep4Submit}>
+            {submitting ? "저장 중…" : "다음"}
+          </Button>
+        </CtaBar>
+      )}
+      {step === 5 && (
+        <CtaBar>
+          <Button size="lg" className="w-full" disabled={!canProceedStep5} onClick={goNext}>
+            다음
+          </Button>
+        </CtaBar>
+      )}
+      {step === 6 && (
+        <CtaBar>
+          <Button size="lg" className="w-full" disabled={!canProceedStep6} onClick={goNext}>
+            다음
+          </Button>
+        </CtaBar>
+      )}
+      {step === 10 && (
+        <CtaBar>
+          <div className="flex gap-3">
+            <Button variant="outline" size="lg" className="flex-1" onClick={goNext}>
+              건너뛰기
+            </Button>
+            <Button size="lg" className="flex-1" onClick={goNext}>
+              다음
+            </Button>
+          </div>
+        </CtaBar>
+      )}
+      {step === 11 && (
+        <CtaBar>
+          <div className="flex gap-3">
+            <Button variant="outline" size="lg" className="flex-1" onClick={goNext}>
+              건너뛰기
+            </Button>
+            <Button size="lg" className="flex-1" onClick={goNext}>
+              다음
+            </Button>
+          </div>
+        </CtaBar>
+      )}
+      {step === 12 && (
+        <CtaBar>
+          <div className="flex gap-3">
+            <Button variant="outline" size="lg" className="flex-1" onClick={goNext}>
+              건너뛰기
+            </Button>
+            <Button size="lg" className="flex-1" onClick={goNext}>
+              다음
+            </Button>
+          </div>
+        </CtaBar>
+      )}
+      {step === 13 && (
+        <CtaBar>
+          {submitError && (
+            <p className="text-sm text-red-600 mb-2" role="alert">
+              {submitError}
+            </p>
+          )}
+          <Button size="lg" className="w-full" disabled={submitting} onClick={handleStep13Submit}>
+            {submitting ? "저장 중…" : "분석 시작"}
+          </Button>
+        </CtaBar>
+      )}
     </MobileContainer>
   );
 }

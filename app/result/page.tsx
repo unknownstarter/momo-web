@@ -251,8 +251,8 @@ export default function ResultPage() {
         </div>
       </header>
 
-      {/* TabBar — 앱과 동일, 인디케이터 색 = 오행 */}
-      <div className="shrink-0 bg-hanji border-b border-hanji-border">
+      {/* TabBar — 스크롤 시 상단 고정, 하단 CTA는 별도 고정 */}
+      <div className="sticky top-0 z-10 bg-hanji border-b border-hanji-border">
         <div className="flex">
           <button
             type="button"
@@ -277,7 +277,7 @@ export default function ResultPage() {
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-5 pt-6 pb-8">
+      <div className="flex-1 min-h-0 px-5 pt-6 pb-8">
         <>
             {tab === "saju" && sajuProfile && (
               <div className="space-y-8 pb-12">

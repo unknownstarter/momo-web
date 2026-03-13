@@ -153,9 +153,24 @@ export default function ResultPage() {
   const handleShare = async () => {
     if (!shareUrl || typeof window === "undefined") return;
     trackClickShareInResult();
-    await navigator.clipboard.writeText(shareUrl);
-    setShareCopied(true);
-    setTimeout(() => setShareCopied(false), 2000);
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: `${nickname}님의 사주·관상 결과`,
+          url: shareUrl,
+        });
+        return;
+      }
+    } catch (e) {
+      if (e instanceof Error && e.name === "AbortError") return;
+    }
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2000);
+    } catch {
+      window.prompt("링크를 복사해 주세요:", shareUrl);
+    }
   };
 
   const dominantEl = profile?.dominant_element ?? sajuProfile?.dominant_element ?? null;

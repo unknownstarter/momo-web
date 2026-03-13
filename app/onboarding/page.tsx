@@ -205,7 +205,6 @@ function OnboardingContent() {
             is_profile_complete: false,
           });
         }
-        fetch("/api/run-analysis", { method: "POST" }).catch(() => {});
       }
     } catch {
       setSubmitError("저장에 실패했어요. 확인 단계에서 다시 시도해 주세요.");
@@ -283,7 +282,6 @@ function OnboardingContent() {
           setSubmitting(false);
           return;
         }
-        fetch("/api/run-analysis", { method: "POST" }).catch(() => {});
       }
       if (typeof window !== "undefined") sessionStorage.setItem("momo_display_name", form.name.trim());
       router.push(ROUTES.RESULT_LOADING);

@@ -78,11 +78,11 @@ export function ShareResultView({
                 unoptimized
               />
             </div>
-            {gwansangProfile?.animal_type_korean && (
+            {gwansangProfile?.animal_type_korean ? (
               <div className="absolute right-0 bottom-0 min-w-[48px] min-h-[48px] px-3 py-2.5 rounded-full bg-hanji border-2 shadow-md flex items-center justify-center" style={{ borderColor: `${accentColor}4D` }}>
                 <span className="text-ink text-[13px] font-bold">{String(gwansangProfile.animal_type_korean)}상</span>
               </div>
-            )}
+            ) : null}
           </div>
           <p className="mt-3 text-sm font-semibold text-ink">{profileName}님의 사주·관상</p>
         </div>
@@ -162,7 +162,7 @@ export function ShareResultView({
                     </div>
                   </div>
                 ) : null}
-                {sajuProfile.yearly_fortune && (sajuProfile.yearly_fortune as { summary?: string }).summary ? (
+                {(sajuProfile.yearly_fortune as { summary?: string } | null)?.summary ? (
                   <div>
                     <SectionTitle>{(sajuProfile.yearly_fortune as { year?: number }).year ?? ""}년 운세</SectionTitle>
                     <div className="mt-4">
@@ -178,9 +178,9 @@ export function ShareResultView({
                     </div>
                   </div>
                 ) : null}
-                {sajuProfile.romance_style && <RomanceStyleCard style={String(sajuProfile.romance_style)} />}
+                {sajuProfile.romance_style ? <RomanceStyleCard style={String(sajuProfile.romance_style)} /> : null}
                 {(sajuProfile.romance_key_points as string[] | null)?.length ? <RomanceKeyPointsCard points={sajuProfile.romance_key_points as string[]} /> : null}
-                {sajuProfile.ideal_match && (sajuProfile.ideal_match as { description?: string }).description ? (
+                {(sajuProfile.ideal_match as { description?: string } | null)?.description ? (
                   <div>
                     <SectionTitle>잘 맞는 이상형의 사주</SectionTitle>
                     <div className="mt-4">

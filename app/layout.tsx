@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "../styles/globals.css";
 import { LayoutContent } from "@/components/layout-content";
+import { GoogleAnalytics } from "@/components/google-analytics";
 
 const metadataBaseUrl =
   process.env.NEXT_PUBLIC_APP_URL ||
@@ -36,6 +37,7 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className="font-pretendard antialiased">
+        <GoogleAnalytics />
         <LayoutContent>{children}</LayoutContent>
       </body>
     </html>

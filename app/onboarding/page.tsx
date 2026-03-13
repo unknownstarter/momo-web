@@ -18,6 +18,7 @@ import {
   INTEREST_OPTIONS,
   INTEREST_MAX_SELECT,
 } from "@/lib/constants";
+import { trackViewNickname, trackClickNextInNickname } from "@/lib/analytics";
 
 export interface OnboardingFormData {
   name: string;
@@ -68,6 +69,7 @@ export default function OnboardingPage() {
   const [submitting, setSubmitting] = useState(false);
 
   const goNext = useCallback(() => {
+    if (step === 0) trackClickNextInNickname();
     if (step < ONBOARDING_STEP_COUNT - 1) setStep((s) => s + 1);
   }, [step]);
 
@@ -103,6 +105,10 @@ export default function OnboardingPage() {
       if (!user) router.replace(ROUTES.HOME);
     })();
   }, [router]);
+
+  useEffect(() => {
+    if (step === 0) trackViewNickname();
+  }, [step]);
 
   return (
     <MobileContainer className="flex flex-col min-h-dvh bg-hanji">

@@ -28,6 +28,7 @@ import { SamjeongCard } from "@/components/result/samjeong-card";
 import { OgwanCard } from "@/components/result/ogwan-card";
 import { TraitsChart } from "@/components/result/traits-chart";
 import { IdealMatchGwansangCard } from "@/components/result/ideal-match-gwansang-card";
+import { trackClickShareInResult } from "@/lib/analytics";
 
 interface SajuProfileRow {
   year_pillar: unknown;
@@ -149,6 +150,7 @@ export default function ResultPage() {
 
   const handleShare = async () => {
     if (!shareUrl || typeof window === "undefined") return;
+    trackClickShareInResult();
     await navigator.clipboard.writeText(shareUrl);
     setShareCopied(true);
     setTimeout(() => setShareCopied(false), 2000);

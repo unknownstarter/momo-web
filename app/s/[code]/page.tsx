@@ -3,22 +3,27 @@ import { MobileContainer } from "@/components/ui/mobile-container";
 import { Button } from "@/components/ui/button";
 import { CtaBar } from "@/components/ui/cta-bar";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { decodeShareToken } from "@/lib/share-token";
 import { ShareResultView } from "@/components/share-result-view";
 
-interface SharePageProps {
-  params: Promise<{ id: string }>;
+interface ShortSharePageProps {
+  params: Promise<{ code: string }>;
 }
 
 /**
- * 공유 링크 /share/[token]. token은 프로필 ID가 아닌 암호화된 값(개인정보 노출 방지).
- * 서버에서 admin 클라이언트로 프로필 + 사주·관상 결과 조회 후 전달 (RLS 우회).
+ * 짧은 공유 링크 /s/[code]. share_links 테이블에서 profile_id 조회 후
+ * admin으로 프로필 + 사주·관상 결과 조회해 전달 (RLS 우회).
  */
-export default async function SharePage({ params }: SharePageProps) {
-  const { id: token } = await params;
-  const profileId = decodeShareToken(token);
+export default async function ShortSharePage({ params }: ShortSharePageProps) {
+  const { code } = await params;
 
-  if (!profileId) {
+  const supabase = createAdminClient();
+  const { data: link, error: linkError } = await supabase
+    .from("share_links")
+    .select("profile_id")
+    .eq("short_id", code)
+    .maybeSingle();
+
+  if (linkError || !link?.profile_id) {
     return (
       <MobileContainer className="min-h-dvh bg-hanji flex flex-col px-5">
         <div className="flex-1 flex flex-col items-center justify-center text-center py-8">
@@ -36,7 +41,8 @@ export default async function SharePage({ params }: SharePageProps) {
     );
   }
 
-  const supabase = createAdminClient();
+  const profileId = link.profile_id as string;
+
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("id, name, character_type, dominant_element, saju_profile_id, gwansang_profile_id")

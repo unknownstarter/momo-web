@@ -5,6 +5,38 @@
 
 ---
 
+## 2026-03-13: 공유 짧은 링크용 share_links (momo-web 전용)
+
+**목적**: 공유 URL을 `https://도메인/s/abc12xyz` 형태로 짧게 제공.
+
+### share_links 테이블 (신규)
+
+Supabase SQL Editor에서 실행:
+
+```sql
+-- 공유 짧은 코드 → profile_id 매핑 (momo-web 전용)
+CREATE TABLE IF NOT EXISTS share_links (
+  short_id text PRIMARY KEY,
+  profile_id uuid NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_share_links_profile_id ON share_links(profile_id);
+
+-- RLS: 정책 없이 활성화 → anon/authenticated 접근 불가, service role만 사용(우회)
+ALTER TABLE share_links ENABLE ROW LEVEL SECURITY;
+```
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| `short_id` | text | 8자 영소문자+숫자 코드 (예: a1b2c3d4) |
+| `profile_id` | uuid | profiles.id |
+| `created_at` | timestamptz | 생성 시각 |
+
+**동작**: `/api/share-url` 호출 시 profile_id에 대해 기존 short_id가 있으면 재사용, 없으면 새로 생성해 `https://도메인/s/{short_id}` 반환.
+
+---
+
 ## 2026-03-09: 이상형 매칭 컬럼 추가
 
 **브랜치**: `feature/ideal-match-section`

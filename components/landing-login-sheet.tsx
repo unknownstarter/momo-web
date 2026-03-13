@@ -1,22 +1,50 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { createClient } from "@/lib/supabase/client";
 import { ROUTES } from "@/lib/constants";
+import {
+  trackClickLoginButtonInMain,
+  trackViewLoginBottomsheet,
+  trackStartLogin,
+} from "@/lib/analytics";
+
+/** 버튼 안에 쓰는 작은 스피너 */
+function ButtonSpinner() {
+  return (
+    <span
+      className="inline-block w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin shrink-0"
+      aria-hidden
+    />
+  );
+}
 
 /**
  * 랜딩 CTA 클릭 시 바텀시트로 카카오 로그인 유도.
  * 카카오 OAuth → /callback → 프로필 유무에 따라 /onboarding 또는 /result.
+ * 인연 찾기 한 번 누르면 스피너 표시·비활성화, 시트 닫거나 로그인 끝날 때까지 연타 방지.
  */
 export function LandingLoginSheet() {
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [kakaoLoading, setKakaoLoading] = useState(false);
+
+  const openSheet = useCallback(() => {
+    trackClickLoginButtonInMain();
+    setSheetOpen(true);
+    trackViewLoginBottomsheet();
+  }, []);
+
+  const closeSheet = useCallback(() => {
+    setSheetOpen(false);
+    setKakaoLoading(false);
+  }, []);
 
   const handleKakaoStart = async () => {
-    setLoading(true);
+    trackStartLogin();
+    setKakaoLoading(true);
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "kakao",
@@ -24,23 +52,33 @@ export function LandingLoginSheet() {
         redirectTo: typeof window !== "undefined" ? `${window.location.origin}${ROUTES.CALLBACK}` : undefined,
       },
     });
-    setLoading(false);
+    setKakaoLoading(false);
     setSheetOpen(false);
     if (error) {
       return;
     }
   };
 
+  const ctaBusy = sheetOpen;
+
   return (
     <>
       <button
         type="button"
-        onClick={() => setSheetOpen(true)}
-        className="w-full h-[52px] rounded-xl bg-ink text-white text-[15px] font-semibold hover:opacity-90 active:opacity-80 transition-opacity"
+        onClick={openSheet}
+        disabled={ctaBusy}
+        className="w-full h-[52px] rounded-xl bg-ink text-white text-[15px] font-semibold hover:opacity-90 active:opacity-80 transition-opacity disabled:opacity-70 disabled:pointer-events-none inline-flex items-center justify-center gap-2"
       >
-        내 인연 찾기
+        {ctaBusy ? (
+          <>
+            <ButtonSpinner />
+            <span>연결 중…</span>
+          </>
+        ) : (
+          "내 인연 찾기"
+        )}
       </button>
-      <BottomSheet open={sheetOpen} onClose={() => setSheetOpen(false)}>
+      <BottomSheet open={sheetOpen} onClose={closeSheet}>
         {/* 귀여움: 캐릭터 작게 + 미니멀 문구만 */}
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-hanji bg-hanji-secondary shrink-0 flex items-center justify-center">
@@ -59,11 +97,18 @@ export function LandingLoginSheet() {
         </div>
         <Button
           size="lg"
-          className="w-full mt-6"
+          className="w-full mt-6 inline-flex items-center justify-center gap-2"
           onClick={handleKakaoStart}
-          disabled={loading}
+          disabled={kakaoLoading}
         >
-          {loading ? "연결 중…" : "카카오로 시작하기"}
+          {kakaoLoading ? (
+            <>
+              <span className="inline-block w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin shrink-0" aria-hidden />
+              <span>연결 중…</span>
+            </>
+          ) : (
+            "카카오로 시작하기"
+          )}
         </Button>
         <div className="mt-6 pt-4 pb-6 border-t border-hanji-border flex flex-wrap items-center justify-center gap-x-1 gap-y-1 text-sm">
           <a

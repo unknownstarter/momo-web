@@ -40,6 +40,11 @@ function buildDayOptions(year: number, month: number): WheelPickerOption[] {
   });
 }
 
+const WHEEL_CLASS_NAMES = {
+  optionItem: "text-ink-tertiary text-[15px]",
+  highlightItem: "text-ink font-semibold text-[15px]",
+};
+
 export function BirthDatePicker({ value, onChange }: BirthDatePickerProps) {
   const parsed = value ? value.split("-") : null;
   const [year, setYear] = useState(parsed?.[0] ?? "2000");
@@ -84,36 +89,24 @@ export function BirthDatePicker({ value, onChange }: BirthDatePickerProps) {
   };
 
   return (
-    <WheelPickerWrapper className="w-full rounded-xl border border-hanji-border bg-hanji-elevated">
+    <WheelPickerWrapper className="w-full rounded-xl bg-hanji-elevated">
       <WheelPicker
         options={yearOptions}
         value={year}
         onValueChange={handleYearChange}
-        classNames={{
-          optionItem: "text-ink-tertiary text-[15px]",
-          highlightWrapper: "bg-hanji-secondary",
-          highlightItem: "text-ink font-semibold text-[15px]",
-        }}
+        classNames={WHEEL_CLASS_NAMES}
       />
       <WheelPicker
         options={monthOptions}
         value={month}
         onValueChange={handleMonthChange}
-        classNames={{
-          optionItem: "text-ink-tertiary text-[15px]",
-          highlightWrapper: "bg-hanji-secondary",
-          highlightItem: "text-ink font-semibold text-[15px]",
-        }}
+        classNames={WHEEL_CLASS_NAMES}
       />
       <WheelPicker
         options={dayOptions}
         value={day}
         onValueChange={handleDayChange}
-        classNames={{
-          optionItem: "text-ink-tertiary text-[15px]",
-          highlightWrapper: "bg-hanji-secondary",
-          highlightItem: "text-ink font-semibold text-[15px]",
-        }}
+        classNames={WHEEL_CLASS_NAMES}
       />
     </WheelPickerWrapper>
   );

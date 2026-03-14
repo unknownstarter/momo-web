@@ -19,3 +19,24 @@
     -webkit-overflow-scrolling: touch;
   }
 }
+
+/* iOS-style wheel picker highlight bar */
+[data-rwp-highlight-wrapper] {
+  background: rgba(120, 120, 128, 0.12) !important;
+  border-radius: 8px;
+}
+[data-rwp-highlight-wrapper]::before,
+[data-rwp-highlight-wrapper]::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0.5px;
+  background: rgba(60, 60, 67, 0.2);
+}
+[data-rwp-highlight-wrapper]::before {
+  top: 0;
+}
+[data-rwp-highlight-wrapper]::after {
+  bottom: 0;
+}

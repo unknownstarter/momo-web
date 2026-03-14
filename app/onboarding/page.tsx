@@ -7,6 +7,7 @@ import { MobileContainer } from "@/components/ui/mobile-container";
 import { Button } from "@/components/ui/button";
 import { CharacterBubble } from "@/components/onboarding/character-bubble";
 import { ProgressBar } from "@/components/onboarding/progress-bar";
+import { BirthDatePicker } from "@/components/onboarding/birth-date-picker";
 import { CtaBar } from "@/components/ui/cta-bar";
 import {
   ROUTES,
@@ -391,14 +392,9 @@ function OnboardingContent() {
               message="생년월일을 알려주세요"
             />
             <div className="mt-8">
-              <label className="block text-ink text-sm mb-2">생년월일</label>
-              <input
-                type="date"
+              <BirthDatePicker
                 value={form.birthDate}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, birthDate: e.target.value }))
-                }
-                className="w-full h-12 px-4 rounded-lg border border-hanji-border bg-hanji-elevated text-ink focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand"
+                onChange={(v) => setForm((f) => ({ ...f, birthDate: v }))}
               />
             </div>
           </>

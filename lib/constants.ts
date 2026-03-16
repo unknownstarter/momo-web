@@ -10,6 +10,8 @@ export const ROUTES = {
   RESULT: "/result",
   COMPLETE: "/complete",
   PENDING_DELETION: "/pending-deletion",
+  TERMS: "/terms",
+  PRIVACY: "/privacy",
 } as const;
 
 /** 12시진 (자시 ~ 해시). DB값은 해당 시간대 대표 시각 HH:mm */

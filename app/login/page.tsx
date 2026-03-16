@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { MobileContainer } from "@/components/ui/mobile-container";
 import { CtaBar } from "@/components/ui/cta-bar";
+import { LegalLinks } from "@/components/ui/legal-links";
 import { ROUTES } from "@/lib/constants";
 
 /**
@@ -23,15 +24,12 @@ export default function LoginPage() {
           <p className="mt-8 text-left text-ink text-[15px] leading-relaxed">
             시작하려면 로그인해 주세요.
           </p>
-          <p className="mt-8 text-center w-full text-xs text-ink-tertiary">
-            <a href="/terms" className="underline hover:text-ink-muted">
-              이용약관
-            </a>
-            {" · "}
-            <a href="/privacy" className="underline hover:text-ink-muted">
-              개인정보처리방침
-            </a>
-          </p>
+          <div className="mt-8 w-full">
+            <LegalLinks
+              className="flex items-center justify-center gap-x-1 text-xs"
+              linkClassName="text-ink-tertiary underline underline-offset-2 hover:text-ink-muted"
+            />
+          </div>
         </div>
         <CtaBar>
           <Link href={ROUTES.ONBOARDING} className="block w-full">

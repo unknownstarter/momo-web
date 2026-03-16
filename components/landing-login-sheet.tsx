@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import Image from "next/image";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { LegalLinks } from "@/components/ui/legal-links";
 import { createClient } from "@/lib/supabase/client";
 import { ROUTES } from "@/lib/constants";
 import {
@@ -125,22 +126,8 @@ export function LandingLoginSheet() {
           )}
         </button>
 
-        <div className="mt-6 pt-4 pb-6 border-t border-hanji-border flex flex-wrap items-center justify-center gap-x-1 gap-y-1 text-sm">
-          <a
-            href="/terms"
-            className="text-ink-muted underline underline-offset-2 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded px-1 -mx-1"
-          >
-            이용약관
-          </a>
-          <span className="text-ink-tertiary select-none" aria-hidden>
-            ·
-          </span>
-          <a
-            href="/privacy"
-            className="text-ink-muted underline underline-offset-2 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded px-1 -mx-1"
-          >
-            개인정보처리방침
-          </a>
+        <div className="mt-6 pt-4 pb-6 border-t border-hanji-border">
+          <LegalLinks />
         </div>
       </BottomSheet>
     </>

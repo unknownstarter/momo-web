@@ -56,12 +56,9 @@ export async function GET(request: NextRequest) {
 
   // 탈퇴 요청 확인: account_status 기반 (기존 앱 시스템 활용)
   if (profile?.account_status === "pending_deletion") {
-    const requestedAt = new Date(profile.deletion_requested_at);
-    const daysSince = (Date.now() - requestedAt.getTime()) / (1000 * 60 * 60 * 24);
-    const remainDays = Math.max(1, Math.ceil(7 - daysSince));
-    await supabase.auth.signOut();
+    // 로그아웃하지 않음 — 전용 페이지에서 탈퇴 취소 가능
     return redirectWithCookies(
-      `${origin}${ROUTES.HOME}?error=pending_deletion&days=${remainDays}`,
+      `${origin}${ROUTES.PENDING_DELETION}`,
       sessionCookies
     );
   }

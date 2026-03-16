@@ -40,7 +40,7 @@ export default function HomePage() {
             <h1 className="text-left text-[22px] font-bold text-ink leading-snug tracking-tight">
               좋은 사람은 많은데,
               <br />
-              나랑 결이 맞는 사람은 어디 있을까요?
+              나랑 결이 딱 맞는 사람은 누굴까?
             </h1>
           </section>
 

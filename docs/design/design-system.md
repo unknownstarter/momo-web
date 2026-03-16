@@ -228,6 +228,42 @@ lg: h-12 text-[15px] px-6
 xl: h-[52px] text-base px-8    ← 기본 CTA
 ```
 
+### Pill 배지 (버튼 내부)
+
+CTA 버튼 안에서 "무료" 등 보조 정보를 강조할 때 사용하는 인라인 pill 배지.
+
+**디자인 원칙**
+- 본문 텍스트보다 **2단계 이상 작게** — 절제된 느낌 유지
+- **반투명 배경** — 버튼 색상 위에서 은은하게 보이되 튀지 않게
+- **pill 형태** (`rounded-full`) — 텍스트와 시각적으로 분리
+
+**스타일 규격**
+
+| 속성 | 값 | Tailwind |
+|------|-----|----------|
+| 배경 | 흰색 15% | `bg-white/[0.15]` |
+| 텍스트 크기 | 11px | `text-[11px]` |
+| 텍스트 웨이트 | 500 (medium) | `font-medium` |
+| 패딩 | 좌우 8px, 상하 2px | `px-2 py-0.5` |
+| 라운딩 | full | `rounded-full` |
+| 간격 (텍스트와) | 6px | `gap-1.5` |
+
+**사용 예시**
+```tsx
+<button className="bg-ink text-white h-[52px] rounded-xl ...">
+  <span className="inline-flex items-center gap-1.5">
+    <span className="bg-white/[0.15] text-[11px] font-medium px-2 py-0.5 rounded-full">무료</span>
+    <span>사주랑 관상보기</span>
+  </span>
+</button>
+```
+
+**주의사항**
+- 형광색·빨간색 배경 사용 금지 — 저가 할인 느낌 방지
+- 느낌표(!)·별(★) 등 과도한 장식 금지
+- 깜빡임·펄스 애니메이션 금지
+- 배지 텍스트는 2~3글자 이내로 유지
+
 ---
 
 ## 8. tailwind.config.ts 예시

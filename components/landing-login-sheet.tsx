@@ -127,9 +127,7 @@ export function LandingLoginSheet() {
 
         <div className="mt-6 pt-4 pb-6 border-t border-hanji-border flex flex-wrap items-center justify-center gap-x-1 gap-y-1 text-sm">
           <a
-            href="https://whatisgoingon.notion.site/momo-3228cdd370538034a1ece378d0de0bd0?source=copy_link"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/terms"
             className="text-ink-muted underline underline-offset-2 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded px-1 -mx-1"
           >
             이용약관
@@ -138,9 +136,7 @@ export function LandingLoginSheet() {
             ·
           </span>
           <a
-            href="https://whatisgoingon.notion.site/momo-3228cdd3705380f3b71ef9160cdfbfd2?source=copy_link"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/privacy"
             className="text-ink-muted underline underline-offset-2 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded px-1 -mx-1"
           >
             개인정보처리방침

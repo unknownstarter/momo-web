@@ -2,7 +2,6 @@
 
 import { useState, useCallback } from "react";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { createClient } from "@/lib/supabase/client";
 import { ROUTES } from "@/lib/constants";
@@ -79,37 +78,48 @@ export function LandingLoginSheet() {
         )}
       </button>
       <BottomSheet open={sheetOpen} onClose={closeSheet}>
-        {/* 귀여움: 캐릭터 작게 + 미니멀 문구만 */}
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-hanji bg-hanji-secondary shrink-0 flex items-center justify-center">
-            <Image
-              src="/images/characters/mulgyeori/expressions/love.png"
-              alt=""
-              width={24}
-              height={24}
-              className="object-contain"
-              unoptimized
-            />
-          </div>
-          <p className="text-ink text-[15px] leading-relaxed">
-            시작하려면 로그인해 주세요.
+        {/* 모모 로고 + 안내 문구 */}
+        <div className="flex flex-col items-center pt-4 pb-2">
+          <Image
+            src="/images/momo_logo_1024.png"
+            alt="모모"
+            width={72}
+            height={72}
+            className="object-contain rounded-2xl"
+            unoptimized
+          />
+          <p className="mt-4 text-ink text-[16px] font-medium leading-relaxed">
+            시작하려면 로그인해 주세요
           </p>
         </div>
-        <Button
-          size="lg"
-          className="w-full mt-6 inline-flex items-center justify-center gap-2"
+
+        {/* 카카오 로그인 버튼 */}
+        <button
+          type="button"
+          className="w-full h-[52px] rounded-xl bg-[#FEE500] text-[#191600] text-[15px] font-semibold hover:brightness-[0.97] active:brightness-[0.93] transition-all disabled:opacity-50 disabled:pointer-events-none inline-flex items-center justify-center gap-2 mt-5"
           onClick={handleKakaoStart}
           disabled={kakaoLoading}
         >
           {kakaoLoading ? (
             <>
-              <span className="inline-block w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin shrink-0" aria-hidden />
+              <span className="inline-block w-4 h-4 rounded-full border-2 border-[#3C1E1E] border-t-transparent animate-spin shrink-0" aria-hidden />
               <span>연결 중…</span>
             </>
           ) : (
-            "카카오로 시작하기"
+            <>
+              <Image
+                src="/images/kakao_logo.svg"
+                alt=""
+                width={18}
+                height={18}
+                className="shrink-0"
+                unoptimized
+              />
+              <span>카카오로 시작하기</span>
+            </>
           )}
-        </Button>
+        </button>
+
         <div className="mt-6 pt-4 pb-6 border-t border-hanji-border flex flex-wrap items-center justify-center gap-x-1 gap-y-1 text-sm">
           <a
             href="https://whatisgoingon.notion.site/momo-3228cdd370538034a1ece378d0de0bd0?source=copy_link"

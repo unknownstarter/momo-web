@@ -77,7 +77,7 @@ export function LandingLoginSheet() {
           <>
             <span className="inline-flex items-center gap-1.5">
               <span className="bg-white/[0.15] text-[11px] font-medium px-2 py-0.5 rounded-full">무료</span>
-              <span>사주랑 관상보기</span>
+              <span>사주와 관상보고 이상형 찾기</span>
             </span>
           </>
         )}

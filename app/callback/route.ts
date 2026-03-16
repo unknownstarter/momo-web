@@ -50,9 +50,28 @@ export async function GET(request: NextRequest) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("name, gender, birth_date, birth_time, profile_images, height, occupation, location, body_type, religion, saju_profile_id")
+    .select("name, gender, birth_date, birth_time, profile_images, height, occupation, location, body_type, religion, saju_profile_id, account_status, deletion_requested_at")
     .eq("auth_id", user.id)
     .maybeSingle();
+
+  // 탈퇴 요청 확인: account_status 기반 (기존 앱 시스템 활용)
+  if (profile?.account_status === "pending_deletion") {
+    const requestedAt = new Date(profile.deletion_requested_at);
+    const daysSince = (Date.now() - requestedAt.getTime()) / (1000 * 60 * 60 * 24);
+    const remainDays = Math.max(1, Math.ceil(7 - daysSince));
+    await supabase.auth.signOut();
+    return redirectWithCookies(
+      `${origin}${ROUTES.HOME}?error=pending_deletion&days=${remainDays}`,
+      sessionCookies
+    );
+  }
+  if (profile?.account_status === "deleting" || profile?.account_status === "deleted") {
+    await supabase.auth.signOut();
+    return redirectWithCookies(
+      `${origin}${ROUTES.HOME}?error=account_deleted`,
+      sessionCookies
+    );
+  }
 
   const target = getOnboardingStep(profile);
   const redirectPath =

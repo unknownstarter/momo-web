@@ -1,0 +1,31 @@
+import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+
+export async function POST(request: Request) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const body = await request.json();
+  const message = body?.message?.trim();
+  if (!message) {
+    return NextResponse.json({ error: "Empty message" }, { status: 400 });
+  }
+
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("web_feedbacks")
+    .insert({ user_id: user.id, message });
+
+  if (error) {
+    console.error("[send-feedback]", error.message);
+    return NextResponse.json({ error: "Failed to save" }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true });
+}

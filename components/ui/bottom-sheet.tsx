@@ -8,6 +8,8 @@ interface BottomSheetProps {
   children: ReactNode;
   /** 시트 상단 손잡이 표시 */
   showHandle?: boolean;
+  /** 우측 상단 X 닫기 버튼 표시 */
+  showCloseButton?: boolean;
 }
 
 export function BottomSheet({
@@ -15,6 +17,7 @@ export function BottomSheet({
   onClose,
   children,
   showHandle = true,
+  showCloseButton = false,
 }: BottomSheetProps) {
   const [mounted, setMounted] = useState(false);
 
@@ -63,9 +66,23 @@ export function BottomSheet({
         }`}
         onClick={(e) => e.stopPropagation()}
       >
-        {showHandle && (
+        {showHandle && !showCloseButton && (
           <div className="flex justify-center pt-3 pb-1">
             <span className="w-10 h-1 rounded-full bg-ink-tertiary/40" aria-hidden />
+          </div>
+        )}
+        {showCloseButton && (
+          <div className="flex justify-end pt-3 px-4 pb-1">
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-hanji-secondary transition-colors"
+              aria-label="닫기"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+              </svg>
+            </button>
           </div>
         )}
         <div className="px-5 pb-8 pb-[max(2rem,env(safe-area-inset-bottom))] overflow-auto">

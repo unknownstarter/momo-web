@@ -1,8 +1,10 @@
+import { Suspense } from "react";
 import { MobileContainer } from "@/components/ui/mobile-container";
 import { CtaBar } from "@/components/ui/cta-bar";
 import { LandingLoginSheet } from "@/components/landing-login-sheet";
 import { LandingCharacterBanner } from "@/components/landing-character-banner";
 import { TrackMainView } from "@/components/track-main-view";
+import { DeletionNotice } from "@/components/deletion-notice";
 
 /**
  * 랜딩 — CTA는 항상 화면 하단 고정, 콘텐츠만 스크롤. design-system: 모든 스크린 CTA 하단 고정.
@@ -11,6 +13,9 @@ export default function HomePage() {
   return (
     <>
       <TrackMainView />
+      <Suspense>
+        <DeletionNotice />
+      </Suspense>
     <MobileContainer fillViewport={false} className="h-full min-h-0 flex flex-col bg-hanji w-full min-w-0 overflow-hidden">
       <main className="flex-1 min-h-0 flex flex-col w-full min-w-0 overflow-hidden">
         {/* 스크롤 영역: CTA 제외한 콘텐츠만 */}

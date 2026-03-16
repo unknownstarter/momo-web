@@ -29,6 +29,7 @@ import { SamjeongCard } from "@/components/result/samjeong-card";
 import { OgwanCard } from "@/components/result/ogwan-card";
 import { TraitsChart } from "@/components/result/traits-chart";
 import { IdealMatchGwansangCard } from "@/components/result/ideal-match-gwansang-card";
+import { ResultMenu } from "@/components/result/result-menu";
 import { trackClickShareInResult } from "@/lib/analytics";
 
 interface SajuProfileRow {
@@ -213,8 +214,13 @@ export default function ResultPage() {
     <MobileContainer className="h-dvh max-h-dvh bg-hanji text-ink flex flex-col overflow-hidden">
       {/* 헤더 + 탭 + 내용 전체를 내부 스크롤 컨테이너로 감싸기 */}
       <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden scroll-touch">
+        {/* 앱바: 스크롤 시 함께 올라감 */}
+        <div className="flex items-center justify-end px-3 pt-2">
+          <ResultMenu />
+        </div>
+
         {/* 앱 DestinyResultPage 스타일 헤더: 캐릭터 + 동물상 배지, 뱃지 Row, 요약 */}
-        <header className="shrink-0 px-5 pt-6 pb-4">
+        <header className="shrink-0 px-5 pt-2 pb-4">
           <div className="flex flex-col items-center">
             <div className="relative w-[140px] h-[120px] flex items-center justify-center">
               <div

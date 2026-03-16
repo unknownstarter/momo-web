@@ -166,15 +166,15 @@ export function ResultMenu() {
             </li>
           </ul>
         </div>
-        <div className="mt-6 flex gap-3">
-          <Button variant="outline" size="lg" className="flex-1" onClick={closeSheet}>
+        <div className="mt-6 grid grid-cols-2 gap-3">
+          <Button variant="outline" size="lg" className="w-full" onClick={closeSheet}>
             취소
           </Button>
           <button
             type="button"
             onClick={handleDeleteAccount}
             disabled={deleting}
-            className="flex-1 h-[52px] rounded-[14px] bg-[#DC2626] text-white text-base font-semibold hover:opacity-90 active:opacity-80 transition-opacity disabled:opacity-50"
+            className="w-full h-[52px] rounded-[14px] bg-[#FEE2E2] text-[#B91C1C] text-base font-semibold hover:bg-[#FECACA] active:bg-[#FCA5A5] transition-colors disabled:opacity-50"
           >
             {deleting ? "처리 중…" : "탈퇴하기"}
           </button>

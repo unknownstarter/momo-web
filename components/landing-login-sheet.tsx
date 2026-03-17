@@ -52,11 +52,11 @@ export function LandingLoginSheet() {
         redirectTo: typeof window !== "undefined" ? `${window.location.origin}${ROUTES.CALLBACK}` : undefined,
       },
     });
-    setKakaoLoading(false);
-    setSheetOpen(false);
     if (error) {
+      setKakaoLoading(false);
       return;
     }
+    // 성공 시 카카오로 리다이렉트되므로 loading 상태 유지 (연타 방지)
   };
 
   const ctaBusy = sheetOpen;

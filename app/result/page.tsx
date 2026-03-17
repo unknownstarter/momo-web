@@ -310,6 +310,7 @@ export default function ResultPage() {
               style={tab === "gwansang" ? { borderColor: accentColor } : undefined}
             >
               관상
+              <span className="ml-1 align-top text-[10px] font-bold px-1.5 py-[1px] rounded-full bg-[#C94A3F]/15 text-[#C94A3F]">New</span>
             </button>
           </div>
         </div>

@@ -1,29 +1,74 @@
+import { cache } from "react";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { MobileContainer } from "@/components/ui/mobile-container";
 import { Button } from "@/components/ui/button";
 import { CtaBar } from "@/components/ui/cta-bar";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { ShareTeaserView } from "@/components/share-teaser-view";
 import { decodeShareToken } from "@/lib/share-token";
-import { ShareResultView } from "@/components/share-result-view";
+import { fetchShareData } from "@/lib/share-data";
+import { classifyRomanceType } from "@/lib/romance-types";
 
-interface SharePageProps {
+interface Props {
   params: Promise<{ id: string }>;
 }
 
-/**
- * 공유 링크 /share/[token]. token은 프로필 ID가 아닌 암호화된 값(개인정보 노출 방지).
- * 서버에서 admin 클라이언트로 프로필 + 사주·관상 결과 조회 후 전달 (RLS 우회).
- */
-export default async function SharePage({ params }: SharePageProps) {
-  const { id: token } = await params;
+/** generateMetadata + page 간 DB 쿼리 중복 방지 (React cache) */
+const getShareDataByToken = cache(async (token: string) => {
   const profileId = decodeShareToken(token);
+  if (!profileId) return null;
+  return fetchShareData(profileId);
+});
 
-  if (!profileId) {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id: token } = await params;
+  const data = await getShareDataByToken(token);
+  if (!data) return {};
+
+  const name = data.profile.name ?? "친구";
+  const romanceType = classifyRomanceType({
+    dominantElement:
+      data.profile.dominant_element ??
+      (data.sajuProfile?.dominant_element as string | null),
+    personalityTraits: data.sajuProfile?.personality_traits as
+      | string[]
+      | null,
+    romanceKeyPoints: data.sajuProfile?.romance_key_points as
+      | string[]
+      | null,
+    romanceStyle: data.sajuProfile?.romance_style as string | null,
+  });
+
+  const title = `${name}님은 연애할 때 ${romanceType.label}이래요 ${romanceType.emoji}`;
+  const description = `${romanceType.subtitle} — 나도 내 연애 유형 알아보기`;
+
+  const ogImageUrl = `/api/og?name=${encodeURIComponent(name)}&type=${encodeURIComponent(romanceType.label)}&emoji=${encodeURIComponent(romanceType.emoji)}&element=${encodeURIComponent(data.profile.dominant_element ?? "metal")}&character=${encodeURIComponent(data.profile.character_type ?? "namuri")}`;
+
+  return {
+    title,
+    description,
+    openGraph: { title, description, images: [ogImageUrl], type: "website" },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [ogImageUrl],
+    },
+  };
+}
+
+export default async function SharePage({ params }: Props) {
+  const { id: token } = await params;
+  const data = await getShareDataByToken(token);
+
+  if (!data) {
     return (
       <MobileContainer className="min-h-dvh bg-hanji flex flex-col px-5">
         <div className="flex-1 flex flex-col items-center justify-center text-center py-8">
           <p className="text-ink-muted text-sm">잘못된 링크예요</p>
-          <p className="mt-2 text-ink text-sm">링크가 만료되었거나 올바르지 않아요.</p>
+          <p className="mt-2 text-ink text-sm">
+            링크가 만료되었거나 올바르지 않아요.
+          </p>
         </div>
         <CtaBar>
           <Link href="/" className="block w-full">
@@ -34,63 +79,44 @@ export default async function SharePage({ params }: SharePageProps) {
         </CtaBar>
       </MobileContainer>
     );
-  }
-
-  const supabase = createAdminClient();
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("id, name, character_type, dominant_element, saju_profile_id, gwansang_profile_id")
-    .eq("id", profileId)
-    .maybeSingle();
-
-  if (profileError || !profile) {
-    return (
-      <MobileContainer className="min-h-dvh bg-hanji flex flex-col px-5">
-        <div className="flex-1 flex flex-col items-center justify-center text-center py-8">
-          <p className="text-ink-muted text-sm">결과를 찾을 수 없어요</p>
-          <p className="mt-2 text-ink text-sm">링크가 만료되었거나 잘못되었을 수 있어요.</p>
-        </div>
-        <CtaBar>
-          <Link href="/" className="block w-full">
-            <Button size="lg" className="w-full">
-              나도 사주 보러 가기
-            </Button>
-          </Link>
-        </CtaBar>
-      </MobileContainer>
-    );
-  }
-
-  // 공유 뷰에 필요한 컬럼만 조회 (user_id, photo_urls 등 민감 필드 노출 방지)
-  const SAJU_SHARE_COLS = "year_pillar,month_pillar,day_pillar,hour_pillar,five_elements,dominant_element,personality_traits,ai_interpretation,yearly_fortune,period_fortunes,romance_style,romance_key_points,ideal_match";
-  const GWANSANG_SHARE_COLS = "animal_type_korean,animal_modifier,headline,charm_keywords,samjeong,ogwan,personality_summary,romance_summary,romance_key_points,traits,ideal_match_animal_korean,ideal_match_traits,ideal_match_description";
-
-  let sajuProfile: Record<string, unknown> | null = null;
-  let gwansangProfile: Record<string, unknown> | null = null;
-
-  if (profile.saju_profile_id) {
-    const { data } = await supabase
-      .from("saju_profiles")
-      .select(SAJU_SHARE_COLS)
-      .eq("id", profile.saju_profile_id)
-      .maybeSingle();
-    sajuProfile = data;
-  }
-  if (profile.gwansang_profile_id) {
-    const { data } = await supabase
-      .from("gwansang_profiles")
-      .select(GWANSANG_SHARE_COLS)
-      .eq("id", profile.gwansang_profile_id)
-      .maybeSingle();
-    gwansangProfile = data;
   }
 
   return (
-    <ShareResultView
-      profileName={profile.name ?? "친구"}
-      profile={{ character_type: profile.character_type, dominant_element: profile.dominant_element }}
-      sajuProfile={sajuProfile}
-      gwansangProfile={gwansangProfile}
+    <ShareTeaserView
+      profileName={data.profile.name ?? "친구"}
+      dominantElement={data.profile.dominant_element}
+      characterType={data.profile.character_type}
+      personalityTraits={
+        data.sajuProfile?.personality_traits as string[] | null
+      }
+      romanceStyle={data.sajuProfile?.romance_style as string | null}
+      romanceKeyPoints={
+        data.sajuProfile?.romance_key_points as string[] | null
+      }
+      charmKeywords={
+        data.gwansangProfile?.charm_keywords as string[] | null
+      }
+      animalTypeKorean={
+        data.gwansangProfile?.animal_type_korean as string | null
+      }
+      animalModifier={
+        data.gwansangProfile?.animal_modifier as string | null
+      }
+      idealMatchSaju={
+        data.sajuProfile?.ideal_match as
+          | { description?: string; traits?: string[] }
+          | null
+      }
+      idealMatchAnimalKorean={
+        data.gwansangProfile?.ideal_match_animal_korean as string | null
+      }
+      idealMatchTraits={
+        data.gwansangProfile?.ideal_match_traits as string[] | null
+      }
+      idealMatchDescription={
+        data.gwansangProfile?.ideal_match_description as string | null
+      }
+      detailHref={`/share/${token}/detail`}
     />
   );
 }

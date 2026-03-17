@@ -71,4 +71,19 @@ export function trackClickShareInResult(): void {
   trackEvent("click_share_in_result");
 }
 
+/** 공유 티저 페이지 노출 */
+export function trackViewShareTeaser(): void {
+  trackEvent("view_share_teaser");
+}
+
+/** 티저에서 '자세히 보기' 클릭 */
+export function trackClickDetailInTeaser(): void {
+  trackEvent("click_detail_in_teaser");
+}
+
+/** 티저에서 '나도 사주·관상 보기' 클릭 */
+export function trackClickCtaInTeaser(): void {
+  trackEvent("click_cta_in_teaser");
+}
+
 export { MEASUREMENT_ID };

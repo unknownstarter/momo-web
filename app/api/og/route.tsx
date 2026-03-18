@@ -24,12 +24,13 @@ function normalizeElement(el: string): string {
 // Pretendard Bold — lazy singleton, 실패 시 재시도 허용
 const g = globalThis as typeof globalThis & {
   _pretendardFont?: Promise<ArrayBuffer>;
+  _notosansFont?: Promise<ArrayBuffer>;
 };
 
 function getFontData(): Promise<ArrayBuffer> {
   if (!g._pretendardFont) {
     g._pretendardFont = fetch(
-      "https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/packages/pretendard/dist/public/static/Pretendard-Bold.woff",
+      "https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/packages/pretendard/dist/public/static/Pretendard-Bold.otf",
     )
       .then((res) => {
         if (!res.ok) throw new Error(`Font fetch failed: ${res.status}`);
@@ -41,6 +42,24 @@ function getFontData(): Promise<ArrayBuffer> {
       });
   }
   return g._pretendardFont;
+}
+
+/** Satori는 최소 1개 폰트가 필수 — Pretendard 실패 시 Noto Sans KR로 폴백 */
+function getFallbackFontData(): Promise<ArrayBuffer> {
+  if (!g._notosansFont) {
+    g._notosansFont = fetch(
+      "https://fonts.gstatic.com/s/notosanskr/v39/PbyxFmXiEBPT4ITbgNA5Cgms3VYcOA-vvnIzzg01eLQ.ttf",
+    )
+      .then((res) => {
+        if (!res.ok) throw new Error(`Fallback font fetch failed: ${res.status}`);
+        return res.arrayBuffer();
+      })
+      .catch((err) => {
+        g._notosansFont = undefined;
+        throw err;
+      });
+  }
+  return g._notosansFont;
 }
 
 export async function GET(request: Request) {
@@ -56,10 +75,18 @@ export async function GET(request: Request) {
   const characterUrl = `${origin}/images/characters/${character}/default.png`;
 
   let font: ArrayBuffer;
+  let fontName = "Pretendard";
   try {
     font = await getFontData();
   } catch {
-    font = new ArrayBuffer(0);
+    // Pretendard 실패 시 Noto Sans KR 폴백 — Satori는 최소 1개 폰트 필수
+    try {
+      font = await getFallbackFontData();
+      fontName = "Noto Sans KR";
+    } catch {
+      // 모든 폰트 실패 시에도 빈 배열이 아닌 에러 응답 반환
+      return new Response("Font loading failed", { status: 500 });
+    }
   }
 
   return new ImageResponse(
@@ -73,7 +100,7 @@ export async function GET(request: Request) {
           alignItems: "center",
           justifyContent: "center",
           backgroundColor: "#F7F3EE",
-          fontFamily: "Pretendard, sans-serif",
+          fontFamily: `${fontName}, sans-serif`,
         }}
       >
         {/* 배경 그라데이션 */}
@@ -95,7 +122,7 @@ export async function GET(request: Request) {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            zIndex: 1,
+            position: "relative" as const,
           }}
         >
           {/* 캐릭터 원형 아바타 */}
@@ -181,17 +208,14 @@ export async function GET(request: Request) {
     {
       width: 1200,
       height: 630,
-      fonts:
-        font.byteLength > 0
-          ? [
-              {
-                name: "Pretendard",
-                data: font,
-                style: "normal" as const,
-                weight: 700 as const,
-              },
-            ]
-          : [],
+      fonts: [
+        {
+          name: fontName,
+          data: font,
+          style: "normal" as const,
+          weight: 700 as const,
+        },
+      ],
     },
   );
 }

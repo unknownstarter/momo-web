@@ -192,10 +192,31 @@ momo-web/
 
 - **동일한 “영역 안 캐릭터” UI**가 나오는 곳(랜딩, 바텀시트, 결과 등)은 모두 위 규칙을 따르도록 구현·수정한다.
 
-### Git Workflow
+### Git Workflow & 배포 (MANDATORY)
 - 브랜치: `feature/`, `fix/`
 - 커밋: Conventional Commits (한국어 본문 가능)
 - Vercel Preview로 PR 단위 테스트
+
+### Vercel 배포 규칙 (MANDATORY — 절대 위반 금지)
+
+> **Vercel은 동일한 커밋 SHA가 이미 배포된 적 있으면 중복 빌드를 스킵합니다.**
+> feature 브랜치에서 먼저 Preview로 배포된 커밋이 main에 fast-forward 머지되면,
+> **Production 배포가 트리거되지 않는 사고가 발생합니다.**
+
+**반드시 지켜야 할 프로세스:**
+
+1. **feature 브랜치에서 작업 완료** → 원격에 푸시 (`git push -u origin feature/xxx`)
+2. **GitHub PR 생성** → Vercel Preview 자동 배포 + 확인
+3. **PR을 통해 main에 머지** (squash merge 또는 merge commit) → **새로운 커밋 SHA 생성** → Vercel Production 자동 배포
+4. **Vercel 대시보드에서 Production 배포 완료 확인** → "Production (Current)" 표시 확인
+
+**절대 하지 말 것:**
+- ❌ `git merge --ff` (fast-forward) 후 main에 직접 푸시 — **Production 배포 누락 원인**
+- ❌ feature 브랜치 커밋을 main에 cherry-pick — 동일 SHA 문제 발생 가능
+- ❌ 배포 확인 없이 작업 완료 선언
+
+**문제 발생 시:**
+- Vercel 대시보드 → 해당 배포 → `...` → **Redeploy** 로 수동 재배포
 
 ---
 
@@ -272,3 +293,4 @@ momo-web/
 8. **OG 태그 SSR**: 공유 링크의 미리보기를 위해 메타데이터는 서버에서 생성
 9. **디자인**: 기존 앱 디자인 컨셉과 최대한 동일 — `docs/design/design-system.md` 준수
 10. **영역 안 캐릭터**: 원형·카드 등 영역 안 캐릭터는 `object-contain` + 컨테이너보다 작은 크기 + `items-center justify-center`로 전체 노출·중앙 정렬 (위 “영역 안 캐릭터 표시 규칙” 참고)
+11. **⚠️ 배포 필수 프로세스**: feature 브랜치 → **PR 머지로만 main에 합류** (fast-forward 금지) → Vercel Production 배포 완료 확인까지가 작업 완료. 직접 main 푸시 금지.

@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { MobileContainer } from "@/components/ui/mobile-container";
 import { Button } from "@/components/ui/button";
 import { CtaBar } from "@/components/ui/cta-bar";
@@ -31,6 +31,7 @@ import { TraitsChart } from "@/components/result/traits-chart";
 import { IdealMatchGwansangCard } from "@/components/result/ideal-match-gwansang-card";
 import { ResultMenu } from "@/components/result/result-menu";
 import { trackClickShareInResult } from "@/lib/analytics";
+import { CompatibilityTab } from "@/components/result/compatibility-tab";
 
 interface SajuProfileRow {
   year_pillar: unknown;
@@ -74,8 +75,26 @@ interface ProfileRow {
 }
 
 export default function ResultPage() {
+  return (
+    <Suspense>
+      <ResultPageInner />
+    </Suspense>
+  );
+}
+
+function ResultPageInner() {
   const router = useRouter();
-  const [tab, setTab] = useState<"saju" | "gwansang">("saju");
+  // 초기 탭을 동기적으로 결정 (useEffect 전에 → 깜빡임 방지)
+  const [tab, setTab] = useState<"saju" | "gwansang" | "compatibility">(() => {
+    if (typeof window === "undefined") return "saju";
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("tab") === "compatibility") return "compatibility";
+    try {
+      if (sessionStorage.getItem("momo_compat_partner")) return "compatibility";
+    } catch { /* sessionStorage 접근 불가 */ }
+    if (document.cookie.includes("momo_compat_partner=")) return "compatibility";
+    return "saju";
+  });
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [shareCopied, setShareCopied] = useState(false);
@@ -150,6 +169,25 @@ export default function ResultPage() {
     })();
     return () => { cancelled = true; };
   }, []);
+
+  const searchParams = useSearchParams();
+  const [compatPartnerId, setCompatPartnerId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (searchParams.get("tab") === "compatibility") {
+      setTab("compatibility");
+    }
+    const partnerId = sessionStorage.getItem("momo_compat_partner")
+      || document.cookie.match(/momo_compat_partner=([^;]+)/)?.[1]
+      || null;
+    if (partnerId) {
+      setCompatPartnerId(partnerId);
+      setTab("compatibility");
+      sessionStorage.removeItem("momo_compat_partner");
+      document.cookie = "momo_compat_partner=;max-age=0;path=/";
+    }
+  }, [searchParams]);
 
   const handleShare = async () => {
     if (!shareUrl || typeof window === "undefined") return;
@@ -310,6 +348,16 @@ export default function ResultPage() {
               style={tab === "gwansang" ? { borderColor: accentColor } : undefined}
             >
               관상
+            </button>
+            <button
+              type="button"
+              onClick={() => setTab("compatibility")}
+              className={`flex-1 py-3 text-[15px] font-semibold border-b-2 transition-colors ${
+                tab === "compatibility" ? "text-ink" : "text-ink-tertiary border-transparent"
+              }`}
+              style={tab === "compatibility" ? { borderColor: accentColor } : undefined}
+            >
+              궁합
               <span className="ml-1 align-top text-[10px] font-bold px-1.5 py-[1px] rounded-full bg-[#C94A3F]/15 text-[#C94A3F]">New</span>
             </button>
           </div>
@@ -446,6 +494,16 @@ export default function ResultPage() {
                 />
               </div>
             )}
+            {/* 궁합 탭: 상태 유지를 위해 CSS 숨김 (언마운트하면 리스트 + 스토리 캐시 소실) */}
+            <div className={tab === "compatibility" ? "pb-12" : "hidden"}>
+              <CompatibilityTab
+                referralPartnerId={compatPartnerId}
+                myName={nickname}
+                myCharacterType={effectiveCharacterType}
+                myDominantElement={dominantEl}
+                shareUrl={shareUrl}
+              />
+            </div>
         </div>
       </div>
 

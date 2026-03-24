@@ -86,4 +86,29 @@ export function trackClickCtaInTeaser(): void {
   trackEvent("click_cta_in_teaser");
 }
 
+/** 공유 페이지에서 궁합 바텀시트 노출 */
+export function trackViewCompatibilityPrompt(): void {
+  trackEvent("view_compatibility_bottomsheet");
+}
+
+/** 궁합 CTA 클릭 (공유 페이지) */
+export function trackClickCompatibilityCta(): void {
+  trackEvent("click_compatibility_cta");
+}
+
+/** 결과 페이지 궁합 탭 진입 */
+export function trackViewCompatibilityTab(): void {
+  trackEvent("view_compatibility_tab");
+}
+
+/** 궁합 상세 바텀시트 열림 */
+export function trackViewCompatibilityDetail(score: number): void {
+  trackEvent("view_compatibility_detail", { score });
+}
+
+/** 궁합 결과 공유 */
+export function trackShareCompatibilityResult(): void {
+  trackEvent("share_compatibility_result");
+}
+
 export { MEASUREMENT_ID };

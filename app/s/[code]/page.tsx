@@ -5,8 +5,10 @@ import { MobileContainer } from "@/components/ui/mobile-container";
 import { Button } from "@/components/ui/button";
 import { CtaBar } from "@/components/ui/cta-bar";
 import { ShareTeaserView } from "@/components/share-teaser-view";
+import { ShareCompatibilityPrompt } from "@/components/share-compatibility-prompt";
 import { resolveShortCode, fetchShareData } from "@/lib/share-data";
 import { classifyRomanceType } from "@/lib/romance-types";
+import { createClient } from "@/lib/supabase/server";
 
 interface Props {
   params: Promise<{ code: string }>;
@@ -80,42 +82,68 @@ export default async function ShortSharePage({ params }: Props) {
     );
   }
 
+  // 뷰어 상태 확인
+  let viewerStatus: "has_result" | "logged_in" | "anonymous" = "anonymous";
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: viewerProfile } = await supabase
+        .from("profiles")
+        .select("is_saju_complete")
+        .eq("auth_id", user.id)
+        .maybeSingle();
+      viewerStatus = viewerProfile?.is_saju_complete ? "has_result" : "logged_in";
+    }
+  } catch {
+    // 인증 확인 실패 시 anonymous로 폴백
+  }
+
   return (
-    <ShareTeaserView
-      profileName={data.profile.name ?? "친구"}
-      dominantElement={data.profile.dominant_element}
-      characterType={data.profile.character_type}
-      personalityTraits={
-        data.sajuProfile?.personality_traits as string[] | null
-      }
-      romanceStyle={data.sajuProfile?.romance_style as string | null}
-      romanceKeyPoints={
-        data.sajuProfile?.romance_key_points as string[] | null
-      }
-      charmKeywords={
-        data.gwansangProfile?.charm_keywords as string[] | null
-      }
-      animalTypeKorean={
-        data.gwansangProfile?.animal_type_korean as string | null
-      }
-      animalModifier={
-        data.gwansangProfile?.animal_modifier as string | null
-      }
-      idealMatchSaju={
-        data.sajuProfile?.ideal_match as
-          | { description?: string; traits?: string[] }
-          | null
-      }
-      idealMatchAnimalKorean={
-        data.gwansangProfile?.ideal_match_animal_korean as string | null
-      }
-      idealMatchTraits={
-        data.gwansangProfile?.ideal_match_traits as string[] | null
-      }
-      idealMatchDescription={
-        data.gwansangProfile?.ideal_match_description as string | null
-      }
-      detailHref={`/s/${code}/detail`}
-    />
+    <>
+      <ShareTeaserView
+        profileName={data.profile.name ?? "친구"}
+        dominantElement={data.profile.dominant_element}
+        characterType={data.profile.character_type}
+        personalityTraits={
+          data.sajuProfile?.personality_traits as string[] | null
+        }
+        romanceStyle={data.sajuProfile?.romance_style as string | null}
+        romanceKeyPoints={
+          data.sajuProfile?.romance_key_points as string[] | null
+        }
+        charmKeywords={
+          data.gwansangProfile?.charm_keywords as string[] | null
+        }
+        animalTypeKorean={
+          data.gwansangProfile?.animal_type_korean as string | null
+        }
+        animalModifier={
+          data.gwansangProfile?.animal_modifier as string | null
+        }
+        idealMatchSaju={
+          data.sajuProfile?.ideal_match as
+            | { description?: string; traits?: string[] }
+            | null
+        }
+        idealMatchAnimalKorean={
+          data.gwansangProfile?.ideal_match_animal_korean as string | null
+        }
+        idealMatchTraits={
+          data.gwansangProfile?.ideal_match_traits as string[] | null
+        }
+        idealMatchDescription={
+          data.gwansangProfile?.ideal_match_description as string | null
+        }
+        detailHref={`/s/${code}/detail`}
+      />
+      <ShareCompatibilityPrompt
+        sharedProfileId={data.profile.id}
+        sharedUserName={data.profile.name ?? "친구"}
+        sharedDominantElement={data.profile.dominant_element}
+        sharedCharacterType={data.profile.character_type}
+        viewerStatus={viewerStatus}
+      />
+    </>
   );
 }

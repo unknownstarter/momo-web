@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -75,6 +75,14 @@ interface ProfileRow {
 }
 
 export default function ResultPage() {
+  return (
+    <Suspense>
+      <ResultPageInner />
+    </Suspense>
+  );
+}
+
+function ResultPageInner() {
   const router = useRouter();
   const [tab, setTab] = useState<"saju" | "gwansang" | "compatibility">("saju");
   const [displayName, setDisplayName] = useState<string | null>(null);

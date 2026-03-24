@@ -169,7 +169,7 @@ momo-web/
 - Flutter 앱의 디자인을 **1:1 복제** — `docs/design/design-system.md` 참조
 - 색상/간격/타이포/라운딩 → Tailwind config 커스텀 토큰으로 관리
 - 오행 캐릭터 에셋은 Flutter 프로젝트에서 복사 (`/public/characters/`)
-- 다크 모드: 결과 페이지만 (사주/관상 결과 = 다크, 나머지 = 라이트)
+- **다크 모드 (MANDATORY)**: **분석 로딩 페이지(`/result/loading`)만 다크**(`bg-ink-bg text-hanji-text`). 결과 페이지(`/result`)를 포함한 나머지 모든 페이지는 **라이트**(`bg-hanji text-ink`). 결과 페이지를 다크모드로 착각하지 말 것.
 - **레이아웃·간격**: 토스 TDS 철학 반영 — 4px 그리드, 시맨틱 간격(섹션 간 32px·넉넉히 48px). 페이지 좌우 `px-5`, 카드 내부 `p-4`. 상세는 `docs/design/design-system.md` 3.1절.
 - **CTA 하단 고정 (MANDATORY)**: 모든 스크린에서 CTA 버튼은 **뷰포트 하단에 고정**. 콘텐츠 영역만 `flex-1 min-h-0 overflow-auto`로 스크롤, CtaBar는 `shrink-0`로 항상 하단 유지. 세로가 긴 화면에서도 버튼이 중간에 떠 있지 않게 할 것.
 
@@ -294,3 +294,4 @@ momo-web/
 9. **디자인**: 기존 앱 디자인 컨셉과 최대한 동일 — `docs/design/design-system.md` 준수
 10. **영역 안 캐릭터**: 원형·카드 등 영역 안 캐릭터는 `object-contain` + 컨테이너보다 작은 크기 + `items-center justify-center`로 전체 노출·중앙 정렬 (위 “영역 안 캐릭터 표시 규칙” 참고)
 11. **⚠️ 배포 필수 프로세스**: feature 브랜치 → **PR 머지로만 main에 합류** (fast-forward 금지) → Vercel Production 배포 완료 확인까지가 작업 완료. 직접 main 푸시 금지.
+12. **⚠️ 다크 모드 범위**: 다크 배경은 **분석 로딩 페이지(`/result/loading`)만** 해당. 결과 페이지(`/result`) 포함 나머지는 전부 라이트 배경. 코드베이스 파악 시 결과 페이지를 다크모드로 오인하지 말 것.

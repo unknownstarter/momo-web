@@ -77,3 +77,11 @@ export const FORTUNE_CAUTION = "#F44336";
 export const FORTUNE_WARM = "#E65100";
 export const MYSTIC_GLOW = "#C8B68E";
 export const MYSTIC_ACCENT = "#D4C9A8";
+
+/** 궁합 점수 → 색상 (앱 compatibilityColor 1:1, COMPATIBILITY_GRADES와 동일 기준) */
+export function getCompatColor(score: number): string {
+  if (score >= 90) return "#C27A88"; // compat-destined
+  if (score >= 75) return "#C49A7C"; // compat-excellent
+  if (score >= 60) return "#A8B0A0"; // compat-good
+  return "#959EA2";                  // compat-average
+}

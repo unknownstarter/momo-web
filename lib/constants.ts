@@ -64,3 +64,20 @@ export const INTEREST_OPTIONS = [
 ] as const;
 
 export const INTEREST_MAX_SELECT = 10;
+
+/** 궁합 등급 (앱 CompatibilityGrade 1:1 매핑)
+ * ⚠️ 반드시 minScore 내림차순으로 유지할 것! Array.find()가 첫 매칭을 반환하므로
+ * 순서가 바뀌면 등급 판정이 깨짐. */
+export const COMPATIBILITY_GRADES = [
+  { key: "destined", label: "천생연분", description: "하늘이 맺어준 인연이에요", minScore: 90 },
+  { key: "excellent", label: "최고의 인연", description: "별이 겹치는 특별한 사이예요", minScore: 75 },
+  { key: "good", label: "좋은 인연", description: "함께 성장할 수 있는 관계예요", minScore: 60 },
+  { key: "average", label: "보통 인연", description: "알아갈수록 깊어지는 인연이에요", minScore: 40 },
+  { key: "challenging", label: "도전적 인연", description: "서로 다르기에 새로운 시각을 배울 수 있어요", minScore: 0 },
+] as const;
+
+export type CompatibilityGradeKey = typeof COMPATIBILITY_GRADES[number]["key"];
+
+export function getCompatibilityGrade(score: number) {
+  return COMPATIBILITY_GRADES.find((g) => score >= g.minScore) ?? COMPATIBILITY_GRADES[COMPATIBILITY_GRADES.length - 1];
+}

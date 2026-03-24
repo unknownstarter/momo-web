@@ -62,6 +62,25 @@
 
 ---
 
+## Phase 4.5: 궁합 기능 (2026-03-24 완료)
+
+- [x] **4.5-1** 궁합 상수 & 토큰 (`COMPATIBILITY_GRADES`, `getCompatColor`)
+- [x] **4.5-2** GA 이벤트 5개 추가
+- [x] **4.5-3** 궁합 비즈니스 로직 `lib/compatibility.ts` (캐시, 계산, 리스트, AI 스토리 폴링)
+- [x] **4.5-4** API Routes 4개 (calculate-compatibility, compatibility-list, compatibility-story, og-compat)
+- [x] **4.5-5** 원형 게이지 SVG 컴포넌트
+- [x] **4.5-6** 궁합 상세 바텀시트 (AI 스토리 하이브리드 폴링, 이성=인연 스토리, 동성=케미 분석)
+- [x] **4.5-7** 궁합 탭 컴포넌트 (리스트 + 빈 상태 + storyCacheMap)
+- [x] **4.5-8** 결과 페이지 궁합 탭 통합 (Suspense, 레퍼럴 자동 계산)
+- [x] **4.5-9** 공유 페이지 궁합 유도 바텀시트 (2초 후 등장)
+- [x] **4.5-10** 코드 리뷰 반영 (Critical 3건 + Important 6건 + UX 3건)
+
+> 설계서: `docs/plans/compatibility-feature.md`
+> 구현 플랜: `docs/superpowers/plans/2026-03-20-compatibility-feature.md`
+> PR: [#3](https://github.com/unknownstarter/momo-web/pull/3) (MERGED)
+
+---
+
 ## Phase 5: 품질 & 배포
 
 - [ ] **5-1** 접근성 — 포커스 링, 44px 터치 영역, aria-label/aria-live/role="status", 대비

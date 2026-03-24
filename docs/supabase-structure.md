@@ -11,7 +11,7 @@
 | **profiles** | 유저 기본 정보 (auth_id, name, birth_date, birth_time, gender, profile_images, phone, is_phone_verified, saju_profile_id, gwansang_profile_id, is_saju_complete, is_gwansang_complete, is_profile_complete 등) | ✅ INSERT/UPDATE (온보딩·프로필), SELECT |
 | **saju_profiles** | 사주 분석 결과 (user_id, year/month/day/hour_pillar, five_elements, dominant_element, personality_traits, ai_interpretation, ideal_match, romance_style, yearly_fortune 등) | ✅ 읽기 (결과 페이지), 생성은 Edge Function |
 | **gwansang_profiles** | 관상 분석 (user_id, animal_type, animal_modifier, samjeong, ogwan, traits, ideal_match_* 등) | ✅ 읽기 (결과 페이지), 생성은 Edge Function |
-| **saju_compatibility** | 궁합 캐시 (user_id, partner_id, total_score, overall_analysis 등) | 참고 (앱 매칭용) |
+| **saju_compatibility** | 궁합 캐시 (user_id, partner_id, **user_gender**, **partner_gender**, total_score, overall_analysis, ai_story 등) | ✅ 읽기/쓰기 (궁합 기능, 2026-03-24~) |
 | **daily_matches** | 일일 추천 (user_id, recommended_id, compatibility_id, section 등) | 참고 (앱 매칭용) |
 | **likes** | 좋아요 | 앱 전용 |
 | **matches** | 매칭 성사 | 앱 전용 |

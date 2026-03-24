@@ -5,6 +5,40 @@
 
 ---
 
+## 2026-03-24: saju_compatibility 성별 컬럼 추가 + Edge Function 개편 (앱 측 수행)
+
+**목적**: 웹 궁합 기능 지원 + 소개팅 추천 성별 필터 강화
+
+### saju_compatibility — 성별 컬럼 추가
+
+```sql
+ALTER TABLE saju_compatibility
+  ADD COLUMN user_gender text NOT NULL CHECK (user_gender IN ('male', 'female')),
+  ADD COLUMN partner_gender text NOT NULL CHECK (partner_gender IN ('male', 'female'));
+```
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| `user_gender` | text NOT NULL | 'male' 또는 'female' |
+| `partner_gender` | text NOT NULL | 'male' 또는 'female' |
+
+**웹 영향**: upsert 시 반드시 `user_gender`, `partner_gender` 포함. 미포함 시 NOT NULL 제약 위반으로 INSERT 실패.
+
+### generate-match-story Edge Function 개편
+
+- **신규 필수 파라미터**: `myGender`, `partnerGender` (body에 추가)
+- **자동 분기**: 이성(male↔female) → romantic 톤, 동성(male↔male, female↔female) → friend 톤
+- **점수별 솔직한 톤**: 80+ 진심 축복, 60~79 칭찬+보완점, 40~59 솔직+균형, 39↓ 위트있는 솔직
+- `relationshipType` 수동 파라미터 제거 (성별 조합으로 자동 판단)
+
+### generate-daily-recommendations Edge Function 성별 필터 추가
+
+- `fetchCompatibilityCandidates()`에서 partner profiles JOIN + `.eq("profiles.gender", oppositeGender)` 추가
+- 기존: `saju_compatibility`에 이성만 있다는 암묵적 가정으로 필터 없음
+- 변경: 명시적 성별 필터로 동성 궁합 데이터가 추천에 혼입되지 않도록 방어
+
+---
+
 ## 2026-03-13: 공유 짧은 링크용 share_links (momo-web 전용)
 
 **목적**: 공유 URL을 `https://도메인/s/abc12xyz` 형태로 짧게 제공.

@@ -32,7 +32,7 @@
 ### 금지 사항 (절대 하지 말 것)
 - **Supabase DB 스키마 변경 금지** — 기존 테이블/컬럼 수정·삭제·이름 변경 불가
 - **RLS(Row Level Security) 정책 수정 금지** — 기존 테이블의 정책 추가·삭제·변경 불가
-- **Edge Function 수정 금지** — 기존 함수(`calculate-saju`, `generate-saju-reading`, `generate-gwansang-reading`, `batch-calculate-compatibility`) 코드 변경 불가
+- **Edge Function 수정 금지** — 기존 함수(`calculate-saju`, `generate-saju-reading`, `generate-gwansang-reading`, `batch-calculate-compatibility`, `calculate-compatibility`, `generate-match-story`) 코드 변경 불가
 - **Storage 버킷 정책 변경 금지** — `profile-images` 등 기존 버킷 정책 건드리지 않음
 
 ### 허용 사항
@@ -98,21 +98,28 @@ momo-web/
 │   ├── callback/page.tsx        # 카카오 OAuth 콜백
 │   ├── onboarding/              # 온보딩 (이름/성별/생년월일시/프로필 등)
 │   │   └── page.tsx
-│   ├── result/                  # 사주 + 관상 결과 (로딩 + 결과 페이지)
+│   ├── result/                  # 사주 + 관상 + 궁합 결과 (로딩 + 결과 페이지)
 │   │   └── page.tsx
 │   ├── waitlist/                # 앱 출시 알림 (전화번호 + 문자 수신 수락)
 │   │   └── page.tsx
-│   └── share/[id]/page.tsx      # 공유 링크 (OG 태그 + SSR)
+│   ├── share/[id]/page.tsx      # 공유 링크 (OG 태그 + SSR)
+│   └── api/                     # API Routes
+│       ├── calculate-compatibility/  # 1:1 궁합 계산
+│       ├── compatibility-list/       # 내 궁합 목록
+│       ├── compatibility-story/      # AI 스토리 폴링
+│       └── og-compat/                # 궁합 전용 OG 이미지
 ├── components/                  # UI 컴포넌트
-│   ├── ui/                      # 공통 UI (Button, Card, Input 등)
+│   ├── ui/                      # 공통 UI (Button, Card, Input, BottomSheet 등)
 │   ├── onboarding/              # 온보딩 스텝 위젯
-│   └── result/                  # 결과 페이지 위젯
+│   ├── result/                  # 결과 페이지 위젯 (궁합 게이지, 상세시트, 탭 포함)
+│   └── share-compatibility-prompt.tsx  # 공유 페이지 궁합 유도 바텀시트
 ├── lib/                         # 비즈니스 로직 & 유틸
 │   ├── supabase/
 │   │   ├── client.ts            # Supabase 클라이언트 (브라우저/서버)
 │   │   ├── auth.ts              # 인증 헬퍼
 │   │   └── types.ts             # DB 타입 (generated)
-│   ├── constants.ts             # 상수 (라우트 등)
+│   ├── compatibility.ts         # 궁합 비즈니스 로직 (서버 전용)
+│   ├── constants.ts             # 상수 (라우트, 궁합 등급 등)
 │   └── utils.ts                 # 유틸리티
 ├── hooks/                       # React 커스텀 훅
 │   ├── useAuth.ts
@@ -226,17 +233,20 @@ momo-web/
 - `profiles` — 유저 프로필 (웹에서도 동일 스키마로 INSERT)
 - `saju_profiles` — 사주 분석 결과
 - `gwansang_profiles` — 관상 분석 결과
-- `saju_compatibility` — 궁합 점수 캐시
+- `saju_compatibility` — 궁합 점수 캐시 (**2026-03-24**: `user_gender`, `partner_gender` NOT NULL 컬럼 추가됨. 웹 upsert 시 필수 포함)
 
 ### Supabase 테이블 (웹에서 사용 — 기존 구조만)
 - `profiles` — 온보딩·프로필 저장, `phone`/`is_phone_verified` 로 앱 출시 알림. **스키마/정책 변경 금지.**
 - `saju_profiles`, `gwansang_profiles` — 분석 결과 저장·조회 (Edge Function 호출 후 기존 로직으로 저장됨)
+- `saju_compatibility` — 궁합 점수 저장·조회 (웹에서 직접 upsert + 캐시 조회. `user_gender`/`partner_gender` 필수)
 
 ### Edge Functions (기존 — 그대로 호출)
 - `calculate-saju` — 사주 계산 (만세력 + 진태양시 보정)
 - `generate-saju-reading` — AI 사주 해석 (Claude)
 - `generate-gwansang-reading` — AI 관상 분석 (Claude Vision)
 - `batch-calculate-compatibility` — 궁합 배치 계산
+- `calculate-compatibility` — 1:1 궁합 점수 계산 (순수 알고리즘, AI 없음)
+- `generate-match-story` — AI 궁합 스토리 생성 (2026-03-24: `myGender`/`partnerGender` 필수. 이성=인연 스토리, 동성=케미 분석 자동 분기)
 
 ### Storage (기존)
 - `profile-images` 버킷 — 프로필 사진 업로드 (PUBLIC)
@@ -255,9 +265,17 @@ momo-web/
   → 프로필 정보 등록 (사진 등)
   → 확인 (요약 후 "분석 시작")
   → 사주 & 관상 분석 (로딩 연출)
-  → 분석 결과 (친구에게 공유하기 + 궁합 좋은 이성 보기 CTA)
-  → "딱 맞는 인연을 찾을 수 있는 APP이 준비 중이에요. 완료되면 인증하신 전화번호로 알려드릴게요!"
-  → 문자 수신 수락 (전화번호 입력 + 동의)
+  → 분석 결과 (사주 | 관상 | 궁합 3개 탭)
+    → 궁합 탭: 리스트 + 상세 바텀시트 (게이지, 강점/도전, AI 스토리)
+    → 공유하기 → 공유 티저 + 궁합 바텀시트(2초 후) → 바이럴 루프
+  → 완료 화면 (앱 출시 알림 + 전화번호 + 문자 수신 수락)
+```
+
+### 바이럴 루프 (2026-03-24 궁합 기능)
+```
+A 결과 → "공유하기" → B 공유 티저 → 2초 후 "궁합 보기" 바텀시트
+  → B 분석 완료 → A-B 궁합 자동 계산 → 결과 확인
+  → B "궁합 요청 링크 공유" → C 전환 → 체인
 ```
 
 ---

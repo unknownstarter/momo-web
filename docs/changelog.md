@@ -4,6 +4,41 @@
 
 ---
 
+## 2026-03-24
+
+### 궁합(Compatibility) 기능 출시 — 바이럴 루프 강화
+
+- **PR**: [#3](https://github.com/unknownstarter/momo-web/pull/3) (squash merge → `f7c02ea`)
+- **목적**: 공유 동기를 "보여주기"에서 "관계 확인하기"로 전환하여 바이럴 루프 강화
+
+#### 신규 기능
+| 기능 | 설명 |
+|------|------|
+| **궁합 탭** | 결과 페이지에 사주/관상/**궁합** 3번째 탭 추가. 리스트 + 빈 상태 UI |
+| **궁합 계산** | `calculate-compatibility` Edge Function 연동. 캐시 우선, 양방향 조회 |
+| **AI 스토리** | `generate-match-story` 연동. 이성="인연 스토리", 동성="케미 분석" 자동 분기 |
+| **하이브리드 폴링** | AI 스토리 5초 간격 최대 3회 폴링 + 분석 로딩 GIF + 부모 캐시 |
+| **상세 바텀시트** | 캐릭터 쌍 + 원형 게이지(1.8s 애니메이션) + 등급 + 강점/도전 + AI 스토리 |
+| **공유 궁합 바텀시트** | 공유 티저 페이지에서 2초 후 "궁합은 몇 점일까?" 바텀시트 등장 |
+| **레퍼럴 자동 계산** | sessionStorage + 쿠키 병행으로 비회원 긴 여정에서도 partner ID 유지 |
+| **궁합 OG 이미지** | `/api/og-compat` — 공유자 캐릭터 + 점수 + 등급 |
+| **에러 피드백** | 자기 자신 궁합, 사주 미완료, 네트워크 에러 시 유저 메시지 표시 |
+
+#### DB 변경 (앱 측에서 수행)
+- `saju_compatibility` 테이블에 `user_gender`, `partner_gender` NOT NULL 컬럼 추가
+- `generate-match-story` Edge Function 프롬프트 전면 개편 (점수별 솔직한 톤 + 동성 friend 모드)
+- `generate-daily-recommendations` Edge Function에 성별 필터 추가
+
+#### 파일 변경
+- **신규 9개**: `lib/compatibility.ts`, API Route 4개, 컴포넌트 4개
+- **수정 6개**: `lib/constants.ts`, `lib/result-tokens.ts`, `lib/analytics.ts`, `app/result/page.tsx`, `app/s/[code]/page.tsx`, `app/share/[id]/page.tsx`
+
+#### 설계 문서
+- 설계서: `docs/plans/compatibility-feature.md`
+- 구현 플랜: `docs/superpowers/plans/2026-03-20-compatibility-feature.md`
+
+---
+
 ## 2026-03-12
 
 ### 로그인 플로우 — 랜딩 CTA + 바텀시트 (PD 반영)

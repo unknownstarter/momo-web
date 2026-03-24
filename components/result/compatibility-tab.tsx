@@ -395,7 +395,7 @@ export function CompatibilityTab({
       </p>
 
       {/* 리스트 */}
-      <div className="flex flex-col gap-2.5">
+      <div className="flex flex-col gap-3">
         {list.map((item) => (
           <CompatibilityListCard
             key={item.id}

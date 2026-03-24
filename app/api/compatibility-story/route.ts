@@ -23,9 +23,10 @@ export async function GET(req: Request) {
     // searchParams에서 partnerId 추출
     const { searchParams } = new URL(req.url);
     const partnerId = searchParams.get("partnerId")?.trim() ?? "";
-    if (!partnerId) {
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!partnerId || !UUID_RE.test(partnerId)) {
       return NextResponse.json(
-        { ok: false, error: "partnerId is required" },
+        { ok: false, error: "valid partnerId is required" },
         { status: 400 },
       );
     }

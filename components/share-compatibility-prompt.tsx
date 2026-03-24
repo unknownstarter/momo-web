@@ -66,9 +66,9 @@ export function ShareCompatibilityPrompt({
     trackClickCompatibilityCta();
     if (viewerStatus === "has_result") {
       router.push("/result?tab=compatibility");
-    } else if (viewerStatus === "logged_in") {
-      router.push("/result/loading");
     } else {
+      // logged_in(온보딩 미완료)과 anonymous 모두 랜딩으로 보내서
+      // 정상 플로우(로그인 → 온보딩 → 분석)를 타게 함
       router.push("/");
     }
   }, [viewerStatus, router]);

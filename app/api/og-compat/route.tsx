@@ -72,7 +72,9 @@ export async function GET(request: Request) {
   );
   const grade = searchParams.get("grade") ?? "좋은 인연";
   const element = normalizeElement(searchParams.get("element") ?? "metal");
-  const character = searchParams.get("character") ?? "namuri";
+  const VALID_CHARACTERS = ["namuri", "bulkkori", "heuksuni", "soedongi", "mulgyeori"];
+  const rawCharacter = searchParams.get("character") ?? "namuri";
+  const character = VALID_CHARACTERS.includes(rawCharacter) ? rawCharacter : "namuri";
 
   const colors = ELEMENT_COLORS[element] ?? ELEMENT_COLORS.metal;
   const origin = new URL(request.url).origin;

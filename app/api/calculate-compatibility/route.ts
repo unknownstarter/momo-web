@@ -36,9 +36,10 @@ export async function POST(req: Request) {
       typeof body?.partnerProfileId === "string"
         ? body.partnerProfileId.trim()
         : "";
-    if (!partnerProfileId) {
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!partnerProfileId || !UUID_RE.test(partnerProfileId)) {
       return NextResponse.json(
-        { ok: false, error: "partnerProfileId is required" },
+        { ok: false, error: "valid partnerProfileId is required" },
         { status: 400 },
       );
     }

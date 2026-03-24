@@ -210,7 +210,7 @@ export async function computeCompatibility(
   // 2) 양쪽 프로필 기본 정보 (id, name, gender)
   const { data: profiles, error: profilesErr } = await supabase
     .from("profiles")
-    .select("id, name, gender")
+    .select("id, name, gender, character_type, dominant_element")
     .in("id", [myProfileId, partnerProfileId]);
 
   if (profilesErr || !profiles || profiles.length < 2) return null;
@@ -272,7 +272,7 @@ export async function computeCompatibility(
     partner_id: partnerProfileId,
     user_gender: myProfile.gender,
     partner_gender: partnerProfile.gender,
-    total_score: (result.totalScore ?? result.total_score ?? 0) as number,
+    total_score: (result.score ?? result.totalScore ?? result.total_score ?? 0) as number,
     five_element_score: (result.fiveElementScore ?? result.five_element_score ?? null) as number | null,
     day_pillar_score: (result.dayPillarScore ?? result.day_pillar_score ?? null) as number | null,
     overall_analysis: (result.overallAnalysis ?? result.overall_analysis ?? null) as string | null,
@@ -297,13 +297,28 @@ export async function computeCompatibility(
     authedClient.functions
       .invoke("generate-match-story", {
         body: {
-          compatibilityId: upserted.id,
           userId: myProfileId,
           partnerId: partnerProfileId,
+          myName: myProfile.name ?? "나",
+          partnerName: partnerProfile.name ?? "상대방",
+          mySaju: {
+            dayPillar: normalizePillar(mySaju.dayPillar),
+            fiveElements: mySaju.fiveElements,
+            dominantElement: mySaju.dominantElement,
+          },
+          partnerSaju: {
+            dayPillar: normalizePillar(partnerSaju.dayPillar),
+            fiveElements: partnerSaju.fiveElements,
+            dominantElement: partnerSaju.dominantElement,
+          },
+          score: upsertRow.total_score,
+          strengths: upsertRow.strengths,
+          challenges: upsertRow.challenges,
         },
-        headers: { Authorization: `Bearer ${accessToken}` },
       })
-      .catch(() => {});
+      .catch((err: unknown) => {
+        console.error("[generate-match-story] fire-and-forget failed:", err);
+      });
   }
 
   // 7) 결과 직접 구성 (fetchCachedCompatibility 재호출 금지)
@@ -311,8 +326,8 @@ export async function computeCompatibility(
     id: upserted.id,
     partnerId: partnerProfileId,
     partnerName: partnerProfile.name ?? null,
-    partnerCharacterType: null, // 아래에서 보강
-    partnerDominantElement: null,
+    partnerCharacterType: partnerProfile.character_type ?? null,
+    partnerDominantElement: partnerProfile.dominant_element ?? null,
     partnerGender: partnerProfile.gender,
     myGender: myProfile.gender,
     score: upsertRow.total_score,

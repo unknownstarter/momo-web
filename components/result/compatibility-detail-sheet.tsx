@@ -152,13 +152,13 @@ function AiStorySection({
       <div
         className="rounded-card p-4"
         style={{
-          border: "1px solid #C8B68E4D",
-          backgroundColor: "#C8B68E0F",
+          border: `1px solid ${MYSTIC_GLOW}4D`,
+          backgroundColor: `${MYSTIC_GLOW}0F`,
         }}
       >
         <p
           className="text-xs font-semibold mb-2"
-          style={{ color: "#C8B68E" }}
+          style={{ color: MYSTIC_GLOW }}
         >
           인연 스토리
         </p>

@@ -164,6 +164,7 @@ export function CompatibilityTab({
   const [calculating, setCalculating] = useState(false);
   const [selected, setSelected] = useState<CompatibilityResult | null>(null);
   const [storyCacheMap, setStoryCacheMap] = useState<Record<string, string>>({});
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // 레퍼럴 처리 중복 방지
   const referralHandled = useRef(false);
@@ -230,23 +231,31 @@ export function CompatibilityTab({
     // 없으면 계산 요청
     (async () => {
       setCalculating(true);
+      setErrorMessage(null);
       try {
         const res = await fetch("/api/calculate-compatibility", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ partnerProfileId: referralPartnerId }),
         });
-        if (res.ok) {
-          const json = await res.json();
-          if (json.ok && json.data) {
-            trackViewCompatibilityDetail(json.data.score);
-            setSelected(json.data);
-            // 리스트 갱신
-            await loadList();
+        const json = await res.json().catch(() => null);
+        if (res.ok && json?.ok && json.data) {
+          trackViewCompatibilityDetail(json.data.score);
+          setSelected(json.data);
+          await loadList();
+        } else {
+          // API 에러 유형별 유저 메시지
+          const err = json?.error ?? "";
+          if (err.includes("yourself")) {
+            setErrorMessage("본인과는 궁합을 볼 수 없어요");
+          } else if (err === "compatibility_calculation_failed") {
+            setErrorMessage("상대방이 아직 사주 분석을 완료하지 않았어요");
+          } else {
+            setErrorMessage("궁합 계산에 실패했어요. 다시 시도해주세요");
           }
         }
       } catch {
-        // 에러 시 조용히 넘김
+        setErrorMessage("네트워크 오류가 발생했어요. 다시 시도해주세요");
       } finally {
         setCalculating(false);
       }
@@ -311,6 +320,25 @@ export function CompatibilityTab({
         <p className="text-sm text-ink-muted">
           {calculating ? "궁합을 계산하고 있어요..." : "불러오는 중..."}
         </p>
+      </div>
+    );
+  }
+
+  // 에러 메시지 표시
+  if (errorMessage) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+        <p className="text-sm text-ink-muted">{errorMessage}</p>
+        <button
+          type="button"
+          onClick={() => {
+            setErrorMessage(null);
+            loadList();
+          }}
+          className="text-sm font-medium px-4 py-2 rounded-full border border-hanji-border hover:bg-hanji-secondary transition-colors"
+        >
+          돌아가기
+        </button>
       </div>
     );
   }

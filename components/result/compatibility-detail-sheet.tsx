@@ -40,10 +40,12 @@ function AiStorySection({
   partnerId,
   initialStory,
   onStoryLoaded,
+  label = "인연 스토리",
 }: {
   partnerId: string;
   initialStory: string | null;
   onStoryLoaded: (partnerId: string, story: string) => void;
+  label?: string;
 }) {
   const [story, setStory] = useState<string | null>(initialStory);
   const [polling, setPolling] = useState(!initialStory);
@@ -122,7 +124,7 @@ function AiStorySection({
           unoptimized
         />
         <p className="text-sm text-ink-muted">
-          인연 스토리를 만들고 있어요...
+          {label}를 만들고 있어요...
         </p>
       </div>
     );
@@ -160,7 +162,7 @@ function AiStorySection({
           className="text-xs font-semibold mb-2"
           style={{ color: MYSTIC_GLOW }}
         >
-          인연 스토리
+          {label}
         </p>
         <p className="text-sm text-ink leading-relaxed whitespace-pre-line">
           {story}
@@ -355,16 +357,15 @@ export function CompatibilityDetailSheet({
           </div>
         )}
 
-        {/* 9. AI 인연 스토리 (이성만) */}
-        {c.relationType === "romantic" && (
-          <div className="w-full">
-            <AiStorySection
-              partnerId={c.partnerId}
-              initialStory={initialStory}
-              onStoryLoaded={onStoryLoaded}
-            />
-          </div>
-        )}
+        {/* 9. AI 스토리 (이성: 인연 스토리 / 동성: 케미 분석) */}
+        <div className="w-full">
+          <AiStorySection
+            partnerId={c.partnerId}
+            initialStory={initialStory}
+            onStoryLoaded={onStoryLoaded}
+            label={c.relationType === "romantic" ? "인연 스토리" : "케미 분석"}
+          />
+        </div>
 
         {/* 10. 공유 버튼 */}
         <button

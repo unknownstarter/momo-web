@@ -291,35 +291,36 @@ export async function computeCompatibility(
 
   if (upsertErr || !upserted) return null;
 
-  // 6) 이성이면 generate-match-story fire-and-forget
+  // 6) generate-match-story fire-and-forget (이성 + 동성 모두)
+  // Edge Function이 myGender/partnerGender로 romantic/friend 자동 판단
   const relationType = deriveRelationType(myProfile.gender, partnerProfile.gender);
-  if (relationType === "romantic") {
-    authedClient.functions
-      .invoke("generate-match-story", {
-        body: {
-          userId: myProfileId,
-          partnerId: partnerProfileId,
-          myName: myProfile.name ?? "나",
-          partnerName: partnerProfile.name ?? "상대방",
-          mySaju: {
-            dayPillar: normalizePillar(mySaju.dayPillar),
-            fiveElements: mySaju.fiveElements,
-            dominantElement: mySaju.dominantElement,
-          },
-          partnerSaju: {
-            dayPillar: normalizePillar(partnerSaju.dayPillar),
-            fiveElements: partnerSaju.fiveElements,
-            dominantElement: partnerSaju.dominantElement,
-          },
-          score: upsertRow.total_score,
-          strengths: upsertRow.strengths,
-          challenges: upsertRow.challenges,
+  authedClient.functions
+    .invoke("generate-match-story", {
+      body: {
+        userId: myProfileId,
+        partnerId: partnerProfileId,
+        myName: myProfile.name ?? "나",
+        partnerName: partnerProfile.name ?? "상대방",
+        myGender: myProfile.gender,
+        partnerGender: partnerProfile.gender,
+        mySaju: {
+          dayPillar: normalizePillar(mySaju.dayPillar),
+          fiveElements: mySaju.fiveElements,
+          dominantElement: mySaju.dominantElement,
         },
-      })
-      .catch((err: unknown) => {
-        console.error("[generate-match-story] fire-and-forget failed:", err);
-      });
-  }
+        partnerSaju: {
+          dayPillar: normalizePillar(partnerSaju.dayPillar),
+          fiveElements: partnerSaju.fiveElements,
+          dominantElement: partnerSaju.dominantElement,
+        },
+        score: upsertRow.total_score,
+        strengths: upsertRow.strengths,
+        challenges: upsertRow.challenges,
+      },
+    })
+    .catch((err: unknown) => {
+      console.error("[generate-match-story] fire-and-forget failed:", err);
+    });
 
   // 7) 결과 직접 구성 (fetchCachedCompatibility 재호출 금지)
   return {

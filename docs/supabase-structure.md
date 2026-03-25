@@ -24,6 +24,7 @@
 | **blocked_phone_hashes** | 전화번호 블록 | 앱 전용 |
 | **profile_ratings** | 프로필 평점 | 앱 전용 |
 | **share_links** | 공유 짧은 링크 (short_id → profile_id) | ✅ 읽기/쓰기 (공유 URL 생성, 2026-03-13~) |
+| **compat_connections** | 의도적 궁합 관계 (user_id, partner_id, compatibility_id FK) | ✅ RPC로 쓰기 + 읽기 (궁합 리스트, 2026-03-25~). 직접 INSERT 불가(RLS) |
 
 ---
 

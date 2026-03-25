@@ -80,6 +80,25 @@ A 공유 → B 공유 티저 도착 → 2초 후 궁합 바텀시트
 - 동성 = "친구 궁합" (케미 분석), 이성 = "연인 궁합" (인연 스토리)
 - 점수별 솔직한 톤: 낮으면 위트있게 솔직, 높으면 진심으로
 
+### 궁합 데이터 아키텍처 (⚠️ 중요)
+
+```
+saju_compatibility (점수 저장)     ← 앱 batch + 웹 모두 upsert
+compat_connections (관계 추적)     ← 유저가 의도적으로 확인한 것만
+궁합 리스트 조회                   ← compat_connections 기반 (앱 batch 제외)
+```
+
+- **`saju_compatibility`를 직접 조회하면 안 됨** — 앱 batch 데이터가 섞임
+- **`compat_connections`에 기록은 RPC(`fn_record_compat_connection`)로만** — 직접 INSERT 불가(RLS)
+- **궁합 계산 시 캐시 히트/미스 모든 경로에서 RPC 호출 필수** — 누락 시 리스트에 안 나오는 "유령 궁합"
+
+### 전화번호 저장 규칙 (⚠️ 중요)
+
+- `/complete` 페이지에서 `profiles.phone`에 **저장만**
+- **`is_phone_verified: true`를 웹에서 절대 설정하면 안 됨**
+- 이유: 앱의 SMS OTP 인증 플로우 + 매칭풀 필터 + 중복번호 체크가 깨짐
+- 실제 SMS 인증은 앱에서만 진행
+
 ---
 
 ## 3. 디자인 원칙

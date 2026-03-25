@@ -4,6 +4,32 @@
 
 ---
 
+## 2026-03-25
+
+### 궁합 기능 안정화 + compat_connections 연동
+
+#### 핵심 변경
+- **`compat_connections` 테이블 연동**: 궁합 리스트가 `saju_compatibility` 직접 조회 → `compat_connections` 기반으로 변경. 앱 batch 데이터가 웹 궁합 탭에 노출되던 문제 해결.
+- **`fn_record_compat_connection` RPC**: 궁합 계산 시(캐시 히트/미스 모두) 의도적 관계 기록. 직접 INSERT 불가(RLS).
+
+#### 버그 수정
+| 이슈 | 수정 |
+|------|------|
+| `is_phone_verified: true` 웹에서 잘못 설정 | 제거 — 전화번호 저장만, 인증은 앱에서 |
+| 비로그인 `/result` 접속 시 무한 "이동 중..." | 401 응답 시 랜딩으로 리다이렉트 |
+| 온보딩 step 4 fire-and-forget → step 5~12 스킵 | `getOnboardingStep`에서 프로필 필수 필드 체크 후 `saju_profile_id` 확인 |
+| step 13 불필요한 이중 분석 | `saju_profile_id: null` 리셋 제거, `is_profile_complete: true` 설정 |
+| step 4 사진 업로드 실패 무시 | 에러 메시지 표시 + 진행 차단 |
+| "다시 시도" 버튼 재트리거 실패 | ref 변경 대신 직접 fetch 호출 |
+| `fetchSajuForCompat` pillar null-safe 누락 | `toPillar()` 변환 복원 + 필수 pillar 누락 시 조기 종료 |
+| `compatibility_id` null인 항목 0점 표시 | `compat_connections` 조회 시 null 필터링 |
+| 탈퇴 유저 공유 링크 정상 동작 | `fetchShareData`에서 `account_status` 체크 |
+| detail 페이지 404 | 티저 "자세히 보기" → 랜딩으로 변경 |
+| `object-cover` 규칙 위반 3곳 | `object-contain`으로 수정 |
+| `/complete` 기존 전화번호 미표시 | 기존 phone 로드 + 이미 등록이면 완료 화면 직행 |
+
+---
+
 ## 2026-03-24
 
 ### 궁합(Compatibility) 기능 출시 — 바이럴 루프 강화

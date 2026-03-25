@@ -5,6 +5,40 @@
 
 ---
 
+## 2026-03-25: compat_connections 테이블 추가 (앱 측 생성)
+
+**목적**: 유저가 의도적으로 궁합을 확인한 관계 추적. 앱 batch 데이터와 구분.
+
+### compat_connections 테이블 (신규)
+
+```sql
+CREATE TABLE IF NOT EXISTS compat_connections (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  partner_id uuid NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  user_gender text NOT NULL CHECK (user_gender IN ('male', 'female')),
+  partner_gender text NOT NULL CHECK (partner_gender IN ('male', 'female')),
+  compatibility_id uuid REFERENCES saju_compatibility(id),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE(user_id, partner_id)
+);
+ALTER TABLE compat_connections ENABLE ROW LEVEL SECURITY;
+```
+
+**RPC**: `fn_record_compat_connection(p_partner_id uuid)` — 직접 INSERT 불가, RPC로만 기록.
+- `auth.uid()`로 user_id 자동 설정
+- `compatibility_id`는 saju_compatibility에서 양방향 조회하여 자동 매칭
+- 성별도 profiles에서 자동 조회
+- `ON CONFLICT DO NOTHING` (중복 안전)
+
+**웹에서 사용**:
+- `computeCompatibility` 후 RPC 호출 (캐시 히트/미스 모두)
+- `fetchCompatibilityList`에서 `compat_connections` 기반 조회 + `saju_compatibility` JOIN
+
+**앱에서 사용 (미래)**: 공유 딥링크 → 궁합 확인 시 동일 RPC 호출
+
+---
+
 ## 2026-03-24: saju_compatibility 성별 컬럼 추가 + Edge Function 개편 (앱 측 수행)
 
 **목적**: 웹 궁합 기능 지원 + 소개팅 추천 성별 필터 강화

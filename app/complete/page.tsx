@@ -22,6 +22,7 @@ export default function CompletePage() {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
 
   // 기존 전화번호가 있으면 로드 + 이미 등록 완료 상태면 바로 완료 화면
   useEffect(() => {
@@ -37,11 +38,20 @@ export default function CompletePage() {
           .maybeSingle();
         if (data?.phone) {
           setPhone(data.phone);
-          setSubmitted(true); // 이미 등록됨 → 바로 완료 화면
+          setSubmitted(true);
         }
       } catch { /* 조회 실패 시 빈 폼 표시 */ }
+      finally { setInitialLoading(false); }
     })();
   }, []);
+
+  if (initialLoading) {
+    return (
+      <MobileContainer className="min-h-dvh bg-hanji flex flex-col items-center justify-center">
+        <p className="text-sm text-ink-muted">불러오는 중...</p>
+      </MobileContainer>
+    );
+  }
 
   const validPhone = isValidPhone(phone);
   const canSubmit = agreed && validPhone && !saving;

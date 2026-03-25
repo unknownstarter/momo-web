@@ -168,6 +168,9 @@ export function CompatibilityTab({
 
   // 레퍼럴 처리 중복 방지
   const referralHandled = useRef(false);
+  // list를 ref로도 유지 (useEffect 의존성에서 제거하기 위해)
+  const listRef = useRef(list);
+  listRef.current = list;
 
   // AI 스토리 캐시 콜백
   const onStoryLoaded = useCallback(
@@ -220,8 +223,8 @@ export function CompatibilityTab({
     if (!referralPartnerId || loading || referralHandled.current) return;
     referralHandled.current = true;
 
-    // 이미 리스트에 있으면 바로 열기
-    const existing = list.find((c) => c.partnerId === referralPartnerId);
+    // 이미 리스트에 있으면 바로 열기 (ref로 접근 — 의존성 배열에서 list 제거)
+    const existing = listRef.current.find((c) => c.partnerId === referralPartnerId);
     if (existing) {
       trackViewCompatibilityDetail(existing.score);
       setSelected(existing);
@@ -244,7 +247,6 @@ export function CompatibilityTab({
           setSelected(json.data);
           await loadList();
         } else {
-          // API 에러 유형별 유저 메시지
           const err = json?.error ?? "";
           if (err.includes("yourself")) {
             setErrorMessage("본인과는 궁합을 볼 수 없어요");
@@ -260,7 +262,7 @@ export function CompatibilityTab({
         setCalculating(false);
       }
     })();
-  }, [referralPartnerId, loading, list, loadList]);
+  }, [referralPartnerId, loading, loadList]);
 
   // -----------------------------------------------------------------------
   // 공유 핸들러

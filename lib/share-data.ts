@@ -15,6 +15,7 @@ export interface ShareProfile {
   dominant_element: string | null;
   saju_profile_id: string | null;
   gwansang_profile_id: string | null;
+  account_status?: string | null;
 }
 
 export interface ShareData {
@@ -40,8 +41,8 @@ export async function fetchShareData(profileId: string): Promise<ShareData | nul
   if (error || !profile) return null;
 
   // 탈퇴/삭제 진행 중인 유저의 공유 데이터는 노출하지 않음
-  const status = (profile as Record<string, unknown>).account_status as string | null;
-  if (status === "deleted" || status === "deleting" || status === "pending_deletion") return null;
+  const { account_status, ...shareProfile } = profile;
+  if (account_status === "deleted" || account_status === "deleting" || account_status === "pending_deletion") return null;
 
   let sajuProfile: Record<string, unknown> | null = null;
   let gwansangProfile: Record<string, unknown> | null = null;
@@ -64,7 +65,7 @@ export async function fetchShareData(profileId: string): Promise<ShareData | nul
     gwansangProfile = data;
   }
 
-  return { profile: profile as ShareProfile, sajuProfile, gwansangProfile };
+  return { profile: shareProfile as ShareProfile, sajuProfile, gwansangProfile };
 }
 
 /**

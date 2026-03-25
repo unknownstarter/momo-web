@@ -201,9 +201,24 @@ export async function computeCompatibility(
   partnerProfileId: string,
   accessToken: string,
 ): Promise<CompatibilityResult | null> {
+  // 유저 토큰 클라이언트 (RPC + Edge Function 호출용)
+  const authedClient = createClient(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: `Bearer ${accessToken}` } },
+  });
+
   // 1) 캐시 확인
   const cached = await fetchCachedCompatibility(myProfileId, partnerProfileId);
-  if (cached) return cached;
+  if (cached) {
+    // ⚠️ 캐시 히트여도 compat_connections에 기록해야 함!
+    // 앱 batch가 생성한 레코드가 캐시에 있을 수 있고,
+    // 그래도 유저가 의도적으로 궁합을 확인한 관계는 기록되어야 리스트에 표시됨.
+    await authedClient
+      .rpc("fn_record_compat_connection", { p_partner_id: partnerProfileId })
+      .then(({ error: rpcErr }) => {
+        if (rpcErr) console.error("[compat_connections] cache-hit rpc failed:", rpcErr.message);
+      });
+    return cached;
+  }
 
   const supabase = createAdminClient();
 
@@ -229,11 +244,7 @@ export async function computeCompatibility(
 
   if (!mySaju || !partnerSaju) return null;
 
-  // 4) Edge Function 호출 (유저 토큰 사용)
-  const authedClient = createClient(supabaseUrl, anonKey, {
-    global: { headers: { Authorization: `Bearer ${accessToken}` } },
-  });
-
+  // 4) Edge Function 호출 (authedClient는 함수 상단에서 이미 생성됨)
   const payload = {
     mySaju: {
       yearPillar: normalizePillar(mySaju.yearPillar),
@@ -323,17 +334,11 @@ export async function computeCompatibility(
     });
 
   // 7) compat_connections에 의도적 궁합 관계 기록 (RPC — 직접 INSERT 불가, RLS)
-  // RPC가 성별/compatibility_id를 자동으로 매칭하므로 partner_id만 전달
-  (async () => {
-    try {
-      const { error: rpcErr } = await authedClient.rpc("fn_record_compat_connection", {
-        p_partner_id: partnerProfileId,
-      });
-      if (rpcErr) console.error("[compat_connections] rpc failed:", rpcErr.message);
-    } catch (err) {
-      console.error("[compat_connections] rpc error:", err);
-    }
-  })();
+  // ⚠️ await 필수: 반환 후 loadList()가 바로 호출되므로, 기록 완료 전에 조회되면 리스트에 안 나옴
+  const { error: rpcErr } = await authedClient.rpc("fn_record_compat_connection", {
+    p_partner_id: partnerProfileId,
+  });
+  if (rpcErr) console.error("[compat_connections] rpc failed:", rpcErr.message);
 
   // 8) 결과 직접 구성 (fetchCachedCompatibility 재호출 금지)
   return {

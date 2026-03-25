@@ -5,6 +5,7 @@ import Link from "next/link";
 import { MobileContainer } from "@/components/ui/mobile-container";
 import { Button } from "@/components/ui/button";
 import { CtaBar } from "@/components/ui/cta-bar";
+import { createClient } from "@/lib/supabase/client";
 
 function normalizePhone(value: string): string {
   return value.replace(/\D/g, "");
@@ -20,11 +21,12 @@ export default function CompletePage() {
   const [agreed, setAgreed] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const validPhone = isValidPhone(phone);
-  const canSubmit = agreed && validPhone;
+  const canSubmit = agreed && validPhone && !saving;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     if (!agreed) return;
@@ -32,7 +34,38 @@ export default function CompletePage() {
       setError("올바른 전화번호를 입력해 주세요. (예: 010-0000-0000)");
       return;
     }
-    setSubmitted(true);
+
+    setSaving(true);
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setError("로그인이 필요해요. 다시 시도해 주세요.");
+        setSaving(false);
+        return;
+      }
+
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({
+          phone: normalizePhone(phone),
+          is_phone_verified: true,
+        })
+        .eq("auth_id", user.id);
+
+      if (updateError) {
+        console.error("[complete] phone save failed:", updateError);
+        setError("저장에 실패했어요. 다시 시도해 주세요.");
+        setSaving(false);
+        return;
+      }
+
+      setSubmitted(true);
+    } catch (err) {
+      console.error("[complete] unexpected error:", err);
+      setError("네트워크 오류가 발생했어요. 다시 시도해 주세요.");
+      setSaving(false);
+    }
   };
 
   if (submitted) {
@@ -150,7 +183,7 @@ export default function CompletePage() {
           className="w-full"
           disabled={!canSubmit}
         >
-          알림 받기
+          {saving ? "저장 중..." : "알림 받기"}
         </Button>
       </CtaBar>
     </MobileContainer>

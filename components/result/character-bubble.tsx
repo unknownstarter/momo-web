@@ -38,9 +38,9 @@ export function CharacterBubble({
         <Image
           src={imageSrc}
           alt=""
-          width={48}
-          height={48}
-          className="object-cover w-full h-full"
+          width={32}
+          height={32}
+          className="object-contain"
           unoptimized
           onError={handleImageError}
         />

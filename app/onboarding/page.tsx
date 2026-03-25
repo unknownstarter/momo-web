@@ -819,6 +819,9 @@ function OnboardingContent() {
       )}
       {step === 4 && (
         <CtaBar>
+          {submitError && (
+            <p className="text-sm text-red-600 mb-2 text-center" role="alert">{submitError}</p>
+          )}
           <Button size="lg" className="w-full" disabled={!canProceedStep4 || submitting} onClick={handleStep4Submit}>
             {submitting ? "저장 중…" : "다음"}
           </Button>

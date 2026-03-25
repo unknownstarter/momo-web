@@ -39,6 +39,16 @@
 
 ---
 
+## 2026-03-18
+
+### OG 이미지 폰트 로딩 실패 수정
+
+- **PR**: [#2](https://github.com/unknownstarter/momo-web/pull/2) (MERGED)
+- Pretendard CDN 실패 시 Noto Sans KR 폴백 적용
+- 글로벌 싱글톤 폰트 캐싱으로 성능 개선
+
+---
+
 ## 2026-03-12
 
 ### 로그인 플로우 — 랜딩 CTA + 바텀시트 (PD 반영)

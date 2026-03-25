@@ -32,7 +32,7 @@
 ### 금지 사항 (절대 하지 말 것)
 - **Supabase DB 스키마 변경 금지** — 기존 테이블/컬럼 수정·삭제·이름 변경 불가
 - **RLS(Row Level Security) 정책 수정 금지** — 기존 테이블의 정책 추가·삭제·변경 불가
-- **Edge Function 수정 금지** — 기존 함수(`calculate-saju`, `generate-saju-reading`, `generate-gwansang-reading`, `batch-calculate-compatibility`, `calculate-compatibility`, `generate-match-story`) 코드 변경 불가
+- **Edge Function 수정 금지** — 기존 함수(`calculate-saju`, `generate-saju-insight`, `generate-gwansang-reading`, `batch-calculate-compatibility`, `calculate-compatibility`, `generate-match-story`) 코드 변경 불가
 - **Storage 버킷 정책 변경 금지** — `profile-images` 등 기존 버킷 정책 건드리지 않음
 
 ### 허용 사항
@@ -95,12 +95,12 @@ momo-web/
 ├── app/                         # Next.js App Router (Pages)
 │   ├── layout.tsx               # 루트 레이아웃 (max-w-[430px] 고정)
 │   ├── page.tsx                 # 랜딩 페이지
-│   ├── callback/page.tsx        # 카카오 OAuth 콜백
+│   ├── callback/route.ts        # 카카오 OAuth 콜백
 │   ├── onboarding/              # 온보딩 (이름/성별/생년월일시/프로필 등)
 │   │   └── page.tsx
 │   ├── result/                  # 사주 + 관상 + 궁합 결과 (로딩 + 결과 페이지)
 │   │   └── page.tsx
-│   ├── waitlist/                # 앱 출시 알림 (전화번호 + 문자 수신 수락)
+│   ├── complete/                # 앱 출시 알림 (전화번호 + 문자 수신 수락)
 │   │   └── page.tsx
 │   ├── share/[id]/page.tsx      # 공유 링크 (OG 태그 + SSR)
 │   └── api/                     # API Routes
@@ -115,20 +115,14 @@ momo-web/
 │   └── share-compatibility-prompt.tsx  # 공유 페이지 궁합 유도 바텀시트
 ├── lib/                         # 비즈니스 로직 & 유틸
 │   ├── supabase/
-│   │   ├── client.ts            # Supabase 클라이언트 (브라우저/서버)
-│   │   ├── auth.ts              # 인증 헬퍼
-│   │   └── types.ts             # DB 타입 (generated)
+│   │   └── client.ts            # Supabase 클라이언트 (브라우저/서버)
 │   ├── compatibility.ts         # 궁합 비즈니스 로직 (서버 전용)
 │   ├── constants.ts             # 상수 (라우트, 궁합 등급 등)
 │   └── utils.ts                 # 유틸리티
-├── hooks/                       # React 커스텀 훅
-│   ├── useAuth.ts
-│   └── useOnboarding.ts
 ├── styles/
 │   └── globals.css              # Tailwind base + 커스텀 유틸리티
 ├── public/
-│   ├── characters/              # 오행이 캐릭터 에셋 (Flutter에서 복사)
-│   └── og/                      # OG 이미지 템플릿
+│   └── images/characters/       # 오행이 캐릭터 에셋 (Flutter에서 복사)
 ├── tailwind.config.ts           # Momo 디자인 토큰 매핑
 ├── next.config.ts
 ├── package.json
@@ -139,7 +133,6 @@ momo-web/
 - **`app/`**: 페이지 라우팅 + 서버 컴포넌트 (데이터 페칭)
 - **`components/`**: 순수 UI (프레젠테이션 전용, 비즈니스 로직 없음)
 - **`lib/`**: 비즈니스 로직, 외부 서비스 연동 (Supabase)
-- **`hooks/`**: 클라이언트 상태 관리 (React 훅)
 - 컴포넌트는 `lib/` 호출 가능, `app/`은 직접 참조 금지
 - 서버 컴포넌트와 클라이언트 컴포넌트 경계 명확히 분리 (`'use client'` 최소화)
 
@@ -242,7 +235,7 @@ momo-web/
 
 ### Edge Functions (기존 — 그대로 호출)
 - `calculate-saju` — 사주 계산 (만세력 + 진태양시 보정)
-- `generate-saju-reading` — AI 사주 해석 (Claude)
+- `generate-saju-insight` — AI 사주 해석 (Claude)
 - `generate-gwansang-reading` — AI 관상 분석 (Claude Vision)
 - `batch-calculate-compatibility` — 궁합 배치 계산
 - `calculate-compatibility` — 1:1 궁합 점수 계산 (순수 알고리즘, AI 없음)

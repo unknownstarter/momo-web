@@ -23,6 +23,7 @@
 | **character_items** | 캐릭터 아이템 | 앱 전용 |
 | **blocked_phone_hashes** | 전화번호 블록 | 앱 전용 |
 | **profile_ratings** | 프로필 평점 | 앱 전용 |
+| **share_links** | 공유 짧은 링크 (short_id → profile_id) | ✅ 읽기/쓰기 (공유 URL 생성, 2026-03-13~) |
 
 ---
 
@@ -47,8 +48,8 @@
 | **generate-gwansang-reading** | 관상 AI 분석 (Claude Vision) | ✅ 관상 결과 생성 |
 | **batch-calculate-compatibility** | 궁합 일괄 계산 | 선택 (앱 매칭용) |
 | **generate-daily-recommendations** | 일일 추천 생성 | 앱 전용 |
-| **calculate-compatibility** | 1:1 궁합 계산 | 앱 전용 |
-| **generate-match-story** | 매칭 스토리 생성 | 앱 전용 |
+| **calculate-compatibility** | 1:1 궁합 계산 | ✅ 웹+앱 공용 (2026-03-24~) |
+| **generate-match-story** | 매칭 스토리 생성 | ✅ 웹+앱 공용 (2026-03-24~) |
 
 - 모든 함수 `verify_jwt: false` 로 배포됨 (JWT 검증 없음).
 

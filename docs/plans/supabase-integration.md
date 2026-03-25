@@ -154,7 +154,7 @@ const { data } = await supabase.functions.invoke('calculate-saju', {
 })
 
 // 사주 AI 해석 — 응답에 idealMatch 객체 포함 (2026-03-09~)
-const { data } = await supabase.functions.invoke('generate-saju-reading', {
+const { data } = await supabase.functions.invoke('generate-saju-insight', {
   body: { userId: profileId, birthDate, birthTime, gender, userName }
 })
 

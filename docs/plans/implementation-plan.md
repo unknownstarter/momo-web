@@ -120,7 +120,7 @@ create policy "Users can view own payments"
 
 ### Task 3-1: 분석 트리거
 - 결제 완료 후 Edge Function 호출 (기존 함수 그대로)
-- `calculate-saju` → `generate-saju-reading` → `generate-gwansang-reading`
+- `calculate-saju` → `generate-saju-insight` → `generate-gwansang-reading`
 - 로딩 연출: 10초 프로그레스 (사주 계산 → AI 해석 → 관상 분석)
 - Flutter 앱의 `destiny_analysis_page.dart` 로딩 UX 재현
 

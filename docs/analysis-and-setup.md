@@ -45,7 +45,7 @@
 - **연결**: 동일 프로젝트 `ejngitwtzecqbhbqfnsc`, .env.local에 URL·anon key·service role key.
 - **클라이언트**: 서버용 createServerClient(쿠키), 브라우저용 createBrowserClient, middleware 세션 갱신.
 - **카카오**: Site URL·Redirect URL 추가, 카카오 Web 플랫폼·Redirect URI.
-- **기존 테이블**: profiles INSERT, Edge Function invoke(calculate-saju, generate-saju-reading, generate-gwansang-reading), Storage profile-images 업로드.
+- **기존 테이블**: profiles INSERT, Edge Function invoke(calculate-saju, generate-saju-insight, generate-gwansang-reading), Storage profile-images 업로드.
 - **신규 테이블**: payments, waitlist(RLS·정책 예시 포함). **기존 테이블/정책 수정 금지.**
 
 ### 1.6 docs/plans/payment-integration.md
@@ -62,7 +62,7 @@
 ### 1.8 docs/schema-changelog.md
 - **saju_profiles.ideal_match** (JSONB): element, dayStem, dayStemHanja, traits, description. 천간합·용신 기반.
 - **gwansang_profiles**: ideal_match_animal, ideal_match_animal_korean, ideal_match_traits, ideal_match_description.
-- **Edge Function**: generate-saju-reading 응답에 idealMatch, generate-gwansang-reading 응답에 ideal_match_* 포함. **웹은 해당 컬럼/응답만 읽어서 표시.**
+- **Edge Function**: generate-saju-insight 응답에 idealMatch, generate-gwansang-reading 응답에 ideal_match_* 포함. **웹은 해당 컬럼/응답만 읽어서 표시.**
 
 ### 1.9 docs/design/onboarding-analysis-flow.md (Flutter 전체 플로우)
 - **역할**: 앱의 15단계 온보딩·운명 분석·결과·DB/Edge Function 상세 스펙. **웹은 이 중 4단계 온보딩만 사용** (이름·성별·생년월일시·사진).
@@ -164,7 +164,7 @@ PORTONE_V2_API_SECRET=
 - **프로필**: 기존 `profiles` INSERT만 (온보딩 완료 시). 스키마 변경 없음.
 - **결제**: 포트원 검증 후 `payments` INSERT (신규 테이블).
 - **알림**: `waitlist` INSERT/UPDATE (신규 테이블).
-- **분석**: 기존 Edge Function만 호출 (calculate-saju → generate-saju-reading → generate-gwansang-reading). 응답으로 ideal_match·ideal_match_* 등 활용.
+- **분석**: 기존 Edge Function만 호출 (calculate-saju → generate-saju-insight → generate-gwansang-reading). 응답으로 ideal_match·ideal_match_* 등 활용.
 
 ### 5.4 캐릭터·에셋
 - **경로**: `public/images/characters/{캐릭터명}/default.png`, expressions, poses, views.

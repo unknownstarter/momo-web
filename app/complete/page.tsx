@@ -64,6 +64,7 @@ export default function CompletePage() {
     } catch (err) {
       console.error("[complete] unexpected error:", err);
       setError("네트워크 오류가 발생했어요. 다시 시도해 주세요.");
+    } finally {
       setSaving(false);
     }
   };

@@ -271,9 +271,9 @@ function ResultPageInner() {
                 <Image
                   src={`/images/characters/${effectiveCharacterType}/default.png`}
                   alt=""
-                  width={96}
-                  height={96}
-                  className="object-cover w-full h-full"
+                  width={64}
+                  height={64}
+                  className="object-contain"
                   unoptimized
                 />
               </div>

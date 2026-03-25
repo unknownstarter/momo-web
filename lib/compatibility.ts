@@ -113,11 +113,25 @@ async function fetchSajuForCompat(
 
   if (sajuErr || !saju) return null;
 
+  // pillar null-safe 변환 (DB에 잘못된 JSON이 있을 수 있음)
+  const toPillar = (raw: unknown): SajuPillar | null => {
+    if (!raw || typeof raw !== "object") return null;
+    const obj = raw as Record<string, string>;
+    const stem = obj.stem ?? obj.heavenlyStem ?? "";
+    const branch = obj.branch ?? obj.earthlyBranch ?? "";
+    return (stem || branch) ? { stem, branch } : null;
+  };
+
+  const yp = toPillar(saju.year_pillar);
+  const mp = toPillar(saju.month_pillar);
+  const dp = toPillar(saju.day_pillar);
+  if (!yp || !mp || !dp) return null; // 필수 pillar 누락 시 조기 종료
+
   return {
-    yearPillar: saju.year_pillar as SajuPillar,
-    monthPillar: saju.month_pillar as SajuPillar,
-    dayPillar: saju.day_pillar as SajuPillar,
-    hourPillar: (saju.hour_pillar as SajuPillar) ?? null,
+    yearPillar: yp,
+    monthPillar: mp,
+    dayPillar: dp,
+    hourPillar: toPillar(saju.hour_pillar),
     fiveElements: (saju.five_elements as Record<string, number>) ?? {},
     dominantElement: (saju.dominant_element as string) ?? "",
   };
@@ -404,8 +418,12 @@ export async function fetchCompatibilityList(
 
   if (error || !connections || connections.length === 0) return [];
 
+  // compatibility_id가 null인 항목 제외 (saju_compatibility 연결이 없으면 점수 표시 불가)
+  const validConnections = connections.filter((c) => c.compatibility_id != null);
+  if (validConnections.length === 0) return [];
+
   // 상대 ID 수집 → 배치 프로필 조회
-  const partnerIds = connections.map((c) =>
+  const partnerIds = validConnections.map((c) =>
     c.user_id === myProfileId ? c.partner_id : c.user_id,
   );
   const uniquePartnerIds = [...new Set(partnerIds)];
@@ -426,7 +444,7 @@ export async function fetchCompatibilityList(
     }
   }
 
-  return connections.map((conn) => {
+  return validConnections.map((conn) => {
     const iAmUser = conn.user_id === myProfileId;
     const partnerId = iAmUser ? conn.partner_id : conn.user_id;
     const myGender = iAmUser ? conn.user_gender : conn.partner_gender;

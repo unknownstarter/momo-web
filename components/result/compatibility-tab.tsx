@@ -335,9 +335,28 @@ export function CompatibilityTab({
           {referralPartnerId && (
             <button
               type="button"
-              onClick={() => {
+              onClick={async () => {
                 setErrorMessage(null);
-                referralHandled.current = false; // 재시도 허용
+                setCalculating(true);
+                try {
+                  const res = await fetch("/api/calculate-compatibility", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ partnerProfileId: referralPartnerId }),
+                  });
+                  const json = await res.json().catch(() => null);
+                  if (res.ok && json?.ok && json.data) {
+                    trackViewCompatibilityDetail(json.data.score);
+                    setSelected(json.data);
+                    await loadList();
+                  } else {
+                    setErrorMessage("궁합 계산에 실패했어요. 다시 시도해주세요");
+                  }
+                } catch {
+                  setErrorMessage("네트워크 오류가 발생했어요. 다시 시도해주세요");
+                } finally {
+                  setCalculating(false);
+                }
               }}
               className="text-sm font-medium px-4 py-2 rounded-full bg-ink text-white hover:opacity-90 transition-opacity"
             >

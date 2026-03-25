@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { MobileContainer } from "@/components/ui/mobile-container";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,26 @@ export default function CompletePage() {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  // 기존 전화번호가 있으면 로드 + 이미 등록 완료 상태면 바로 완료 화면
+  useEffect(() => {
+    (async () => {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const { data } = await supabase
+          .from("profiles")
+          .select("phone")
+          .eq("auth_id", user.id)
+          .maybeSingle();
+        if (data?.phone) {
+          setPhone(data.phone);
+          setSubmitted(true); // 이미 등록됨 → 바로 완료 화면
+        }
+      } catch { /* 조회 실패 시 빈 폼 표시 */ }
+    })();
+  }, []);
 
   const validPhone = isValidPhone(phone);
   const canSubmit = agreed && validPhone && !saving;

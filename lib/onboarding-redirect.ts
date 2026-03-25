@@ -28,8 +28,8 @@ const STEP_13 = 13;
  */
 export function getOnboardingStep(profile: ProfileForRedirect | null): number | "result" {
   if (!profile) return 0;
-  if (profile.saju_profile_id) return "result";
 
+  // 필수 프로필 필드 체크 (step 0~9)
   const nameOk = Boolean(profile.name?.trim() && profile.name.trim().length >= 2 && profile.name.trim().length <= 10);
   if (!nameOk) return 0;
   if (profile.gender == null || profile.gender === "") return 1;
@@ -43,6 +43,12 @@ export function getOnboardingStep(profile: ProfileForRedirect | null): number | 
   if (profile.location == null || profile.location === "") return 7;
   if (profile.body_type == null || profile.body_type === "") return 8;
   if (profile.religion == null || profile.religion === "") return 9;
+
+  // 프로필 필수 필드 모두 채워졌고 + 분석 완료 → 결과 페이지
+  // ⚠️ saju_profile_id만으로 판단하지 않음! 프로필이 불완전한 채로 결과 페이지에 가면
+  // 앱 매칭풀에 불완전한 프로필이 들어감.
+  if (profile.saju_profile_id) return "result";
+
   // 10, 11, 12 선택값 제외
   return STEP_13;
 }

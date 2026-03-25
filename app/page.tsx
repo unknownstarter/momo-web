@@ -9,7 +9,10 @@ import { DeletionNotice } from "@/components/deletion-notice";
 /**
  * 랜딩 — CTA는 항상 화면 하단 고정, 콘텐츠만 스크롤. design-system: 모든 스크린 CTA 하단 고정.
  */
-export default function HomePage() {
+export default async function HomePage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  const params = await searchParams;
+  const authError = params?.error;
+
   return (
     <>
       <TrackMainView />
@@ -39,6 +42,15 @@ export default function HomePage() {
               </div>
             </div>
           </section>
+
+          {/* 로그인 에러 배너 */}
+          {authError && (
+            <div className="mt-3 px-3 py-2.5 rounded-lg bg-red-50 border border-red-100">
+              <p className="text-sm text-red-600">
+                {authError === "account_deleted" ? "삭제된 계정이에요." : "로그인에 실패했어요. 다시 시도해 주세요."}
+              </p>
+            </div>
+          )}
 
           {/* 섹션 2: 훅 — 위(브랜드)와 아래(해답+배너)의 세로 중단에 위치 */}
           <section className="w-full flex-1 flex flex-col justify-center min-h-[120px]" aria-label="소개">

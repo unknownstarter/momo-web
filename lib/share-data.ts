@@ -33,11 +33,15 @@ export async function fetchShareData(profileId: string): Promise<ShareData | nul
 
   const { data: profile, error } = await supabase
     .from("profiles")
-    .select("id, name, character_type, dominant_element, saju_profile_id, gwansang_profile_id")
+    .select("id, name, character_type, dominant_element, saju_profile_id, gwansang_profile_id, account_status")
     .eq("id", profileId)
     .maybeSingle();
 
   if (error || !profile) return null;
+
+  // 탈퇴/삭제 진행 중인 유저의 공유 데이터는 노출하지 않음
+  const status = (profile as Record<string, unknown>).account_status as string | null;
+  if (status === "deleted" || status === "deleting" || status === "pending_deletion") return null;
 
   let sajuProfile: Record<string, unknown> | null = null;
   let gwansangProfile: Record<string, unknown> | null = null;

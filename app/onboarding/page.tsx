@@ -179,10 +179,13 @@ function OnboardingContent() {
           const { error: upErr } = await supabase.storage
             .from("profile-images")
             .upload(path, form.photoFile, { contentType: form.photoFile.type || "image/jpeg", upsert: true });
-          if (!upErr) {
-            const { data: { publicUrl } } = supabase.storage.from("profile-images").getPublicUrl(path);
-            photoUrl = publicUrl;
+          if (upErr) {
+            setSubmitError("사진 업로드에 실패했어요. 다시 시도해 주세요.");
+            setSubmitting(false);
+            return;
           }
+          const { data: { publicUrl } } = supabase.storage.from("profile-images").getPublicUrl(path);
+          photoUrl = publicUrl;
         }
         const birthTime = form.birthTime ? `${form.birthTime}:00` : null;
         const { data: existing } = await supabase.from("profiles").select("id").eq("auth_id", user.id).maybeSingle();
@@ -262,10 +265,11 @@ function OnboardingContent() {
         interests: form.interests.length ? form.interests : [],
         ideal_type: form.idealType.trim() || null,
         last_active_at: new Date().toISOString(),
-        is_saju_complete: false,
-        is_gwansang_complete: false,
-        saju_profile_id: null,
-        gwansang_profile_id: null,
+        is_profile_complete: true,
+        // ⚠️ saju_profile_id를 null로 리셋하지 않음.
+        // step 4의 fire-and-forget 분석이 이미 완료됐을 수 있고,
+        // step 5~12는 분석 입력(name/gender/birth/photo)을 변경하지 않으므로
+        // 재분석이 불필요. /result/loading에서 is_saju_complete 체크로 중복 방지됨.
       };
       if (existing) {
         const { error: upErr } = await supabase.from("profiles").update(updatePayload).eq("auth_id", user.id);

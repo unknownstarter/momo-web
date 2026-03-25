@@ -329,16 +329,30 @@ export function CompatibilityTab({
     return (
       <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
         <p className="text-sm text-ink-muted">{errorMessage}</p>
-        <button
-          type="button"
-          onClick={() => {
-            setErrorMessage(null);
-            loadList();
-          }}
-          className="text-sm font-medium px-4 py-2 rounded-full border border-hanji-border hover:bg-hanji-secondary transition-colors"
-        >
-          돌아가기
-        </button>
+        <div className="flex gap-2">
+          {referralPartnerId && (
+            <button
+              type="button"
+              onClick={() => {
+                setErrorMessage(null);
+                referralHandled.current = false; // 재시도 허용
+              }}
+              className="text-sm font-medium px-4 py-2 rounded-full bg-ink text-white hover:opacity-90 transition-opacity"
+            >
+              다시 시도
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              setErrorMessage(null);
+              loadList();
+            }}
+            className="text-sm font-medium px-4 py-2 rounded-full border border-hanji-border hover:bg-hanji-secondary transition-colors"
+          >
+            돌아가기
+          </button>
+        </div>
       </div>
     );
   }

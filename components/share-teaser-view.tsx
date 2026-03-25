@@ -247,9 +247,9 @@ export function ShareTeaserView({
             </div>
           )}
 
-          {/* 결과 보기 */}
+          {/* 결과 보기 — 나도 분석 받으러 가기 (detail 페이지 대신 랜딩으로 유도) */}
           <Link
-            href={detailHref}
+            href="/"
             className="block w-full"
             onClick={trackClickDetailInTeaser}
           >
@@ -266,7 +266,7 @@ export function ShareTeaserView({
                     className="text-[13px] font-bold text-ink"
                     style={{ letterSpacing: "-0.01em" }}
                   >
-                    사주·관상 분석 결과 자세히 보기
+                    나도 사주·관상 분석 받아보기
                   </p>
                   <p className="text-[11px] text-ink-tertiary mt-0.5">
                     사주팔자, 오행, 성격, 이상형까지

@@ -322,7 +322,20 @@ export async function computeCompatibility(
       console.error("[generate-match-story] fire-and-forget failed:", err);
     });
 
-  // 7) 결과 직접 구성 (fetchCachedCompatibility 재호출 금지)
+  // 7) compat_connections에 의도적 궁합 관계 기록 (RPC — 직접 INSERT 불가, RLS)
+  // RPC가 성별/compatibility_id를 자동으로 매칭하므로 partner_id만 전달
+  (async () => {
+    try {
+      const { error: rpcErr } = await authedClient.rpc("fn_record_compat_connection", {
+        p_partner_id: partnerProfileId,
+      });
+      if (rpcErr) console.error("[compat_connections] rpc failed:", rpcErr.message);
+    } catch (err) {
+      console.error("[compat_connections] rpc error:", err);
+    }
+  })();
+
+  // 8) 결과 직접 구성 (fetchCachedCompatibility 재호출 금지)
   return {
     id: upserted.id,
     partnerId: partnerProfileId,
@@ -349,24 +362,46 @@ export async function computeCompatibility(
 // ---------------------------------------------------------------------------
 
 /**
- * 내 궁합 전체 목록 조회 (점수 내림차순).
+ * 내 궁합 전체 목록 조회.
+ * compat_connections 기반 — 유저가 의도적으로 확인한 궁합만 표시.
+ * (앱의 batch-calculate-compatibility가 생성한 매칭 추천용 레코드 제외)
  */
 export async function fetchCompatibilityList(
   myProfileId: string,
 ): Promise<CompatibilityResult[]> {
   const supabase = createAdminClient();
 
-  const { data: rows, error } = await supabase
-    .from("saju_compatibility")
-    .select("*")
+  // compat_connections에서 의도적 궁합만 조회 + saju_compatibility JOIN
+  const { data: connections, error } = await supabase
+    .from("compat_connections")
+    .select(`
+      id,
+      user_id,
+      partner_id,
+      user_gender,
+      partner_gender,
+      compatibility_id,
+      created_at,
+      saju_compatibility (
+        total_score,
+        five_element_score,
+        day_pillar_score,
+        overall_analysis,
+        strengths,
+        challenges,
+        advice,
+        ai_story,
+        calculated_at
+      )
+    `)
     .or(`user_id.eq.${myProfileId},partner_id.eq.${myProfileId}`)
-    .order("total_score", { ascending: false });
+    .order("created_at", { ascending: false });
 
-  if (error || !rows || rows.length === 0) return [];
+  if (error || !connections || connections.length === 0) return [];
 
   // 상대 ID 수집 → 배치 프로필 조회
-  const partnerIds = rows.map((row) =>
-    row.user_id === myProfileId ? row.partner_id : row.user_id,
+  const partnerIds = connections.map((c) =>
+    c.user_id === myProfileId ? c.partner_id : c.user_id,
   );
   const uniquePartnerIds = [...new Set(partnerIds)];
 
@@ -386,31 +421,35 @@ export async function fetchCompatibilityList(
     }
   }
 
-  return rows.map((row) => {
-    const iAmUser = row.user_id === myProfileId;
-    const partnerId = iAmUser ? row.partner_id : row.user_id;
-    const myGender = iAmUser ? row.user_gender : row.partner_gender;
-    const partnerGender = iAmUser ? row.partner_gender : row.user_gender;
+  return connections.map((conn) => {
+    const iAmUser = conn.user_id === myProfileId;
+    const partnerId = iAmUser ? conn.partner_id : conn.user_id;
+    const myGender = iAmUser ? conn.user_gender : conn.partner_gender;
+    const partnerGender = iAmUser ? conn.partner_gender : conn.user_gender;
     const detail = partnerMap.get(partnerId);
 
+    // saju_compatibility JOIN 결과 (FK nullable → 배열 or 객체 or null)
+    const raw = conn.saju_compatibility;
+    const compat = (Array.isArray(raw) ? raw[0] : raw) as Record<string, unknown> | null | undefined;
+
     return {
-      id: row.id,
+      id: conn.id,
       partnerId,
       partnerName: detail?.name ?? null,
       partnerCharacterType: detail?.character_type ?? null,
       partnerDominantElement: detail?.dominant_element ?? null,
       partnerGender,
       myGender,
-      score: row.total_score ?? 0,
-      fiveElementScore: row.five_element_score ?? null,
-      dayPillarScore: row.day_pillar_score ?? null,
-      overallAnalysis: row.overall_analysis ?? null,
-      strengths: (row.strengths as string[]) ?? [],
-      challenges: (row.challenges as string[]) ?? [],
-      advice: row.advice ?? null,
-      aiStory: row.ai_story ?? null,
+      score: (compat?.total_score as number) ?? 0,
+      fiveElementScore: (compat?.five_element_score as number | null) ?? null,
+      dayPillarScore: (compat?.day_pillar_score as number | null) ?? null,
+      overallAnalysis: (compat?.overall_analysis as string | null) ?? null,
+      strengths: (compat?.strengths as string[]) ?? [],
+      challenges: (compat?.challenges as string[]) ?? [],
+      advice: (compat?.advice as string | null) ?? null,
+      aiStory: (compat?.ai_story as string | null) ?? null,
       relationType: deriveRelationType(myGender, partnerGender),
-      calculatedAt: row.calculated_at ?? null,
+      calculatedAt: (compat?.calculated_at as string | null) ?? null,
     };
   });
 }

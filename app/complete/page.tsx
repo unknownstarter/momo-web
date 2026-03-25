@@ -45,11 +45,13 @@ export default function CompletePage() {
         return;
       }
 
+      // 전화번호 저장만. is_phone_verified는 설정하지 않음!
+      // 실제 SMS 인증은 앱에서 진행. 웹에서 true로 설정하면
+      // 앱의 중복 번호 체크 + 매칭 풀 필터가 깨짐.
       const { error: updateError } = await supabase
         .from("profiles")
         .update({
           phone: normalizePhone(phone),
-          is_phone_verified: true,
         })
         .eq("auth_id", user.id);
 

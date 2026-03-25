@@ -230,11 +230,19 @@ function ResultPageInner() {
     let cancelled = false;
     (async () => {
       const res = await fetch("/api/onboarding-step", { credentials: "include" });
-      if (!res.ok || cancelled) return;
+      if (cancelled) return;
+      // 비로그인(401) 또는 에러 시 랜딩으로 리다이렉트
+      if (!res.ok) {
+        router.replace(ROUTES.HOME);
+        return;
+      }
       const data = await res.json();
       if (cancelled) return;
       const step = data.step === "result" ? 0 : Number(data.step);
-      if (Number.isNaN(step) || step < 0) return;
+      if (Number.isNaN(step) || step < 0) {
+        router.replace(ROUTES.HOME);
+        return;
+      }
       router.replace(`${ROUTES.ONBOARDING}?step=${step}`);
     })();
     return () => { cancelled = true; };

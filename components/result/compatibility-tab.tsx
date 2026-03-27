@@ -165,6 +165,7 @@ export function CompatibilityTab({
   const [selected, setSelected] = useState<CompatibilityResult | null>(null);
   const [storyCacheMap, setStoryCacheMap] = useState<Record<string, string>>({});
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
 
   // 레퍼럴 처리 중복 방지
   const referralHandled = useRef(false);
@@ -249,7 +250,9 @@ export function CompatibilityTab({
         } else {
           const err = json?.error ?? "";
           if (err.includes("yourself")) {
-            setErrorMessage("본인과는 궁합을 볼 수 없어요");
+            // 자기 자신 궁합 → 에러 화면 대신 토스트로 안내, 정상 리스트 표시
+            setToast("스스로와의 궁합은 볼 수 없어요");
+            setTimeout(() => setToast(null), 3000);
           } else if (err === "compatibility_calculation_failed") {
             setErrorMessage("상대방이 아직 사주 분석을 완료하지 않았어요");
           } else {
@@ -490,6 +493,13 @@ export function CompatibilityTab({
           cachedAiStory={storyCacheMap[selected.partnerId] ?? null}
           onStoryLoaded={onStoryLoaded}
         />
+      )}
+
+      {/* 토스트 */}
+      {toast && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-full bg-ink/80 text-white text-sm shadow-lg animate-in fade-in slide-in-from-bottom-2 duration-300">
+          {toast}
+        </div>
       )}
     </div>
   );

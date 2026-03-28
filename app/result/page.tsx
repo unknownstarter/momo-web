@@ -272,18 +272,31 @@ function ResultPageInner() {
               <div
                 className="w-24 h-24 rounded-full border-[3px] overflow-hidden shrink-0 flex items-center justify-center"
                 style={{
-                  background: `radial-gradient(circle, ${pastelColor} 0%, ${pastelColor}4D 100%)`,
+                  background: profile?.profile_images?.[0]
+                    ? undefined
+                    : `radial-gradient(circle, ${pastelColor} 0%, ${pastelColor}4D 100%)`,
                   borderColor: `${accentColor}4D`,
                 }}
               >
-                <Image
-                  src={`/images/characters/${effectiveCharacterType}/default.png`}
-                  alt=""
-                  width={64}
-                  height={64}
-                  className="object-contain"
-                  unoptimized
-                />
+                {profile?.profile_images?.[0] ? (
+                  <Image
+                    src={profile.profile_images[0]}
+                    alt=""
+                    width={96}
+                    height={96}
+                    className="object-cover w-full h-full"
+                    unoptimized
+                  />
+                ) : (
+                  <Image
+                    src={`/images/characters/${effectiveCharacterType}/default.png`}
+                    alt=""
+                    width={64}
+                    height={64}
+                    className="object-contain"
+                    unoptimized
+                  />
+                )}
               </div>
               {gwansangProfile && (
                 <div
@@ -510,6 +523,7 @@ function ResultPageInner() {
                 myName={nickname}
                 myCharacterType={effectiveCharacterType}
                 myDominantElement={dominantEl}
+                myProfileImage={profile?.profile_images?.[0] ?? null}
                 shareUrl={shareUrl}
               />
             </div>

@@ -31,6 +31,7 @@ import { IdealMatchGwansangCard } from "@/components/result/ideal-match-gwansang
 interface ShareProfile {
   character_type?: string | null;
   dominant_element?: string | null;
+  profile_image?: string | null;
 }
 
 interface ShareResultViewProps {
@@ -67,18 +68,31 @@ export function ShareResultView({
               <div
                 className="w-24 h-24 rounded-full border-[3px] overflow-hidden shrink-0 flex items-center justify-center"
                 style={{
-                  background: `radial-gradient(circle, ${pastelColor} 0%, ${pastelColor}4D 100%)`,
+                  background: profile?.profile_image
+                    ? undefined
+                    : `radial-gradient(circle, ${pastelColor} 0%, ${pastelColor}4D 100%)`,
                   borderColor: `${accentColor}4D`,
                 }}
               >
-                <Image
-                  src={`/images/characters/${effectiveCharacterType}/default.png`}
-                  alt=""
-                  width={64}
-                  height={64}
-                  className="object-contain"
-                  unoptimized
-                />
+                {profile?.profile_image ? (
+                  <Image
+                    src={profile.profile_image}
+                    alt=""
+                    width={96}
+                    height={96}
+                    className="object-cover w-full h-full"
+                    unoptimized
+                  />
+                ) : (
+                  <Image
+                    src={`/images/characters/${effectiveCharacterType}/default.png`}
+                    alt=""
+                    width={64}
+                    height={64}
+                    className="object-contain"
+                    unoptimized
+                  />
+                )}
               </div>
               {gwansangProfile?.animal_type_korean ? (
                 <div

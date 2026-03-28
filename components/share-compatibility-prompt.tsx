@@ -20,6 +20,7 @@ interface ShareCompatibilityPromptProps {
   sharedUserName: string;
   sharedDominantElement: string | null;
   sharedCharacterType: string | null;
+  sharedProfileImage: string | null;
   viewerStatus: "has_result" | "logged_in" | "anonymous";
 }
 
@@ -28,6 +29,7 @@ export function ShareCompatibilityPrompt({
   sharedUserName,
   sharedDominantElement,
   sharedCharacterType,
+  sharedProfileImage,
   viewerStatus,
 }: ShareCompatibilityPromptProps) {
   const [open, setOpen] = useState(false);
@@ -82,22 +84,33 @@ export function ShareCompatibilityPrompt({
       <div className="flex flex-col items-center text-center pt-2 pb-2">
         {/* 캐릭터 + 물음표 */}
         <div className="flex items-center gap-3">
-          {/* A의 캐릭터 원형 */}
+          {/* A의 프로필 / 캐릭터 원형 */}
           <div
             className="w-16 h-16 rounded-full overflow-hidden border-2 flex items-center justify-center"
             style={{
-              backgroundColor: colors.pastel,
+              backgroundColor: sharedProfileImage ? undefined : colors.pastel,
               borderColor: `${colors.main}4D`,
             }}
           >
-            <Image
-              src={`/images/characters/${effectiveChar}/default.png`}
-              alt={`${sharedUserName}의 캐릭터`}
-              width={40}
-              height={40}
-              className="object-contain"
-              unoptimized
-            />
+            {sharedProfileImage ? (
+              <Image
+                src={sharedProfileImage}
+                alt={`${sharedUserName}의 프로필`}
+                width={64}
+                height={64}
+                className="object-cover w-full h-full"
+                unoptimized
+              />
+            ) : (
+              <Image
+                src={`/images/characters/${effectiveChar}/default.png`}
+                alt={`${sharedUserName}의 캐릭터`}
+                width={40}
+                height={40}
+                className="object-contain"
+                unoptimized
+              />
+            )}
           </div>
           {/* 물음표 아이콘 */}
           <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-hanji-border flex items-center justify-center bg-hanji-secondary">

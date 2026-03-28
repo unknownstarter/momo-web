@@ -103,6 +103,7 @@ export default async function ShortSharePage({ params }: Props) {
     <>
       <ShareTeaserView
         profileName={data.profile.name ?? "친구"}
+        profileImage={data.profile.profile_images?.[0] ?? null}
         dominantElement={data.profile.dominant_element}
         characterType={data.profile.character_type}
         personalityTraits={
@@ -142,6 +143,7 @@ export default async function ShortSharePage({ params }: Props) {
         sharedUserName={data.profile.name ?? "친구"}
         sharedDominantElement={data.profile.dominant_element}
         sharedCharacterType={data.profile.character_type}
+        sharedProfileImage={data.profile.profile_images?.[0] ?? null}
         viewerStatus={viewerStatus}
       />
     </>

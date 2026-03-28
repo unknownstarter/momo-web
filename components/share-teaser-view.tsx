@@ -20,6 +20,7 @@ import {
 
 interface ShareTeaserViewProps {
   profileName: string;
+  profileImage?: string | null;
   dominantElement?: string | null;
   characterType?: string | null;
   personalityTraits?: string[] | null;
@@ -37,6 +38,7 @@ interface ShareTeaserViewProps {
 
 export function ShareTeaserView({
   profileName,
+  profileImage,
   dominantElement,
   characterType,
   personalityTraits,
@@ -103,18 +105,31 @@ export function ShareTeaserView({
               <div
                 className="w-[88px] h-[88px] rounded-full border-[3px] overflow-hidden flex items-center justify-center"
                 style={{
-                  background: `radial-gradient(circle, white 30%, ${colors.pastel} 100%)`,
+                  background: profileImage
+                    ? undefined
+                    : `radial-gradient(circle, white 30%, ${colors.pastel} 100%)`,
                   borderColor: `${colors.main}4D`,
                 }}
               >
-                <Image
-                  src={`/images/characters/${effectiveChar}/default.png`}
-                  alt=""
-                  width={60}
-                  height={60}
-                  className="object-contain"
-                  unoptimized
-                />
+                {profileImage ? (
+                  <Image
+                    src={profileImage}
+                    alt=""
+                    width={88}
+                    height={88}
+                    className="object-cover w-full h-full"
+                    unoptimized
+                  />
+                ) : (
+                  <Image
+                    src={`/images/characters/${effectiveChar}/default.png`}
+                    alt=""
+                    width={60}
+                    height={60}
+                    className="object-contain"
+                    unoptimized
+                  />
+                )}
               </div>
               {animalTypeKorean && (
                 <div

@@ -27,6 +27,7 @@ interface CompatibilityTabProps {
   myName: string;
   myCharacterType: string | null;
   myDominantElement: string | null;
+  myProfileImage: string | null;
   shareUrl: string | null;
 }
 
@@ -69,18 +70,29 @@ function CompatibilityListCard({
               <div
                 className="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center shrink-0"
                 style={{
-                  backgroundColor: partnerColors.pastel,
+                  backgroundColor: item.partnerProfileImage ? undefined : partnerColors.pastel,
                   border: `1.5px solid ${partnerColors.main}4D`,
                 }}
               >
-                <Image
-                  src={`/images/characters/${partnerChar}/default.png`}
-                  alt=""
-                  width={16}
-                  height={16}
-                  className="object-contain"
-                  unoptimized
-                />
+                {item.partnerProfileImage ? (
+                  <Image
+                    src={item.partnerProfileImage}
+                    alt=""
+                    width={24}
+                    height={24}
+                    className="object-cover w-full h-full"
+                    unoptimized
+                  />
+                ) : (
+                  <Image
+                    src={`/images/characters/${partnerChar}/default.png`}
+                    alt=""
+                    width={16}
+                    height={16}
+                    className="object-contain"
+                    unoptimized
+                  />
+                )}
               </div>
 
               {/* 이름 */}
@@ -157,6 +169,7 @@ export function CompatibilityTab({
   myName,
   myCharacterType,
   myDominantElement,
+  myProfileImage,
   shareUrl,
 }: CompatibilityTabProps) {
   const [list, setList] = useState<CompatibilityResult[]>([]);
@@ -396,18 +409,29 @@ export function CompatibilityTab({
           <div
             className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center z-10"
             style={{
-              backgroundColor: myColors.pastel,
+              backgroundColor: myProfileImage ? undefined : myColors.pastel,
               border: `2px solid ${myColors.main}4D`,
             }}
           >
-            <Image
-              src={`/images/characters/${myChar}/default.png`}
-              alt={myName}
-              width={28}
-              height={28}
-              className="object-contain"
-              unoptimized
-            />
+            {myProfileImage ? (
+              <Image
+                src={myProfileImage}
+                alt={myName}
+                width={48}
+                height={48}
+                className="object-cover w-full h-full"
+                unoptimized
+              />
+            ) : (
+              <Image
+                src={`/images/characters/${myChar}/default.png`}
+                alt={myName}
+                width={28}
+                height={28}
+                className="object-contain"
+                unoptimized
+              />
+            )}
           </div>
 
           {/* 쇠동이 */}
@@ -489,6 +513,7 @@ export function CompatibilityTab({
           myName={myName}
           myCharacterType={myCharacterType}
           myDominantElement={myDominantElement}
+          myProfileImage={myProfileImage}
           shareUrl={shareUrl}
           cachedAiStory={storyCacheMap[selected.partnerId] ?? null}
           onStoryLoaded={onStoryLoaded}

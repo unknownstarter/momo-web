@@ -13,6 +13,7 @@ export interface ShareProfile {
   name: string | null;
   character_type: string | null;
   dominant_element: string | null;
+  profile_images: string[] | null;
   saju_profile_id: string | null;
   gwansang_profile_id: string | null;
   account_status?: string | null;
@@ -34,7 +35,7 @@ export async function fetchShareData(profileId: string): Promise<ShareData | nul
 
   const { data: profile, error } = await supabase
     .from("profiles")
-    .select("id, name, character_type, dominant_element, saju_profile_id, gwansang_profile_id, account_status")
+    .select("id, name, character_type, dominant_element, profile_images, saju_profile_id, gwansang_profile_id, account_status")
     .eq("id", profileId)
     .maybeSingle();
 

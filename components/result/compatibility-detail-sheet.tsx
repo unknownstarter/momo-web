@@ -27,6 +27,7 @@ interface CompatibilityDetailSheetProps {
   myName: string;
   myCharacterType: string | null;
   myDominantElement: string | null;
+  myProfileImage: string | null;
   shareUrl?: string | null;
   cachedAiStory: string | null;
   onStoryLoaded: (partnerId: string, story: string) => void;
@@ -185,6 +186,7 @@ export function CompatibilityDetailSheet({
   myName,
   myCharacterType,
   myDominantElement,
+  myProfileImage,
   shareUrl,
   cachedAiStory,
   onStoryLoaded,
@@ -233,18 +235,29 @@ export function CompatibilityDetailSheet({
           <div
             className="w-16 h-16 rounded-full overflow-hidden flex items-center justify-center"
             style={{
-              backgroundColor: myColors.pastel,
+              backgroundColor: myProfileImage ? undefined : myColors.pastel,
               border: `2px solid ${myColors.main}4D`,
             }}
           >
-            <Image
-              src={`/images/characters/${myChar}/default.png`}
-              alt={myName}
-              width={42}
-              height={42}
-              className="object-contain"
-              unoptimized
-            />
+            {myProfileImage ? (
+              <Image
+                src={myProfileImage}
+                alt={myName}
+                width={64}
+                height={64}
+                className="object-cover w-full h-full"
+                unoptimized
+              />
+            ) : (
+              <Image
+                src={`/images/characters/${myChar}/default.png`}
+                alt={myName}
+                width={42}
+                height={42}
+                className="object-contain"
+                unoptimized
+              />
+            )}
           </div>
 
           {/* 하트 */}
@@ -260,18 +273,29 @@ export function CompatibilityDetailSheet({
           <div
             className="w-16 h-16 rounded-full overflow-hidden flex items-center justify-center"
             style={{
-              backgroundColor: partnerColors.pastel,
+              backgroundColor: c.partnerProfileImage ? undefined : partnerColors.pastel,
               border: `2px solid ${partnerColors.main}4D`,
             }}
           >
-            <Image
-              src={`/images/characters/${partnerChar}/default.png`}
-              alt={c.partnerName ?? "상대"}
-              width={42}
-              height={42}
-              className="object-contain"
-              unoptimized
-            />
+            {c.partnerProfileImage ? (
+              <Image
+                src={c.partnerProfileImage}
+                alt={c.partnerName ?? "상대"}
+                width={64}
+                height={64}
+                className="object-cover w-full h-full"
+                unoptimized
+              />
+            ) : (
+              <Image
+                src={`/images/characters/${partnerChar}/default.png`}
+                alt={c.partnerName ?? "상대"}
+                width={42}
+                height={42}
+                className="object-contain"
+                unoptimized
+              />
+            )}
           </div>
         </div>
 

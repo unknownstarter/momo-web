@@ -59,6 +59,7 @@ export default async function ShareDetailPage({ params }: Props) {
       profile={{
         character_type: data.profile.character_type,
         dominant_element: data.profile.dominant_element,
+        profile_image: data.profile.profile_images?.[0] ?? null,
       }}
       sajuProfile={data.sajuProfile}
       gwansangProfile={data.gwansangProfile}

@@ -20,6 +20,7 @@ export interface CompatibilityResult {
   partnerName: string | null;
   partnerCharacterType: string | null;
   partnerDominantElement: string | null;
+  partnerProfileImage: string | null;
   partnerGender: string | null;
   myGender: string | null;
   score: number;
@@ -54,6 +55,7 @@ interface PartnerDetail {
   name: string | null;
   character_type: string | null;
   dominant_element: string | null;
+  profile_images: string[] | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -166,10 +168,10 @@ export async function fetchCachedCompatibility(
   const myGender = iAmUser ? data.user_gender : data.partner_gender;
   const partnerGender = iAmUser ? data.partner_gender : data.user_gender;
 
-  // 상대 프로필 조회 (이름, 캐릭터 타입, 주요 오행)
+  // 상대 프로필 조회 (이름, 캐릭터 타입, 주요 오행, 프로필 이미지)
   const { data: partner } = await supabase
     .from("profiles")
-    .select("name, character_type, dominant_element")
+    .select("name, character_type, dominant_element, profile_images")
     .eq("id", partnerId)
     .maybeSingle();
 
@@ -177,6 +179,7 @@ export async function fetchCachedCompatibility(
     name: null,
     character_type: null,
     dominant_element: null,
+    profile_images: null,
   };
 
   return {
@@ -185,6 +188,7 @@ export async function fetchCachedCompatibility(
     partnerName: partnerDetail.name,
     partnerCharacterType: partnerDetail.character_type,
     partnerDominantElement: partnerDetail.dominant_element,
+    partnerProfileImage: partnerDetail.profile_images?.[0] ?? null,
     partnerGender,
     myGender,
     score: data.total_score ?? 0,
@@ -239,7 +243,7 @@ export async function computeCompatibility(
   // 2) 양쪽 프로필 기본 정보 (id, name, gender)
   const { data: profiles, error: profilesErr } = await supabase
     .from("profiles")
-    .select("id, name, gender, character_type, dominant_element")
+    .select("id, name, gender, character_type, dominant_element, profile_images")
     .in("id", [myProfileId, partnerProfileId]);
 
   if (profilesErr || !profiles || profiles.length < 2) return null;
@@ -361,6 +365,7 @@ export async function computeCompatibility(
     partnerName: partnerProfile.name ?? null,
     partnerCharacterType: partnerProfile.character_type ?? null,
     partnerDominantElement: partnerProfile.dominant_element ?? null,
+    partnerProfileImage: (partnerProfile.profile_images as string[] | null)?.[0] ?? null,
     partnerGender: partnerProfile.gender,
     myGender: myProfile.gender,
     score: upsertRow.total_score,
@@ -430,7 +435,7 @@ export async function fetchCompatibilityList(
 
   const { data: partnerProfiles } = await supabase
     .from("profiles")
-    .select("id, name, character_type, dominant_element")
+    .select("id, name, character_type, dominant_element, profile_images")
     .in("id", uniquePartnerIds);
 
   const partnerMap = new Map<string, PartnerDetail>();
@@ -440,6 +445,7 @@ export async function fetchCompatibilityList(
         name: p.name,
         character_type: p.character_type,
         dominant_element: p.dominant_element,
+        profile_images: p.profile_images,
       });
     }
   }
@@ -461,6 +467,7 @@ export async function fetchCompatibilityList(
       partnerName: detail?.name ?? null,
       partnerCharacterType: detail?.character_type ?? null,
       partnerDominantElement: detail?.dominant_element ?? null,
+      partnerProfileImage: detail?.profile_images?.[0] ?? null,
       partnerGender,
       myGender,
       score: (compat?.total_score as number) ?? 0,

@@ -238,6 +238,8 @@ export default function MatchingMainPage() {
             accentColor={accentColor}
             isVerified={isVerified}
             userCount={userCount}
+            onShare={handleShare}
+            shareUrl={shareUrl}
           />
 
           {/* 사주 연애운 */}
@@ -290,19 +292,14 @@ export default function MatchingMainPage() {
       <CtaBar className="shrink-0">
         {isVerified ? (
           <Button size="lg" className="w-full" onClick={handleShare}>
-            {shareCopied ? "링크가 복사됐어요!" : "친구에게 공유하기"}
+            {shareCopied ? "링크가 복사됐어요!" : "친구에게 공유해서 순번 올리기"}
           </Button>
         ) : (
-          <>
-            <Link href={ROUTES.COMPLETE} className="block">
-              <Button size="lg" className="w-full" style={{ backgroundColor: accentColor, borderColor: accentColor }}>
-                매칭 등록하기
-              </Button>
-            </Link>
-            <Button variant="outline" size="md" className="w-full mt-4" onClick={handleShare} disabled={!shareUrl}>
-              {shareCopied ? "링크가 복사됐어요!" : "친구에게 공유하기"}
+          <Link href={ROUTES.COMPLETE} className="block">
+            <Button size="lg" className="w-full" style={{ backgroundColor: accentColor, borderColor: accentColor }}>
+              매칭 등록하기
             </Button>
-          </>
+          </Link>
         )}
       </CtaBar>
     </MobileContainer>

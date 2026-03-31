@@ -293,7 +293,12 @@ export default function MatchingMainPage() {
       <CtaBar className="shrink-0">
         {isVerified ? (
           <Button size="lg" className="w-full" onClick={handleShare}>
-            {shareCopied ? "링크가 복사됐어요!" : "솔로 친구에게 공유하기"}
+            {shareCopied ? "링크가 복사됐어요!" : (
+              <span className="inline-flex items-center gap-1.5">
+                <span className="bg-white/[0.15] text-[11px] font-medium px-2 py-0.5 rounded-full">무료</span>
+                친구 연애운 보기
+              </span>
+            )}
           </Button>
         ) : (
           <Link href={ROUTES.COMPLETE} className="block">

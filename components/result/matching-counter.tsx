@@ -1,11 +1,6 @@
 "use client";
 
-import dynamic from "next/dynamic";
-
-const DotLottieReact = dynamic(
-  () => import("@lottiefiles/dotlottie-react").then((m) => m.DotLottieReact),
-  { ssr: false },
-);
+import { useState, useEffect, useRef } from "react";
 
 interface MatchingCounterProps {
   accentColor: string;
@@ -13,7 +8,31 @@ interface MatchingCounterProps {
   userCount: number | null;
 }
 
+function useCountUp(target: number, duration = 1200) {
+  const [count, setCount] = useState(0);
+  const started = useRef(false);
+
+  useEffect(() => {
+    if (target <= 0 || started.current) return;
+    started.current = true;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      // easeOutCubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.round(eased * target));
+      if (progress < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }, [target, duration]);
+
+  return count;
+}
+
 export function MatchingCounter({ accentColor, isVerified, userCount }: MatchingCounterProps) {
+  const animatedCount = useCountUp(userCount ?? 0);
+
   return (
     <section className="px-5">
       <div
@@ -25,21 +44,10 @@ export function MatchingCounter({ accentColor, isVerified, userCount }: Matching
       >
         {userCount != null && userCount > 0 && (
           <div className="text-center mb-4">
-            <div className="relative inline-flex items-center justify-center">
-              {/* 꽃가루 로띠 — 숫자 뒤에 작게 */}
-              <div className="absolute inset-0 -inset-x-4 -inset-y-2 pointer-events-none">
-                <DotLottieReact
-                  src="/images/confetti.lottie"
-                  loop
-                  autoplay
-                  style={{ width: "100%", height: "100%" }}
-                />
-              </div>
-              <p className="relative text-[32px] font-bold tabular-nums text-ink">
-                {userCount.toLocaleString()}
-                <span className="text-[15px] font-semibold text-ink ml-1">명</span>
-              </p>
-            </div>
+            <p className="text-[36px] font-bold tabular-nums text-ink tracking-tight">
+              {animatedCount.toLocaleString()}
+              <span className="text-[15px] font-semibold text-ink-secondary ml-1">명</span>
+            </p>
             <p className="text-[13px] text-ink-muted mt-1">
               궁합 매칭을 기다리고 있어요
             </p>

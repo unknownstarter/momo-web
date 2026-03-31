@@ -30,7 +30,7 @@ export function GwansangRomanceCard({
             <span className="text-sm text-brand">&#30456;</span>
           </div>
           <div>
-            <p className="text-[15px] font-semibold text-ink">관상 연애운</p>
+            <p className="text-[16px] font-semibold text-ink">관상 연애운</p>
             {animalLabel && (
               <p className="text-[11px] text-ink-tertiary mt-0.5">{animalLabel}의 연애</p>
             )}

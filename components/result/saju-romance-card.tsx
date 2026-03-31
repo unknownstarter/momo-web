@@ -23,7 +23,7 @@ export function SajuRomanceCard({ romanceStyle, romanceKeyPoints, accentColor }:
             <span className="text-sm" style={{ color: accentColor }}>&#21340;</span>
           </div>
           <div>
-            <p className="text-[15px] font-semibold text-ink">사주 연애운</p>
+            <p className="text-[16px] font-semibold text-ink">사주 연애운</p>
             <p className="text-[11px] text-ink-tertiary mt-0.5">사주팔자 기반 연애 성향</p>
           </div>
         </div>

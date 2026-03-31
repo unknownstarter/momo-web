@@ -173,8 +173,8 @@ export function MatchingHero({
         </div>
 
         {idealMatchDescription && (
-          <div className="mt-5 px-4 py-3 rounded-2xl bg-hanji-elevated border border-hanji-border shadow-low text-center">
-            <p className="text-[13px] text-ink leading-relaxed">
+          <div className="mt-5 px-4 py-3 rounded-2xl bg-hanji-elevated border border-hanji-border shadow-low text-left">
+            <p className="text-[14px] text-ink leading-relaxed">
               {idealMatchDescription}
             </p>
           </div>

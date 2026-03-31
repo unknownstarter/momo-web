@@ -17,13 +17,13 @@ export function LegalLinks({
 }: LegalLinksProps) {
   return (
     <div className={className}>
-      <a href={ROUTES.TERMS} className={linkClassName}>
+      <a href="https://whatisgoingon.notion.site/momo-3228cdd370538034a1ece378d0de0bd0" target="_blank" rel="noopener noreferrer" className={linkClassName}>
         이용약관
       </a>
       <span className="text-ink-tertiary select-none" aria-hidden>
         {separator}
       </span>
-      <a href={ROUTES.PRIVACY} className={linkClassName}>
+      <a href="https://whatisgoingon.notion.site/momo-3228cdd3705380f3b71ef9160cdfbfd2" target="_blank" rel="noopener noreferrer" className={linkClassName}>
         개인정보처리방침
       </a>
     </div>

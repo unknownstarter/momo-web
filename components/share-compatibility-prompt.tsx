@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
+import { ROUTES } from "@/lib/constants";
 import {
   elementKey,
   ELEMENT_COLORS,
@@ -67,7 +68,7 @@ export function ShareCompatibilityPrompt({
   const handleCompatibilityCta = useCallback(() => {
     trackClickCompatibilityCta();
     if (viewerStatus === "has_result") {
-      router.push("/result?tab=compatibility");
+      router.push(ROUTES.RESULT_COMPAT);
     } else {
       // logged_in(온보딩 미완료)과 anonymous 모두 랜딩으로 보내서
       // 정상 플로우(로그인 → 온보딩 → 분석)를 타게 함

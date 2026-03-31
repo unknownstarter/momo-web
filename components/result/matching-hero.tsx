@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Image from "next/image";
+import { decode } from "blurhash";
 import {
   ELEMENT_COLORS,
   ELEMENT_KOREAN,
@@ -18,6 +20,32 @@ interface MatchingHeroProps {
   idealMatchElement: string | null;
   animalTypeKorean: string | null;
   animalModifier: string | null;
+  blurHashes: string[];
+}
+
+function BlurHashAvatar({ hash, size = 76 }: { hash: string; size?: number }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    if (!canvasRef.current || !hash) return;
+    try {
+      const pixels = decode(hash, size, size);
+      const ctx = canvasRef.current.getContext("2d");
+      if (!ctx) return;
+      const imageData = ctx.createImageData(size, size);
+      imageData.data.set(pixels);
+      ctx.putImageData(imageData, 0, 0);
+    } catch { /* invalid hash */ }
+  }, [hash, size]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      width={size}
+      height={size}
+      className="w-full h-full object-cover"
+    />
+  );
 }
 
 export function MatchingHero({
@@ -30,6 +58,7 @@ export function MatchingHero({
   idealMatchElement,
   animalTypeKorean,
   animalModifier,
+  blurHashes,
 }: MatchingHeroProps) {
   const userElKey = elementKey(dominantElement);
   const userColors = ELEMENT_COLORS[userElKey];
@@ -43,9 +72,11 @@ export function MatchingHero({
     ? [animalModifier, animalTypeKorean].filter(Boolean).join(" ") + "상"
     : null;
 
+  const hasBlurHashes = blurHashes.length > 0;
+
   return (
     <section className="relative overflow-hidden px-5 pt-8 pb-6">
-      {/* 배경 오브 — 오행색 1개, 은은하게 */}
+      {/* 배경 오브 */}
       <div
         className="absolute -top-16 -left-12 w-[160px] h-[160px] rounded-full pointer-events-none"
         style={{
@@ -56,12 +87,10 @@ export function MatchingHero({
       />
 
       <div className="relative">
-        {/* 오버라인 */}
         <p className="text-[11px] font-medium tracking-[0.2px] text-ink-tertiary text-center">
           사주 &amp; 관상 분석 결과
         </p>
 
-        {/* 타이틀 */}
         <h1 className="mt-3 text-center">
           <span className="block text-[28px] font-bold leading-[1.25] tracking-[-0.6px] text-ink">
             {nickname}님의
@@ -74,7 +103,6 @@ export function MatchingHero({
           </span>
         </h1>
 
-        {/* 연애 유형 서브라인 */}
         {romanceTypeLabel && (
           <p className="mt-2 text-[14px] text-ink-muted text-center leading-relaxed">
             {romanceTypeLabel}
@@ -113,23 +141,45 @@ export function MatchingHero({
             <div className="w-5 border-t border-dashed border-ink-tertiary/40" />
           </div>
 
-          {/* 이상형 캐릭터 */}
+          {/* 이상형: 블러해시 사진 또는 캐릭터 폴백 */}
           <div className="flex flex-col items-center gap-2">
-            <div
-              className="w-[76px] h-[76px] rounded-full border-2 overflow-hidden flex items-center justify-center shadow-low"
-              style={{
-                backgroundColor: idealColors.pastel,
-                borderColor: `${idealColors.main}4D`,
-              }}
-            >
-              <Image src={`/images/characters/${idealChar}/default.png`} alt="" width={48} height={48} className="object-contain" unoptimized />
-            </div>
-            <span
-              className="px-2 py-0.5 rounded-full text-[11px] font-semibold"
-              style={{ backgroundColor: `${idealColors.main}1F`, color: idealColors.main }}
-            >
-              이상형 {ELEMENT_KOREAN[idealElKey]}
-            </span>
+            {hasBlurHashes ? (
+              <>
+                {/* 블러해시 사진 겹침 표시 */}
+                <div className="flex -space-x-4">
+                  {blurHashes.slice(0, 3).map((hash, i) => (
+                    <div
+                      key={i}
+                      className="w-[56px] h-[56px] rounded-full border-2 border-hanji overflow-hidden shadow-low"
+                      style={{ zIndex: 3 - i }}
+                    >
+                      <BlurHashAvatar hash={hash} size={56} />
+                    </div>
+                  ))}
+                </div>
+                <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-accent/20 text-ink">
+                  대기 중인 이성
+                </span>
+              </>
+            ) : (
+              <>
+                <div
+                  className="w-[76px] h-[76px] rounded-full border-2 overflow-hidden flex items-center justify-center shadow-low"
+                  style={{
+                    backgroundColor: idealColors.pastel,
+                    borderColor: `${idealColors.main}4D`,
+                  }}
+                >
+                  <Image src={`/images/characters/${idealChar}/default.png`} alt="" width={48} height={48} className="object-contain" unoptimized />
+                </div>
+                <span
+                  className="px-2 py-0.5 rounded-full text-[11px] font-semibold"
+                  style={{ backgroundColor: `${idealColors.main}1F`, color: idealColors.main }}
+                >
+                  이상형 {ELEMENT_KOREAN[idealElKey]}
+                </span>
+              </>
+            )}
           </div>
         </div>
 
@@ -143,7 +193,6 @@ export function MatchingHero({
           </div>
         )}
 
-        {/* 동물상 배지 */}
         {animalLabel && (
           <div className="mt-3 flex justify-center">
             <span className="px-3 py-1 rounded-full text-[11px] font-semibold bg-brand/15 text-ink">

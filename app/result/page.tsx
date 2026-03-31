@@ -61,6 +61,8 @@ export default function MatchingMainPage() {
   const [shareCopied, setShareCopied] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
   const [compatCount, setCompatCount] = useState(0);
+  const [userCount, setUserCount] = useState<number | null>(null);
+  const [blurHashes, setBlurHashes] = useState<string[]>([]);
 
   // 데이터 로드
   useEffect(() => {
@@ -128,6 +130,23 @@ export default function MatchingMainPage() {
         if (!res.ok || cancelled) return;
         const json = await res.json();
         if (!cancelled && json.ok && Array.isArray(json.data)) setCompatCount(json.data.length);
+      } catch { /* ignore */ }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  // 매칭 통계 + 블러해시 로드
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/matching-stats");
+        if (!res.ok || cancelled) return;
+        const json = await res.json();
+        if (!cancelled && json.ok) {
+          setUserCount(json.count ?? 0);
+          setBlurHashes(json.blurHashes ?? []);
+        }
       } catch { /* ignore */ }
     })();
     return () => { cancelled = true; };
@@ -210,9 +229,17 @@ export default function MatchingMainPage() {
           idealMatchElement={idealElement}
           animalTypeKorean={gwansangProfile?.animal_type_korean ?? null}
           animalModifier={gwansangProfile?.animal_modifier ?? null}
+          blurHashes={blurHashes}
         />
 
         <div className="space-y-4 pb-8">
+          {/* 매칭 카운터 — 히어로 바로 아래, 가장 눈에 띄는 위치 */}
+          <MatchingCounter
+            accentColor={accentColor}
+            isVerified={isVerified}
+            userCount={userCount}
+          />
+
           {/* 사주 연애운 */}
           <SajuRomanceCard
             romanceStyle={sajuProfile?.romance_style ?? null}
@@ -226,12 +253,6 @@ export default function MatchingMainPage() {
             animalModifier={gwansangProfile?.animal_modifier ?? null}
             romanceSummary={gwansangProfile?.romance_summary ?? null}
             charmKeywords={gwansangProfile?.charm_keywords ?? null}
-          />
-
-          {/* 매칭 카운터 */}
-          <MatchingCounter
-            accentColor={accentColor}
-            isVerified={isVerified}
           />
 
           {/* 궁합 리스트 / 공유 CTA */}

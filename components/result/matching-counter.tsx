@@ -1,5 +1,12 @@
 "use client";
 
+import dynamic from "next/dynamic";
+
+const DotLottieReact = dynamic(
+  () => import("@lottiefiles/dotlottie-react").then((m) => m.DotLottieReact),
+  { ssr: false },
+);
+
 interface MatchingCounterProps {
   accentColor: string;
   isVerified: boolean;
@@ -16,20 +23,29 @@ export function MatchingCounter({ accentColor, isVerified, userCount }: Matching
           borderColor: `${accentColor}1F`,
         }}
       >
-        {/* 소셜 프루프 카운터 — 크고 눈에 띄게 */}
         {userCount != null && userCount > 0 && (
           <div className="text-center mb-4">
-            <p className="text-[32px] font-bold tabular-nums text-ink">
-              {userCount.toLocaleString()}
-              <span className="text-[15px] font-semibold text-ink ml-1">명</span>
-            </p>
+            <div className="relative inline-flex items-center justify-center">
+              {/* 꽃가루 로띠 — 숫자 뒤에 작게 */}
+              <div className="absolute inset-0 -inset-x-4 -inset-y-2 pointer-events-none">
+                <DotLottieReact
+                  src="/images/confetti.lottie"
+                  loop
+                  autoplay
+                  style={{ width: "100%", height: "100%" }}
+                />
+              </div>
+              <p className="relative text-[32px] font-bold tabular-nums text-ink">
+                {userCount.toLocaleString()}
+                <span className="text-[15px] font-semibold text-ink ml-1">명</span>
+              </p>
+            </div>
             <p className="text-[13px] text-ink-muted mt-1">
               궁합 매칭을 기다리고 있어요
             </p>
           </div>
         )}
 
-        {/* CTA 메시지 */}
         <div className="text-center">
           {isVerified ? (
             <>

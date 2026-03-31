@@ -68,21 +68,25 @@ export function MatchingCounter({ accentColor, isVerified, userCount, blurHashes
   return (
     <section className="px-5">
       <div className="rounded-2xl overflow-hidden border border-hanji-border shadow-low bg-hanji-elevated">
-        {/* 블러 프로필 그리드 */}
+        {/* 블러 프로필 — 겹쳐서 자연스럽게 */}
         {hasBlur && (
-          <div className="px-5 pt-5 pb-3">
-            <div className="flex items-center justify-center gap-3">
+          <div className="pt-6 pb-2 flex justify-center">
+            <div className="flex items-center -space-x-5">
               {blurHashes.slice(0, 3).map((hash, i) => (
                 <div
                   key={i}
-                  className="w-[72px] h-[72px] rounded-2xl overflow-hidden border border-hanji-border"
+                  className="w-[68px] h-[68px] rounded-full overflow-hidden border-[3px] border-hanji-elevated shadow-low"
+                  style={{ zIndex: 3 - i }}
                 >
-                  <BlurHashCard hash={hash} size={72} />
+                  <BlurHashCard hash={hash} size={68} />
                 </div>
               ))}
               {extraCount > 0 && (
-                <div className="w-[72px] h-[72px] rounded-2xl bg-hanji-secondary border border-hanji-border flex items-center justify-center">
-                  <span className="text-[14px] font-semibold text-ink-muted">
+                <div
+                  className="w-[68px] h-[68px] rounded-full bg-hanji-secondary border-[3px] border-hanji-elevated shadow-low flex items-center justify-center"
+                  style={{ zIndex: 0 }}
+                >
+                  <span className="text-[13px] font-bold text-ink-muted">
                     +{extraCount > 99 ? "99" : extraCount}
                   </span>
                 </div>

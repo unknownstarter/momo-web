@@ -8,6 +8,8 @@ export const ROUTES = {
   ONBOARDING: "/onboarding",
   RESULT_LOADING: "/result/loading",
   RESULT: "/result",
+  RESULT_DETAIL: "/result/detail",
+  RESULT_COMPAT: "/result/compat",
   COMPLETE: "/complete",
   PENDING_DELETION: "/pending-deletion",
   TERMS: "/terms",

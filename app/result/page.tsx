@@ -23,6 +23,7 @@ interface ProfileRow {
   character_type: string | null;
   dominant_element: string | null;
   profile_images: string[] | null;
+  phone: string | null;
   is_phone_verified: boolean | null;
 }
 
@@ -75,7 +76,7 @@ export default function MatchingMainPage() {
         if (!user || cancelled) return;
         const { data: profileRow } = await supabase
           .from("profiles")
-          .select("name, character_type, dominant_element, profile_images, is_phone_verified, saju_profile_id, gwansang_profile_id")
+          .select("name, character_type, dominant_element, profile_images, phone, is_phone_verified, saju_profile_id, gwansang_profile_id")
           .eq("auth_id", user.id)
           .maybeSingle();
         if (!profileRow || cancelled) { setDataLoading(false); return; }
@@ -84,6 +85,7 @@ export default function MatchingMainPage() {
           character_type: profileRow.character_type,
           dominant_element: profileRow.dominant_element ?? null,
           profile_images: profileRow.profile_images,
+          phone: profileRow.phone ?? null,
           is_phone_verified: profileRow.is_phone_verified ?? false,
         });
         if (profileRow.saju_profile_id) {
@@ -175,6 +177,7 @@ export default function MatchingMainPage() {
   const dominantEl = profile?.dominant_element ?? sajuProfile?.dominant_element ?? null;
   const elKey = elementKey(dominantEl);
   const accentColor = ELEMENT_COLORS[elKey]?.main ?? ELEMENT_COLORS.metal.main;
+  const hasPhone = !!profile?.phone;
   const isVerified = profile?.is_phone_verified === true;
 
   const romanceType = classifyRomanceType({
@@ -236,6 +239,7 @@ export default function MatchingMainPage() {
           {/* 매칭 카운터 — 히어로 바로 아래, 가장 눈에 띄는 위치 */}
           <MatchingCounter
             accentColor={accentColor}
+            hasPhone={hasPhone}
             isVerified={isVerified}
             userCount={userCount}
             blurHashes={blurHashes}
@@ -291,7 +295,7 @@ export default function MatchingMainPage() {
 
       {/* CTA */}
       <CtaBar className="shrink-0">
-        {isVerified ? (
+        {hasPhone ? (
           <Button size="lg" className="w-full" onClick={handleShare}>
             {shareCopied ? "링크가 복사됐어요!" : (
               <span className="inline-flex items-center gap-1.5">
@@ -303,7 +307,10 @@ export default function MatchingMainPage() {
         ) : (
           <Link href={ROUTES.COMPLETE} className="block">
             <Button size="lg" className="w-full" style={{ backgroundColor: accentColor, borderColor: accentColor }}>
-              매칭 등록하기
+              <span className="inline-flex items-center gap-1.5">
+                <span className="bg-white/[0.15] text-[11px] font-medium px-2 py-0.5 rounded-full">선착순</span>
+                매칭 사전 신청하기
+              </span>
             </Button>
           </Link>
         )}

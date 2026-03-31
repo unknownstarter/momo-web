@@ -19,15 +19,12 @@ export function MatchingCounter({ accentColor, isVerified, userCount }: Matching
         {/* 소셜 프루프 카운터 — 크고 눈에 띄게 */}
         {userCount != null && userCount > 0 && (
           <div className="text-center mb-4">
-            <p
-              className="text-[32px] font-bold tabular-nums"
-              style={{ color: accentColor }}
-            >
+            <p className="text-[32px] font-bold tabular-nums text-ink">
               {userCount.toLocaleString()}
               <span className="text-[15px] font-semibold text-ink ml-1">명</span>
             </p>
             <p className="text-[13px] text-ink-muted mt-1">
-              연애운을 확인했어요
+              궁합 매칭을 기다리고 있어요
             </p>
           </div>
         )}

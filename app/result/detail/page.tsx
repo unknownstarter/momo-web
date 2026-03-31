@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { MobileContainer } from "@/components/ui/mobile-container";
 import { Button } from "@/components/ui/button";
 import { CtaBar } from "@/components/ui/cta-bar";
@@ -74,13 +74,29 @@ interface ProfileRow {
 }
 
 export default function ResultDetailPage() {
+  return (
+    <Suspense>
+      <ResultDetailPageInner />
+    </Suspense>
+  );
+}
+
+function ResultDetailPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [tab, setTab] = useState<"saju" | "gwansang">(() => {
     if (typeof window === "undefined") return "saju";
     const params = new URLSearchParams(window.location.search);
     if (params.get("tab") === "gwansang") return "gwansang";
     return "saju";
   });
+
+  // searchParams 변경 시 탭 동기화 (클라이언트 사이드 네비게이션 대응)
+  useEffect(() => {
+    const t = searchParams.get("tab");
+    if (t === "gwansang") setTab("gwansang");
+    else if (t === "saju") setTab("saju");
+  }, [searchParams]);
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [shareCopied, setShareCopied] = useState(false);

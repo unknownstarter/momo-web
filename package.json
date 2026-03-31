@@ -12,6 +12,7 @@
     "@ncdai/react-wheel-picker": "^1.2.0",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.47.10",
+    "blurhash": "^2.0.5",
     "framer-motion": "^11.11.17",
     "next": "15.1.9",
     "react": "^19.0.0",

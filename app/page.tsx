@@ -38,7 +38,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               </div>
               <div>
                 <p className="text-lg font-bold text-ink tracking-tight">momo</p>
-                <p className="text-xs text-ink-muted mt-1">사주가 알고 있는 나의 인연</p>
+                <p className="text-xs text-ink-muted mt-1">사주랑 관상으로 내 이상형 찾기</p>
               </div>
             </div>
           </section>
@@ -55,18 +55,18 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           {/* 섹션 2: 훅 — 위(브랜드)와 아래(해답+배너)의 세로 중단에 위치 */}
           <section className="w-full flex-1 flex flex-col justify-center min-h-[120px]" aria-label="소개">
             <h1 className="text-left text-[22px] font-bold text-ink leading-snug tracking-tight">
-              좋은 사람은 많은데,
+              사주랑 관상으로
               <br />
-              나랑 결이 딱 맞는 사람은 누굴까?
+              내 이상형 찾기
             </h1>
           </section>
 
           <section className="w-full shrink-0 mb-6" aria-label="해답">
             <p className="text-left text-[15px] text-ink leading-relaxed">
-              사주가 이미 알고 있었어요.
+              모모가 찾아줄게요.
             </p>
             <p className="mt-2 text-left text-sm text-ink-muted leading-relaxed">
-              비슷하게 생기면 잘 산다더라. 사주·관상 보면 잘 맞는 인연을 알려줘요.
+              사주와 관상으로 나의 연애 유형과 딱 맞는 이상형을 알려줘요.
             </p>
           </section>
 

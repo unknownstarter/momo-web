@@ -175,8 +175,7 @@ export function MatchingHero({
         {idealMatchDescription && (
           <div className="mt-5 mx-auto max-w-[320px] px-4 py-3 rounded-2xl bg-hanji-elevated border border-hanji-border shadow-low text-center">
             <p className="text-[13px] text-ink leading-relaxed">
-              {idealMatchDescription.slice(0, 80)}
-              {idealMatchDescription.length > 80 ? "..." : ""}
+              {idealMatchDescription}
             </p>
           </div>
         )}

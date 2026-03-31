@@ -293,7 +293,7 @@ export default function MatchingMainPage() {
       <CtaBar className="shrink-0">
         {isVerified ? (
           <Button size="lg" className="w-full" onClick={handleShare}>
-            {shareCopied ? "링크가 복사됐어요!" : "친구에게 공유해서 순번 올리기"}
+            {shareCopied ? "링크가 복사됐어요!" : "솔로 친구에게 공유하기"}
           </Button>
         ) : (
           <Link href={ROUTES.COMPLETE} className="block">

@@ -72,7 +72,7 @@ export function MatchingCounter({ accentColor, isVerified, userCount, blurHashes
         {hasBlur && (
           <div className="pt-6 pb-2 flex justify-center">
             <div className="flex items-center -space-x-5">
-              {blurHashes.slice(0, 3).map((hash, i) => (
+              {blurHashes.slice(3, 6).concat(blurHashes.slice(0, 3)).slice(0, 3).map((hash, i) => (
                 <div
                   key={i}
                   className="w-[68px] h-[68px] rounded-full overflow-hidden border-[3px] border-hanji-elevated shadow-low"

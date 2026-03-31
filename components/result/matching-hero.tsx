@@ -66,7 +66,6 @@ export function MatchingHero({
 
   const idealElKey = elementKey(idealMatchElement);
   const idealColors = ELEMENT_COLORS[idealElKey];
-  const idealChar = getCharacterTypeFromElement(idealMatchElement);
 
   const animalLabel = animalTypeKorean
     ? [animalModifier, animalTypeKorean].filter(Boolean).join(" ") + "상"
@@ -76,7 +75,6 @@ export function MatchingHero({
 
   return (
     <section className="relative overflow-hidden px-5 pt-8 pb-6">
-      {/* 배경 오브 */}
       <div
         className="absolute -top-16 -left-12 w-[160px] h-[160px] rounded-full pointer-events-none"
         style={{
@@ -109,7 +107,6 @@ export function MatchingHero({
           </p>
         )}
 
-        {/* 유저 - 이상형 마주보기 */}
         <div className="mt-6 flex items-center justify-center gap-4">
           {/* 유저 아바타 */}
           <div className="flex flex-col items-center gap-2">
@@ -141,49 +138,40 @@ export function MatchingHero({
             <div className="w-5 border-t border-dashed border-ink-tertiary/40" />
           </div>
 
-          {/* 이상형: 블러해시 사진 또는 캐릭터 폴백 */}
+          {/* 이상형: 블러해시 사진들 + 오행 라벨 */}
           <div className="flex flex-col items-center gap-2">
             {hasBlurHashes ? (
-              <>
-                {/* 블러해시 사진 겹침 표시 */}
-                <div className="flex -space-x-4">
-                  {blurHashes.slice(0, 3).map((hash, i) => (
-                    <div
-                      key={i}
-                      className="w-[56px] h-[56px] rounded-full border-2 border-hanji overflow-hidden shadow-low"
-                      style={{ zIndex: 3 - i }}
-                    >
-                      <BlurHashAvatar hash={hash} size={56} />
-                    </div>
-                  ))}
-                </div>
-                <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-accent/20 text-ink">
-                  대기 중인 이성
-                </span>
-              </>
+              <div className="flex -space-x-4">
+                {blurHashes.slice(0, 3).map((hash, i) => (
+                  <div
+                    key={i}
+                    className="w-[56px] h-[56px] rounded-full border-2 border-hanji overflow-hidden shadow-low"
+                    style={{ zIndex: 3 - i }}
+                  >
+                    <BlurHashAvatar hash={hash} size={56} />
+                  </div>
+                ))}
+              </div>
             ) : (
-              <>
-                <div
-                  className="w-[76px] h-[76px] rounded-full border-2 overflow-hidden flex items-center justify-center shadow-low"
-                  style={{
-                    backgroundColor: idealColors.pastel,
-                    borderColor: `${idealColors.main}4D`,
-                  }}
-                >
-                  <Image src={`/images/characters/${idealChar}/default.png`} alt="" width={48} height={48} className="object-contain" unoptimized />
-                </div>
-                <span
-                  className="px-2 py-0.5 rounded-full text-[11px] font-semibold"
-                  style={{ backgroundColor: `${idealColors.main}1F`, color: idealColors.main }}
-                >
-                  이상형 {ELEMENT_KOREAN[idealElKey]}
-                </span>
-              </>
+              <div
+                className="w-[76px] h-[76px] rounded-full border-2 overflow-hidden flex items-center justify-center shadow-low"
+                style={{
+                  backgroundColor: idealColors.pastel,
+                  borderColor: `${idealColors.main}4D`,
+                }}
+              >
+                <Image src={`/images/characters/${getCharacterTypeFromElement(idealMatchElement)}/default.png`} alt="" width={48} height={48} className="object-contain" unoptimized />
+              </div>
             )}
+            <span
+              className="px-2 py-0.5 rounded-full text-[11px] font-semibold"
+              style={{ backgroundColor: `${idealColors.main}1F`, color: idealColors.main }}
+            >
+              잘 맞는 궁합 {ELEMENT_KOREAN[idealElKey]}
+            </span>
           </div>
         </div>
 
-        {/* 요약 카드 */}
         {idealMatchDescription && (
           <div className="mt-5 mx-auto max-w-[320px] px-4 py-3 rounded-2xl bg-hanji-elevated border border-hanji-border shadow-low text-center">
             <p className="text-[13px] text-ink leading-relaxed">

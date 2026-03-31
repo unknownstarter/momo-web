@@ -42,7 +42,7 @@ export async function GET() {
         .eq("is_saju_complete", true)
         .not("blur_hash", "is", null)
         .not("blur_hash", "eq", "")
-        .limit(3);
+        .limit(6);
       if (opposites) {
         blurHashes = opposites.map((p) => p.blur_hash as string).filter(Boolean);
       }

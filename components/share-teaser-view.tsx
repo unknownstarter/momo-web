@@ -154,8 +154,8 @@ export function ShareTeaserView({
             </div>
           </div>
 
-          {/* 유형 라벨 — 스크린 중단에 위치 */}
-          <div className="mt-auto flex flex-col items-center text-center">
+          {/* 유형 라벨 */}
+          <div className="mt-8 flex flex-col items-center text-center">
             <p
               className="text-ink-muted text-[13px] font-medium"
               style={{ letterSpacing: "-0.01em" }}
@@ -200,12 +200,8 @@ export function ShareTeaserView({
               {descText}
             </p>
           )}
-          {/* 하단 여백으로 유형 라벨 영역을 중단에 위치시킴 */}
-          <div className="mt-auto shrink-0 h-4" />
-        </div>
-
-        {/* 하단 카드 영역 */}
-        <div className="shrink-0 px-5 pb-4 space-y-2.5">
+          {/* 하단 카드 영역 — 스크롤 안에 포함 */}
+          <div className="mt-6 w-full px-0 pb-4 space-y-2.5">
           {/* 잘 맞는 이상형의 사주 */}
           {idealMatchSaju?.traits && idealMatchSaju.traits.length > 0 && (
             <div
@@ -262,9 +258,9 @@ export function ShareTeaserView({
             </div>
           )}
 
-          {/* 결과 보기 — 나도 분석 받으러 가기 (detail 페이지 대신 랜딩으로 유도) */}
+          {/* 친구의 상세 분석 보기 */}
           <Link
-            href="/"
+            href={detailHref}
             className="block w-full"
             onClick={trackClickDetailInTeaser}
           >
@@ -281,7 +277,7 @@ export function ShareTeaserView({
                     className="text-[13px] font-bold text-ink"
                     style={{ letterSpacing: "-0.01em" }}
                   >
-                    나도 사주·관상 분석 받아보기
+                    {profileName}님의 상세 사주·관상 보기
                   </p>
                   <p className="text-[11px] text-ink-tertiary mt-0.5">
                     사주팔자, 오행, 성격, 이상형까지
@@ -291,6 +287,7 @@ export function ShareTeaserView({
               <span className="text-ink-tertiary">→</span>
             </div>
           </Link>
+          </div>
         </div>
       </div>
 

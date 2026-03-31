@@ -238,6 +238,7 @@ export default function MatchingMainPage() {
             accentColor={accentColor}
             isVerified={isVerified}
             userCount={userCount}
+            blurHashes={blurHashes}
             onShare={handleShare}
             shareUrl={shareUrl}
           />

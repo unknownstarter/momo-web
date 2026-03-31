@@ -10,6 +10,7 @@ const LOADING_MESSAGES = [
   { title: "사주팔자를 계산하고 있어요...", sub: "잠시만 기다려 주세요" },
   { title: "AI가 사주를 해석하고 있어요...", sub: "조금만 더 기다려 주세요" },
   { title: "관상을 분석하고 있어요...", sub: "거의 다 됐어요!" },
+  { title: "이상형도 함께 찾아볼게요!", sub: "곧 결과를 보여드릴게요" },
 ];
 
 export default function ResultLoadingPage() {

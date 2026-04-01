@@ -1,15 +1,7 @@
 /**
- * GA4 이벤트 트래킹. NEXT_PUBLIC_GA_MEASUREMENT_ID 설정 시에만 동작.
- * 이벤트명: snake_case.
- *
- * 등록 이벤트:
- * - main_view                 랜딩(/) 노출
- * - click_login_button_in_main 메인 CTA '내 인연 찾기' 클릭
- * - view_login_bottomsheet    로그인 바텀시트 노출
- * - start_login               카카오 로그인 시작
- * - view_nickname             온보딩 닉네임(이름) 스텝 노출
- * - click_next_in_nickname    온보딩 닉네임 스텝에서 '다음' 클릭
- * - click_share_in_result     결과 페이지 '친구에게 공유하기' 클릭
+ * GA4 이벤트 트래킹.
+ * 네이밍: view_ (노출), click_ (클릭), start_ (시작), complete_ (완료), share_ (공유)
+ * 텍소노미: docs/event-taxonomy.md
  */
 
 declare global {
@@ -36,79 +28,92 @@ export function trackEvent(
   window.gtag!("event", eventName, params ?? {});
 }
 
-/** 랜딩(메인) 페이지 노출 */
-export function trackMainView(): void {
-  trackEvent("main_view");
-}
+// ---------------------------------------------------------------------------
+// 랜딩 (/)
+// ---------------------------------------------------------------------------
+export function trackViewMain(): void { trackEvent("view_main"); }
+export function trackClickCtaInMain(): void { trackEvent("click_cta_in_main"); }
+export function trackViewLoginBottomsheet(): void { trackEvent("view_login_bottomsheet"); }
+export function trackStartLogin(): void { trackEvent("start_login"); }
 
-/** 메인 CTA '내 인연 찾기' 클릭 */
-export function trackClickLoginButtonInMain(): void {
-  trackEvent("click_login_button_in_main");
-}
+// ---------------------------------------------------------------------------
+// 온보딩 (/onboarding)
+// ---------------------------------------------------------------------------
+export function trackViewOnboardingStep(step: string): void { trackEvent(`view_onboarding_${step}`); }
+export function trackClickNextInOnboarding(step: string): void { trackEvent(`click_next_in_onboarding_${step}`); }
+export function trackClickStartAnalysis(): void { trackEvent("click_start_analysis"); }
 
-/** 로그인 바텀시트 노출 */
-export function trackViewLoginBottomsheet(): void {
-  trackEvent("view_login_bottomsheet");
-}
+// ---------------------------------------------------------------------------
+// 분석 로딩 (/result/loading)
+// ---------------------------------------------------------------------------
+export function trackViewAnalysisLoading(): void { trackEvent("view_analysis_loading"); }
+export function trackCompleteAnalysis(): void { trackEvent("complete_analysis"); }
 
-/** 카카오 로그인 시작(리다이렉트 직전) */
-export function trackStartLogin(): void {
-  trackEvent("start_login");
-}
+// ---------------------------------------------------------------------------
+// 매칭 메인 (/result)
+// ---------------------------------------------------------------------------
+export function trackViewMatchingMain(): void { trackEvent("view_matching_main"); }
+export function trackClickSajuDetail(): void { trackEvent("click_saju_detail"); }
+export function trackClickGwansangDetail(): void { trackEvent("click_gwansang_detail"); }
+export function trackClickMatchingRegister(): void { trackEvent("click_matching_register"); }
+export function trackClickShareInMatching(): void { trackEvent("click_share_in_matching"); }
+export function trackClickCompatList(): void { trackEvent("click_compat_list"); }
+export function trackClickCompatShare(): void { trackEvent("click_compat_share"); }
 
-/** 온보딩 닉네임(이름) 스텝 노출 */
-export function trackViewNickname(): void {
-  trackEvent("view_nickname");
-}
+// ---------------------------------------------------------------------------
+// 사주/관상 상세 (/result/detail)
+// ---------------------------------------------------------------------------
+export function trackViewResultDetail(): void { trackEvent("view_result_detail"); }
+export function trackClickTabSaju(): void { trackEvent("click_tab_saju"); }
+export function trackClickTabGwansang(): void { trackEvent("click_tab_gwansang"); }
+export function trackClickShareInDetail(): void { trackEvent("click_share_in_detail"); }
+export function trackClickBackToMatching(): void { trackEvent("click_back_to_matching"); }
 
-/** 온보딩 닉네임 스텝에서 '다음' 클릭 */
-export function trackClickNextInNickname(): void {
-  trackEvent("click_next_in_nickname");
-}
+// ---------------------------------------------------------------------------
+// 궁합 (/result/compat)
+// ---------------------------------------------------------------------------
+export function trackViewCompat(): void { trackEvent("view_compat"); }
+export function trackViewCompatDetail(score: number): void { trackEvent("view_compat_detail", { score }); }
+export function trackShareCompatResult(): void { trackEvent("share_compat_result"); }
 
-/** 결과 페이지에서 '친구에게 공유하기' 클릭 */
-export function trackClickShareInResult(): void {
-  trackEvent("click_share_in_result");
-}
+// ---------------------------------------------------------------------------
+// 전화번호 등록 (/complete)
+// ---------------------------------------------------------------------------
+export function trackViewPhoneRegister(): void { trackEvent("view_phone_register"); }
+export function trackClickSubmitPhone(): void { trackEvent("click_submit_phone"); }
+export function trackCompletePhoneRegister(): void { trackEvent("complete_phone_register"); }
 
-/** 공유 티저 페이지 노출 */
-export function trackViewShareTeaser(): void {
-  trackEvent("view_share_teaser");
-}
+// ---------------------------------------------------------------------------
+// 공유 티저 (/share, /s)
+// ---------------------------------------------------------------------------
+export function trackViewShareTeaser(): void { trackEvent("view_share_teaser"); }
+export function trackClickDetailInTeaser(): void { trackEvent("click_detail_in_teaser"); }
+export function trackClickCtaInTeaser(): void { trackEvent("click_cta_in_teaser"); }
+export function trackViewCompatPrompt(): void { trackEvent("view_compat_prompt"); }
+export function trackClickCompatCtaInPrompt(): void { trackEvent("click_compat_cta_in_prompt"); }
 
-/** 티저에서 '자세히 보기' 클릭 */
-export function trackClickDetailInTeaser(): void {
-  trackEvent("click_detail_in_teaser");
-}
-
-/** 티저에서 '나도 사주·관상 보기' 클릭 */
-export function trackClickCtaInTeaser(): void {
-  trackEvent("click_cta_in_teaser");
-}
-
-/** 공유 페이지에서 궁합 바텀시트 노출 */
-export function trackViewCompatibilityPrompt(): void {
-  trackEvent("view_compatibility_bottomsheet");
-}
-
-/** 궁합 CTA 클릭 (공유 페이지) */
-export function trackClickCompatibilityCta(): void {
-  trackEvent("click_compatibility_cta");
-}
-
-/** 결과 페이지 궁합 탭 진입 */
-export function trackViewCompatibilityTab(): void {
-  trackEvent("view_compatibility_tab");
-}
-
-/** 궁합 상세 바텀시트 열림 */
-export function trackViewCompatibilityDetail(score: number): void {
-  trackEvent("view_compatibility_detail", { score });
-}
-
-/** 궁합 결과 공유 */
-export function trackShareCompatibilityResult(): void {
-  trackEvent("share_compatibility_result");
-}
+// ---------------------------------------------------------------------------
+// 하위호환 (기존 import 깨지지 않도록)
+// ---------------------------------------------------------------------------
+/** @deprecated use trackViewMain */
+export const trackMainView = trackViewMain;
+/** @deprecated use trackClickCtaInMain */
+export const trackClickLoginButtonInMain = trackClickCtaInMain;
+/** @deprecated use trackViewOnboardingStep("name") */
+export const trackViewNickname = () => trackViewOnboardingStep("name");
+/** @deprecated use trackClickNextInOnboarding("name") */
+export const trackClickNextInNickname = () => trackClickNextInOnboarding("name");
+/** @deprecated use trackClickShareInMatching */
+export const trackClickShareInResult = trackClickShareInMatching;
+/** @deprecated use trackViewCompatPrompt */
+export const trackViewCompatibilityPrompt = trackViewCompatPrompt;
+/** @deprecated use trackClickCompatCtaInPrompt */
+export const trackClickCompatibilityCta = trackClickCompatCtaInPrompt;
+/** @deprecated use trackViewCompat */
+export const trackViewCompatibilityTab = trackViewCompat;
+/** @deprecated use trackViewCompatDetail */
+export const trackViewCompatibilityDetail = trackViewCompatDetail;
+/** @deprecated use trackShareCompatResult */
+export const trackShareCompatibilityResult = trackShareCompatResult;
 
 export { MEASUREMENT_ID };

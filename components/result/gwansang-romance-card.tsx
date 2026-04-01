@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ROUTES } from "@/lib/constants";
+import { trackClickGwansangDetail } from "@/lib/analytics";
 
 interface GwansangRomanceCardProps {
   animalTypeKorean: string | null;
@@ -58,6 +59,7 @@ export function GwansangRomanceCard({
 
         <Link
           href={`${ROUTES.RESULT_DETAIL}?tab=gwansang`}
+          onClick={trackClickGwansangDetail}
           className="mt-4 flex items-center justify-between text-[13px] font-medium text-ink-muted"
         >
           <span>관상 자세히 보기</span>

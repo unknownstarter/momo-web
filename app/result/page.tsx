@@ -16,7 +16,15 @@ import { MatchingHero } from "@/components/result/matching-hero";
 import { SajuRomanceCard } from "@/components/result/saju-romance-card";
 import { GwansangRomanceCard } from "@/components/result/gwansang-romance-card";
 import { MatchingCounter } from "@/components/result/matching-counter";
-import { trackClickShareInResult } from "@/lib/analytics";
+import {
+  trackViewMatchingMain,
+  trackClickShareInMatching,
+  trackClickMatchingRegister,
+  trackClickSajuDetail,
+  trackClickGwansangDetail,
+  trackClickCompatList,
+  trackClickCompatShare,
+} from "@/lib/analytics";
 
 interface ProfileRow {
   name: string | null;
@@ -172,6 +180,9 @@ export default function MatchingMainPage() {
     }
   }, [dataLoading, profile, router]);
 
+  // view 트래킹
+  useEffect(() => { trackViewMatchingMain(); }, []);
+
   // 파생 값
   const nickname = profile?.name ?? "";
   const dominantEl = profile?.dominant_element ?? sajuProfile?.dominant_element ?? null;
@@ -192,7 +203,7 @@ export default function MatchingMainPage() {
 
   const handleShare = async () => {
     if (!shareUrl || typeof window === "undefined") return;
-    trackClickShareInResult();
+    trackClickShareInMatching();
     try {
       if (navigator.share) {
         await navigator.share({ title: `${nickname}님의 이상형 결과`, url: shareUrl });

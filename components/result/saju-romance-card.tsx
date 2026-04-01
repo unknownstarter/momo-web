@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ROUTES } from "@/lib/constants";
+import { trackClickSajuDetail } from "@/lib/analytics";
 
 interface SajuRomanceCardProps {
   romanceStyle: string | null;
@@ -50,6 +51,7 @@ export function SajuRomanceCard({ romanceStyle, romanceKeyPoints, accentColor }:
 
         <Link
           href={`${ROUTES.RESULT_DETAIL}?tab=saju`}
+          onClick={trackClickSajuDetail}
           className="mt-4 flex items-center justify-between text-[13px] font-medium text-ink-muted"
         >
           <span>사주 자세히 보기</span>

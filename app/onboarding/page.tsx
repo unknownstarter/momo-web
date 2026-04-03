@@ -463,9 +463,12 @@ function OnboardingContent() {
                 정면을 바라본 사진이 가장 정확해요. AI가 관상을 분석해 동물상을 알려줄게요!
               </p>
             </div>
-            <p className="mt-2 text-[11px] text-ink-tertiary">
-              이 사진은 관상 분석과 앱에서 궁합 매칭할 때 활용돼요.
-            </p>
+            <div className="mt-3 flex items-start gap-2 px-1">
+              <span className="text-[12px] mt-0.5">💕</span>
+              <p className="text-[12px] text-ink-secondary leading-relaxed">
+                이 사진은 관상 분석과 <span className="font-semibold text-ink">이상형 매칭</span>에 활용돼요. 사진을 등록하면 나와 잘 맞는 이상형을 찾아드려요!
+              </p>
+            </div>
             <div className="mt-8">
               {form.photoPreview ? (
                 <div className="relative w-32 h-32 mx-auto rounded-full overflow-hidden border-2 border-hanji-border">

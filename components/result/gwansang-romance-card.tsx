@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { ROUTES } from "@/lib/constants";
 import { trackClickGwansangDetail } from "@/lib/analytics";
 
@@ -9,6 +8,7 @@ interface GwansangRomanceCardProps {
   animalModifier: string | null;
   romanceSummary: string | null;
   charmKeywords: string[] | null;
+  onNavigate?: (href: string) => void;
 }
 
 export function GwansangRomanceCard({
@@ -16,6 +16,7 @@ export function GwansangRomanceCard({
   animalModifier,
   romanceSummary,
   charmKeywords,
+  onNavigate,
 }: GwansangRomanceCardProps) {
   if (!romanceSummary && !charmKeywords?.length) return null;
 
@@ -57,16 +58,16 @@ export function GwansangRomanceCard({
           </div>
         ) : null}
 
-        <Link
-          href={`${ROUTES.RESULT_DETAIL}?tab=gwansang`}
-          onClick={trackClickGwansangDetail}
-          className="mt-4 flex items-center justify-between text-[13px] font-medium text-ink-muted"
+        <button
+          type="button"
+          onClick={() => { trackClickGwansangDetail(); onNavigate?.(`${ROUTES.RESULT_DETAIL}?tab=gwansang`); }}
+          className="mt-4 w-full flex items-center justify-between text-[13px] font-medium text-ink-muted"
         >
           <span>관상 자세히 보기</span>
           <svg width={16} height={16} viewBox="0 0 20 20" fill="none" aria-hidden>
             <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-        </Link>
+        </button>
       </div>
     </section>
   );

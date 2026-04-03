@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { MobileContainer } from "@/components/ui/mobile-container";
@@ -72,6 +73,12 @@ export default function MatchingMainPage() {
   const [compatCount, setCompatCount] = useState(0);
   const [userCount, setUserCount] = useState<number | null>(null);
   const [blurHashes, setBlurHashes] = useState<string[]>([]);
+  const [navigating, setNavigating] = useState(false);
+
+  const handleNavigate = useCallback((href: string) => {
+    setNavigating(true);
+    router.push(href);
+  }, [router]);
 
   // 데이터 로드
   useEffect(() => {
@@ -229,7 +236,20 @@ export default function MatchingMainPage() {
   }
 
   return (
-    <MobileContainer className="h-dvh max-h-dvh bg-hanji text-ink flex flex-col overflow-hidden">
+    <MobileContainer className="h-dvh max-h-dvh bg-hanji text-ink flex flex-col overflow-hidden relative">
+      {/* 페이지 전환 로딩 오버레이 */}
+      {navigating && (
+        <div className="absolute inset-0 z-50 bg-black/40 flex items-center justify-center">
+          <Image
+            src="/images/characters/loading_spinner.gif"
+            alt=""
+            width={64}
+            height={64}
+            className="w-16 h-16 object-contain"
+            unoptimized
+          />
+        </div>
+      )}
       <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden scroll-touch">
         {/* 히어로 */}
         <MatchingHero
@@ -260,6 +280,7 @@ export default function MatchingMainPage() {
             romanceStyle={sajuProfile?.romance_style ?? null}
             romanceKeyPoints={sajuProfile?.romance_key_points ?? null}
             accentColor={accentColor}
+            onNavigate={handleNavigate}
           />
 
           {/* 관상 연애운 */}
@@ -268,6 +289,7 @@ export default function MatchingMainPage() {
             animalModifier={gwansangProfile?.animal_modifier ?? null}
             romanceSummary={gwansangProfile?.romance_summary ?? null}
             charmKeywords={gwansangProfile?.charm_keywords ?? null}
+            onNavigate={handleNavigate}
           />
 
           {/* 궁합 리스트 / 공유 CTA */}
@@ -275,9 +297,10 @@ export default function MatchingMainPage() {
             {compatCount > 0 ? (
               <div>
                 <p className="text-xs text-ink-muted mb-3">궁합 본 친구 ({compatCount}명)</p>
-                <Link
-                  href={ROUTES.RESULT_COMPAT}
-                  className="block rounded-2xl border border-hanji-border bg-hanji-elevated p-4 shadow-low active:bg-hanji-secondary transition-colors"
+                <button
+                  type="button"
+                  onClick={() => handleNavigate(ROUTES.RESULT_COMPAT)}
+                  className="block w-full text-left rounded-2xl border border-hanji-border bg-hanji-elevated p-4 shadow-low active:bg-hanji-secondary transition-colors"
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-ink">궁합 결과 보기</span>
@@ -285,12 +308,12 @@ export default function MatchingMainPage() {
                       <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </div>
-                </Link>
+                </button>
               </div>
             ) : (
               <button
                 type="button"
-                onClick={handleShare}
+                onClick={() => handleNavigate(ROUTES.RESULT_COMPAT)}
                 className="w-full rounded-2xl border border-hanji-border bg-hanji-elevated p-4 shadow-low text-center active:bg-hanji-secondary transition-colors"
               >
                 <p className="text-sm font-medium text-ink">친구와 궁합 보기</p>

@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { ROUTES } from "@/lib/constants";
 import { trackClickSajuDetail } from "@/lib/analytics";
 
@@ -8,9 +7,10 @@ interface SajuRomanceCardProps {
   romanceStyle: string | null;
   romanceKeyPoints: string[] | null;
   accentColor: string;
+  onNavigate?: (href: string) => void;
 }
 
-export function SajuRomanceCard({ romanceStyle, romanceKeyPoints, accentColor }: SajuRomanceCardProps) {
+export function SajuRomanceCard({ romanceStyle, romanceKeyPoints, accentColor, onNavigate }: SajuRomanceCardProps) {
   if (!romanceStyle && !romanceKeyPoints?.length) return null;
 
   return (
@@ -49,16 +49,16 @@ export function SajuRomanceCard({ romanceStyle, romanceKeyPoints, accentColor }:
           </div>
         ) : null}
 
-        <Link
-          href={`${ROUTES.RESULT_DETAIL}?tab=saju`}
-          onClick={trackClickSajuDetail}
-          className="mt-4 flex items-center justify-between text-[13px] font-medium text-ink-muted"
+        <button
+          type="button"
+          onClick={() => { trackClickSajuDetail(); onNavigate?.(`${ROUTES.RESULT_DETAIL}?tab=saju`); }}
+          className="mt-4 w-full flex items-center justify-between text-[13px] font-medium text-ink-muted"
         >
           <span>사주 자세히 보기</span>
           <svg width={16} height={16} viewBox="0 0 20 20" fill="none" aria-hidden>
             <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-        </Link>
+        </button>
       </div>
     </section>
   );

@@ -1,0 +1,202 @@
+<mxfile>
+  <diagram name="신규회원 가입 플로우" id="flow1">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- 유입 경로 -->
+        <mxCell id="10" value="인스타 광고&#xa;/ 공유 링크&#xa;/ 직접 방문" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="40" width="180" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- 랜딩 -->
+        <mxCell id="20" value="랜딩 페이지 (/)&#xa;&#xa;&quot;사주랑 관상으로&#xa;내 이상형 찾기&quot;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="140" width="180" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" edge="1" source="10" target="20" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 공유 링크 분기 -->
+        <mxCell id="15" value="공유 링크로&#xa;유입?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="350" y="40" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="e15a" edge="1" source="10" target="15" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 공유 티저 -->
+        <mxCell id="16" value="공유 티저 페이지&#xa;(/s/[code])&#xa;&#xa;연애유형 카드 +&#xa;궁합 바텀시트 (2초)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="520" y="40" width="160" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="e15b" value="Yes" edge="1" source="15" target="16" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e15c" value="No" edge="1" source="15" target="20" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e16" value="나도 해보기" edge="1" source="16" target="20" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- CTA 클릭 -->
+        <mxCell id="21" value="CTA 클릭&#xa;&quot;내 이상형 알아보기&quot;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="80" y="260" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="e20" edge="1" source="20" target="21" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 카카오 로그인 -->
+        <mxCell id="30" value="카카오 로그인&#xa;(OAuth)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEE500;strokeColor=#3C1E1E;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="350" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="e21" edge="1" source="21" target="30" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 기존 회원 분기 -->
+        <mxCell id="35" value="기존&#xa;회원?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="120" y="440" width="100" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e30" edge="1" source="30" target="35" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 온보딩 -->
+        <mxCell id="40" value="온보딩 (/onboarding)&#xa;&#xa;이름 → 성별 → 생년월일&#xa;→ 시진 → 사진 → 확인" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="560" width="180" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="e35a" value="No (신규)" edge="1" source="35" target="40" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 기존 회원 → 매칭 메인 -->
+        <mxCell id="e35b" value="Yes" edge="1" source="35" target="70" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="350" y="475" />
+              <mxPoint x="350" y="850" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 분석 시작 -->
+        <mxCell id="50" value="&quot;분석 시작&quot; 클릭" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="80" y="680" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="e40" edge="1" source="40" target="50" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 분석 로딩 -->
+        <mxCell id="60" value="분석 로딩&#xa;(/result/loading)&#xa;&#xa;사주 → 관상 → 이상형&#xa;다크 배경 + 프로그레스 바" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1D1E23;strokeColor=#333;fontColor=#E8E4DF;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="760" width="180" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="e50" edge="1" source="50" target="60" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 매칭 메인 -->
+        <mxCell id="70" value="⭐ 매칭 메인 (/result)&#xa;&#xa;히어로 (이상형 찾았어요!)&#xa;사주 연애운 요약&#xa;관상 연애운 요약&#xa;매칭 카운터 (N명 대기)&#xa;궁합 리스트" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F7F3EE;strokeColor=#C8B68E;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="890" width="180" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="e60" edge="1" source="60" target="70" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 매칭 메인에서의 분기들 -->
+
+        <!-- 사주/관상 상세 -->
+        <mxCell id="80" value="사주 &amp; 관상 상세&#xa;(/result/detail)&#xa;&#xa;[사주] [관상] 2탭" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="350" y="890" width="150" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e70a" value="자세히 보기" edge="1" source="70" target="80" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e80" value="돌아가기" style="dashed=1;" edge="1" source="80" target="70" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 궁합 -->
+        <mxCell id="85" value="궁합 페이지&#xa;(/result/compat)&#xa;&#xa;궁합 리스트 + 상세시트" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="350" y="990" width="150" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e70b" value="궁합 보기" edge="1" source="70" target="85" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e85" value="돌아가기" style="dashed=1;" edge="1" source="85" target="70" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 전화번호 미등록 분기 -->
+        <mxCell id="90" value="전화번호&#xa;등록?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="120" y="1060" width="100" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e70c" value="매칭 사전 신청" edge="1" source="70" target="90" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 전화번호 등록 -->
+        <mxCell id="100" value="전화번호 등록&#xa;(/complete)&#xa;&#xa;번호 입력 + 문자 수신 동의&#xa;→ profiles.phone 저장" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="1180" width="180" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="e90a" value="No (미등록)" edge="1" source="90" target="100" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 등록 완료 → 매칭 메인 복귀 -->
+        <mxCell id="e100" value="완료 → 매칭 메인" style="dashed=1;" edge="1" source="100" target="70" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="400" y="1220" />
+              <mxPoint x="400" y="950" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 공유하기 -->
+        <mxCell id="110" value="공유하기&#xa;(카카오톡 / 링크복사)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="120" y="1310" width="160" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="e90b" value="Yes (등록됨)" edge="1" source="90" target="110" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="50" y="1095" />
+              <mxPoint x="50" y="1335" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e100b" edge="1" source="100" target="110" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 바이럴 루프 -->
+        <mxCell id="120" value="친구가 공유 링크 클릭&#xa;→ 바이럴 루프 🔄" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="120" y="1400" width="160" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="e110" edge="1" source="110" target="120" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e120" value="공유 티저로" style="dashed=1;curved=1;" edge="1" source="120" target="16" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="700" y="1425" />
+              <mxPoint x="700" y="80" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Phase 7 TODO -->
+        <mxCell id="200" value="📌 Phase 7 (TODO)&#xa;&#xa;포트원 본인인증 연동&#xa;→ is_phone_verified = true&#xa;→ 매칭풀 실제 진입" style="shape=note;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="550" y="1180" width="200" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="e200" style="dashed=1;strokeColor=#d79b00;" edge="1" source="100" target="200" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

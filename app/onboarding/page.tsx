@@ -19,7 +19,24 @@ import {
   INTEREST_OPTIONS,
   INTEREST_MAX_SELECT,
 } from "@/lib/constants";
-import { trackViewNickname, trackClickNextInNickname } from "@/lib/analytics";
+import { trackViewOnboardingStep, trackClickNextInOnboarding, trackClickStartAnalysis } from "@/lib/analytics";
+
+const STEP_NAMES: Record<number, string> = {
+  0: "name",
+  1: "gender",
+  2: "birth_date",
+  3: "birth_time",
+  4: "photo",
+  5: "height",
+  6: "occupation",
+  7: "location",
+  8: "body_type",
+  9: "religion",
+  10: "bio",
+  11: "interests",
+  12: "ideal_type",
+  13: "confirm",
+};
 
 export interface OnboardingFormData {
   name: string;
@@ -72,7 +89,8 @@ function OnboardingContent() {
   const stepInitialized = useRef(false);
 
   const goNext = useCallback(() => {
-    if (step === 0) trackClickNextInNickname();
+    const name = STEP_NAMES[step];
+    if (name) trackClickNextInOnboarding(name);
     if (step < ONBOARDING_STEP_COUNT - 1) setStep((s) => s + 1);
   }, [step]);
 
@@ -161,11 +179,13 @@ function OnboardingContent() {
   }, [router, searchParams]);
 
   useEffect(() => {
-    if (step === 0) trackViewNickname();
+    const name = STEP_NAMES[step];
+    if (name) trackViewOnboardingStep(name);
   }, [step]);
 
   /* Step 4: 사진 저장 + 분석 백그라운드 호출 */
   const handleStep4Submit = async () => {
+    trackClickNextInOnboarding("photo");
     setSubmitting(true);
     setSubmitError(null);
     try {
@@ -224,6 +244,7 @@ function OnboardingContent() {
 
   /* Step 13: 최종 저장 + 분석 시작 */
   const handleStep13Submit = async () => {
+    trackClickStartAnalysis();
     setSubmitError(null);
     setSubmitting(true);
     try {

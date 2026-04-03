@@ -1,14 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import Link from "next/link";
 import { decode } from "blurhash";
-import { ROUTES } from "@/lib/constants";
 
 interface MatchingCounterProps {
   accentColor: string;
-  hasPhone: boolean;
-  isVerified: boolean;
   userCount: number | null;
   blurHashes: string[];
   onShare: () => void;
@@ -61,7 +57,7 @@ function useCountUp(target: number, duration = 1200) {
   return count;
 }
 
-export function MatchingCounter({ accentColor, hasPhone, isVerified, userCount, blurHashes, onShare, shareUrl }: MatchingCounterProps) {
+export function MatchingCounter({ accentColor, userCount, blurHashes, onShare, shareUrl }: MatchingCounterProps) {
   const animatedCount = useCountUp(userCount ?? 0);
   const hasBlur = blurHashes.length > 0;
   const extraCount = (userCount ?? 0) - blurHashes.length;
@@ -107,37 +103,17 @@ export function MatchingCounter({ accentColor, hasPhone, isVerified, userCount, 
             </p>
           )}
 
-          {hasPhone ? (
-            <div className="mt-4">
-              <p className="text-[13px] text-ink-muted mb-3">앱 출시 시 가장 먼저 매칭해드릴게요</p>
-              <button
-                type="button"
-                onClick={onShare}
-                disabled={!shareUrl}
-                className="w-full py-3 rounded-xl text-[14px] font-semibold border border-hanji-border text-ink bg-hanji-secondary transition-colors hover:bg-hanji active:bg-hanji"
-              >
-                친구에게 공유하기
-              </button>
-            </div>
-          ) : (
-            <div className="mt-4">
-              <Link href={ROUTES.COMPLETE} className="block">
-                <button
-                  type="button"
-                  className="w-full py-3.5 rounded-xl text-[15px] font-semibold text-white transition-opacity hover:opacity-90 active:opacity-80"
-                  style={{ backgroundColor: "#2D2D2D" }}
-                >
-                  <span className="inline-flex items-center gap-1.5">
-                    <span className="bg-white/[0.15] text-[11px] font-medium px-2 py-0.5 rounded-full">선착순</span>
-                    매칭 사전 신청하기
-                  </span>
-                </button>
-              </Link>
-              <p className="text-[11px] text-ink-tertiary mt-2">
-                전화번호를 등록하면 앱 출시 즉시 매칭돼요
-              </p>
-            </div>
-          )}
+          <div className="mt-4">
+            <p className="text-[13px] text-ink-muted mb-3">사주·관상 분석을 완료하면 자동으로 매칭 대상이 돼요</p>
+            <button
+              type="button"
+              onClick={onShare}
+              disabled={!shareUrl}
+              className="w-full py-3 rounded-xl text-[14px] font-semibold border border-hanji-border text-ink bg-hanji-secondary transition-colors hover:bg-hanji active:bg-hanji"
+            >
+              친구에게 공유하기
+            </button>
+          </div>
         </div>
       </div>
     </section>

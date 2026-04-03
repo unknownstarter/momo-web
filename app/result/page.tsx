@@ -189,7 +189,6 @@ export default function MatchingMainPage() {
   const elKey = elementKey(dominantEl);
   const accentColor = ELEMENT_COLORS[elKey]?.main ?? ELEMENT_COLORS.metal.main;
   const hasPhone = !!profile?.phone;
-  const isVerified = profile?.is_phone_verified === true;
 
   const romanceType = classifyRomanceType({
     dominantElement: dominantEl,
@@ -250,8 +249,6 @@ export default function MatchingMainPage() {
           {/* 매칭 카운터 — 히어로 바로 아래, 가장 눈에 띄는 위치 */}
           <MatchingCounter
             accentColor={accentColor}
-            hasPhone={hasPhone}
-            isVerified={isVerified}
             userCount={userCount}
             blurHashes={blurHashes}
             onShare={handleShare}
@@ -306,22 +303,18 @@ export default function MatchingMainPage() {
 
       {/* CTA */}
       <CtaBar className="shrink-0">
-        {hasPhone ? (
-          <Button size="lg" className="w-full" onClick={handleShare}>
-            {shareCopied ? "링크가 복사됐어요!" : (
-              <span className="inline-flex items-center gap-1.5">
-                <span className="bg-[#C94A3F]/15 text-[11px] font-medium px-2 py-0.5 rounded-full text-[#C94A3F]">연애운</span>
-                친구에게 공유하기
-              </span>
-            )}
-          </Button>
-        ) : (
-          <Link href={ROUTES.COMPLETE} className="block">
-            <Button size="lg" className="w-full" style={{ backgroundColor: accentColor, borderColor: accentColor }}>
-              <span className="inline-flex items-center gap-1.5">
-                <span className="bg-white/[0.15] text-[11px] font-medium px-2 py-0.5 rounded-full">선착순</span>
-                매칭 사전 신청하기
-              </span>
+        <Button size="lg" className="w-full" onClick={handleShare}>
+          {shareCopied ? "링크가 복사됐어요!" : (
+            <span className="inline-flex items-center gap-1.5">
+              <span className="bg-[#C94A3F]/15 text-[11px] font-medium px-2 py-0.5 rounded-full text-[#C94A3F]">연애운</span>
+              친구에게 공유하기
+            </span>
+          )}
+        </Button>
+        {!hasPhone && (
+          <Link href={ROUTES.COMPLETE} className="block mt-3">
+            <Button variant="outline" size="md" className="w-full">
+              앱 출시 알림 받기
             </Button>
           </Link>
         )}

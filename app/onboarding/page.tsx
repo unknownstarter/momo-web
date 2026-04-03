@@ -421,6 +421,9 @@ function OnboardingContent() {
                 value={form.birthDate}
                 onChange={(v) => setForm((f) => ({ ...f, birthDate: v }))}
               />
+              <p className="mt-3 text-xs text-ink-tertiary text-center">
+                만 19세 이상(한국 나이 20세)만 이용할 수 있어요
+              </p>
             </div>
           </>
         )}

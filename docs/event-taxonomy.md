@@ -25,14 +25,30 @@
 | `click_next_in_onboarding_name` | step 0 다음 클릭 |
 | `view_onboarding_gender` | step 1 성별 노출 |
 | `click_next_in_onboarding_gender` | step 1 성별 선택 (자동 진행) |
-| `view_onboarding_birth` | step 2 생년월일 노출 |
-| `click_next_in_onboarding_birth` | step 2 다음 클릭 |
+| `view_onboarding_birth_date` | step 2 생년월일 노출 |
+| `click_next_in_onboarding_birth_date` | step 2 다음 클릭 |
 | `view_onboarding_birth_time` | step 3 시진 노출 |
 | `click_next_in_onboarding_birth_time` | step 3 시진 선택/다음 클릭 |
 | `view_onboarding_photo` | step 4 사진 노출 |
 | `click_next_in_onboarding_photo` | step 4 사진 업로드 완료 |
-| `view_onboarding_confirm` | 확인 화면 노출 |
-| `click_start_analysis` | "분석 시작" 클릭 |
+| `view_onboarding_height` | step 5 키 노출 |
+| `click_next_in_onboarding_height` | step 5 다음 클릭 |
+| `view_onboarding_occupation` | step 6 직업 노출 |
+| `click_next_in_onboarding_occupation` | step 6 다음 클릭 |
+| `view_onboarding_location` | step 7 지역 노출 |
+| `click_next_in_onboarding_location` | step 7 선택/다음 |
+| `view_onboarding_body_type` | step 8 체형 노출 |
+| `click_next_in_onboarding_body_type` | step 8 선택/다음 |
+| `view_onboarding_religion` | step 9 종교 노출 |
+| `click_next_in_onboarding_religion` | step 9 선택/다음 |
+| `view_onboarding_bio` | step 10 자기소개 노출 |
+| `click_next_in_onboarding_bio` | step 10 다음/건너뛰기 클릭 |
+| `view_onboarding_interests` | step 11 관심사 노출 |
+| `click_next_in_onboarding_interests` | step 11 다음/건너뛰기 클릭 |
+| `view_onboarding_ideal_type` | step 12 이상형 노출 |
+| `click_next_in_onboarding_ideal_type` | step 12 다음/건너뛰기 클릭 |
+| `view_onboarding_confirm` | step 13 확인 화면 노출 |
+| `click_start_analysis` | step 13 "분석 시작" 클릭 |
 
 ---
 

@@ -14,11 +14,13 @@ interface BirthDatePickerProps {
 }
 
 const currentYear = new Date().getFullYear();
+/** 한국 나이 20세 이상만 허용 (한국 나이 = 현재연도 - 출생연도 + 1) */
+const maxBirthYear = currentYear - 19;
 
 const yearOptions: WheelPickerOption[] = Array.from(
-  { length: currentYear - 1930 + 1 },
+  { length: maxBirthYear - 1930 + 1 },
   (_, i) => {
-    const y = currentYear - i;
+    const y = maxBirthYear - i;
     return { label: `${y}년`, value: String(y) };
   }
 );

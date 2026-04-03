@@ -166,10 +166,10 @@ export default function CompletePage() {
     <MobileContainer className="min-h-dvh bg-hanji flex flex-col px-5">
       <div className="flex-1 min-h-0 overflow-auto py-8">
         <h1 className="text-xl font-bold text-ink">
-          딱 맞는 인연을 찾을 수 있는 APP이 준비 중이에요.
+          앱 출시 알림 받기
         </h1>
         <p className="mt-2 text-ink-muted text-sm leading-relaxed">
-          완료되면 인증하신 전화번호로 알려드릴게요!
+          이상형 매칭 앱이 출시되면 전화번호로 가장 먼저 알려드릴게요!
         </p>
         <form id="complete-form" onSubmit={handleSubmit} className="mt-8 space-y-4">
           <div>

@@ -15,7 +15,7 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
       <div className="min-h-0 flex-1 overflow-hidden">{children}</div>
       {showFooter && (
         <footer className="py-4 px-4 sm:px-5 border-t border-hanji-border shrink-0">
-          <p className="text-xs text-ink-tertiary">드롭다운(Dropdown) · 대표 황재하</p>
+          <p className="text-xs text-ink-tertiary">드롭다운(Dropdown)</p>
           <p className="mt-0.5 text-xs text-ink-tertiary">사업자등록번호 154-28-02110</p>
           <p className="mt-0.5 text-xs text-ink-tertiary">통신판매업신고 제2026-서울송파-0882호</p>
           <p className="mt-0.5 text-xs text-ink-tertiary">서울특별시 송파구 중대로 207, 2층 201-J554호</p>

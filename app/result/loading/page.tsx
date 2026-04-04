@@ -4,8 +4,9 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/lib/constants";
 
-const LOADING_DURATION_MS = 10_000;     // 프로그레스 바 10초 만에 100%
+const LOADING_DURATION_MS = 90_000;     // 프로그레스 바 90초에 걸쳐 90%까지 (완료 시 100% 점프)
 const RUN_ANALYSIS_TIMEOUT_MS = 120_000; // 분석 API 최대 대기 2분
+const MESSAGE_CYCLE_MS = 5_000;         // 문구 5초마다 전환
 const LOADING_MESSAGES = [
   { title: "사주팔자를 계산하고 있어요...", sub: "잠시만 기다려 주세요" },
   { title: "AI가 사주를 해석하고 있어요...", sub: "조금만 더 기다려 주세요" },
@@ -22,16 +23,22 @@ export default function ResultLoadingPage() {
   const started = useRef(false);
 
   useEffect(() => {
-    const steps = LOADING_MESSAGES.length;
     const interval = 200;
     let t = 0;
-    const timer = setInterval(() => {
+    // 프로그레스: 90초에 걸쳐 90%까지 천천히 (완료 시 100% 점프)
+    const progressTimer = setInterval(() => {
       t += interval;
-      const p = Math.min(100, (t / LOADING_DURATION_MS) * 100);
+      const p = Math.min(90, (t / LOADING_DURATION_MS) * 90);
       setProgress(p);
-      setPhase(Math.min(steps - 1, Math.floor((t / LOADING_DURATION_MS) * steps)));
     }, interval);
-    return () => clearInterval(timer);
+    // 문구: 5초마다 순환 반복
+    const msgTimer = setInterval(() => {
+      setPhase((prev) => (prev + 1) % LOADING_MESSAGES.length);
+    }, MESSAGE_CYCLE_MS);
+    return () => {
+      clearInterval(progressTimer);
+      clearInterval(msgTimer);
+    };
   }, []);
 
   useEffect(() => {
@@ -118,7 +125,7 @@ export default function ResultLoadingPage() {
             <span
               key={i}
               className={`w-2 h-2 rounded-full transition-colors ${
-                i === phase ? "bg-brand" : i < phase ? "bg-brand/60" : "bg-ink-secondary"
+                i === phase ? "bg-brand" : "bg-ink-secondary"
               }`}
             />
           ))}

@@ -480,19 +480,8 @@ function OnboardingContent() {
           <>
             <CharacterBubble
               character="bulkkori"
-              message="얼굴에 숨은 동물상이 궁금하지 않아요? 셀카 한 장이면 충분해요!"
+              message={"얼굴에 숨은 동물상이 궁금하지 않아요?\n셀카 한 장이면 충분해요!"}
             />
-            <div className="mt-8 p-4 rounded-xl bg-element-fire-pastel/40 border border-element-fire/30">
-              <p className="text-ink-muted text-sm leading-relaxed">
-                정면을 바라본 사진이 가장 정확해요. AI가 관상을 분석해 동물상을 알려줄게요!
-              </p>
-            </div>
-            <div className="mt-3 flex items-start gap-2 px-1">
-              <span className="text-[12px] mt-0.5">💕</span>
-              <p className="text-[12px] text-ink-secondary leading-relaxed">
-                이 사진은 관상 분석과 <span className="font-semibold text-ink">이상형 매칭</span>에 활용돼요. 사진을 등록하면 나와 잘 맞는 이상형을 찾아드려요!
-              </p>
-            </div>
             <div className="mt-8">
               {form.photoPreview ? (
                 <div className="relative w-32 h-32 mx-auto rounded-full overflow-hidden border-2 border-hanji-border">
@@ -522,6 +511,11 @@ function OnboardingContent() {
                   />
                 </label>
               )}
+            </div>
+            <div className="mt-8 p-4 rounded-xl bg-element-fire-pastel/40 border border-element-fire/30">
+              <p className="text-ink text-sm leading-relaxed">
+                정면을 바라본 사진이 가장 정확해요.<br />AI가 관상을 분석해 동물상을 알려줄게요!
+              </p>
             </div>
           </>
         )}
@@ -852,6 +846,9 @@ function OnboardingContent() {
           <Button size="lg" className="w-full" disabled={!canProceedStep4 || submitting} onClick={handleStep4Submit}>
             {submitting ? "저장 중…" : "다음"}
           </Button>
+          <p className="mt-2 text-[11px] text-ink-tertiary text-center leading-relaxed">
+            * 이 사진은 관상 분석과 이상형 매칭에 활용돼요.<br />사진을 등록하면 나와 잘 맞는 이상형을 찾아드려요!
+          </p>
         </CtaBar>
       )}
       {step === 5 && (

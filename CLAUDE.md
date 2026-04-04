@@ -319,3 +319,5 @@ A 결과 → "공유하기" → B 공유 티저 → 2초 후 "궁합 보기" 바
 14. **⚠️ 궁합 리스트는 `compat_connections` 기반**: `saju_compatibility`를 직접 조회하면 앱 batch 데이터가 섞임. 반드시 `compat_connections` JOIN으로 의도적 궁합만 표시. RPC `fn_record_compat_connection`으로만 기록 (직접 INSERT 불가).
 15. **⚠️ 궁합 계산 시 `compat_connections` 기록 필수**: `computeCompatibility`에서 캐시 히트/미스 **모든 경로**에서 RPC 호출해야 함. 누락 시 궁합 결과는 보이지만 리스트에 안 나오는 "유령 궁합" 발생.
 16. **⚠️ saju 데이터 null-safe 처리 필수**: `saju_profiles`의 pillar JSON이 null이거나 구조가 다를 수 있음. `toPillar()` null-safe 변환 + 필수 pillar 누락 시 조기 종료. 캐스팅(`as SajuPillar`) 금지.
+17. **⚠️ 미성년자 이용 제한 (한국 나이 20세)**: 생년월일 선택 시 `currentYear - 19` 이후 출생연도는 선택 불가 (`birth-date-picker.tsx`). 사전등록 단계에서는 생년월일 제한 + 안내 문구로 대응, 앱 출시 시 SMS 본인인증(PASS)으로 이중 검증 예정.
+18. **⚠️ 온보딩 전 스텝 GA4 트래킹 필수**: 온보딩 Step 0~13 모든 스텝에서 `view_onboarding_{step}` (진입) / `click_next_in_onboarding_{step}` (다음 클릭) 이벤트 발화. 퍼널 이탈 분석에 필수. 새 스텝 추가 시 `STEP_NAMES` 매핑 + 이벤트 텍소노미(`docs/event-taxonomy.md`) 동시 업데이트할 것.

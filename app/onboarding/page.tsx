@@ -88,14 +88,25 @@ function OnboardingContent() {
   const [submitting, setSubmitting] = useState(false);
   const stepInitialized = useRef(false);
 
+  /** 임시로 건너뛸 스텝 (코드 삭제 없이 비활성화) */
+  const SKIP_STEPS = new Set([10]); // 10: 자기소개(bio)
+
   const goNext = useCallback(() => {
     const name = STEP_NAMES[step];
     if (name) trackClickNextInOnboarding(name);
-    if (step < ONBOARDING_STEP_COUNT - 1) setStep((s) => s + 1);
+    if (step < ONBOARDING_STEP_COUNT - 1) {
+      let next = step + 1;
+      while (SKIP_STEPS.has(next) && next < ONBOARDING_STEP_COUNT - 1) next++;
+      setStep(next);
+    }
   }, [step]);
 
   const goBack = useCallback(() => {
-    if (step > 0) setStep((s) => s - 1);
+    if (step > 0) {
+      let prev = step - 1;
+      while (SKIP_STEPS.has(prev) && prev > 0) prev--;
+      setStep(prev);
+    }
   }, [step]);
 
   const canProceedStep0 = form.name.trim().length >= 2 && form.name.trim().length <= 10;

@@ -2,16 +2,45 @@ import { Suspense } from "react";
 import { MobileContainer } from "@/components/ui/mobile-container";
 import { CtaBar } from "@/components/ui/cta-bar";
 import { LandingLoginSheet } from "@/components/landing-login-sheet";
-import { LandingCharacterBanner } from "@/components/landing-character-banner";
+import { LandingPreview } from "@/components/landing-preview";
 import { TrackMainView } from "@/components/track-main-view";
 import { DeletionNotice } from "@/components/deletion-notice";
+import { createAdminClient } from "@/lib/supabase/admin";
 
-/**
- * 랜딩 — CTA는 항상 화면 하단 고정, 콘텐츠만 스크롤. design-system: 모든 스크린 CTA 하단 고정.
- */
-export default async function HomePage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+async function getLandingStats(): Promise<{ count: number; blurHashes: string[] }> {
+  try {
+    const supabase = createAdminClient();
+    const { count } = await supabase
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("is_saju_complete", true);
+
+    const { data: hashRows } = await supabase
+      .from("profiles")
+      .select("blur_hash")
+      .eq("is_saju_complete", true)
+      .not("blur_hash", "is", null)
+      .not("blur_hash", "eq", "")
+      .limit(6);
+
+    const blurHashes = (hashRows ?? [])
+      .map((r) => r.blur_hash as string)
+      .filter(Boolean);
+
+    return { count: count ?? 0, blurHashes };
+  } catch {
+    return { count: 0, blurHashes: [] };
+  }
+}
+
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
   const params = await searchParams;
   const authError = params?.error;
+  const { count: profileCount, blurHashes } = await getLandingStats();
 
   return (
     <>
@@ -19,70 +48,94 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       <Suspense>
         <DeletionNotice />
       </Suspense>
-    <MobileContainer fillViewport={false} className="h-full min-h-0 flex flex-col bg-hanji w-full min-w-0 overflow-hidden">
-      <main className="flex-1 min-h-0 flex flex-col w-full min-w-0 overflow-hidden">
-        {/* 스크롤 영역: CTA 제외한 콘텐츠만 */}
-        <div className="flex-1 min-h-0 overflow-auto flex flex-col w-full min-w-0 px-4 pt-8 pb-12 sm:px-5">
-          <div className="flex flex-col min-h-full w-full">
-          {/* 섹션 1: 브랜드 — 상단 고정 */}
-          <section className="w-full shrink-0" aria-label="브랜드">
-            <div className="flex items-center gap-3">
-              <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-hanji-border bg-element-water-pastel shadow-low shrink-0 flex items-center justify-center ring-2 ring-white/50">
-                <img
-                  src="/images/characters/loading_spinner.gif"
-                  alt=""
-                  width={64}
-                  height={64}
-                  className="w-full h-full object-cover"
-                />
+      <MobileContainer
+        fillViewport={false}
+        className="h-full min-h-0 flex flex-col bg-hanji w-full min-w-0 overflow-hidden"
+      >
+        <main className="flex-1 min-h-0 flex flex-col w-full min-w-0 overflow-hidden">
+          <div className="flex-1 min-h-0 overflow-auto flex flex-col w-full min-w-0 px-5 pt-8 pb-12">
+            {/* 브랜드 */}
+            <section className="w-full shrink-0" aria-label="브랜드">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-full overflow-hidden border border-hanji-border bg-element-water-pastel shadow-low shrink-0 flex items-center justify-center">
+                  <img
+                    src="/images/characters/loading_spinner.gif"
+                    alt=""
+                    width={40}
+                    height={40}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <span className="text-[15px] font-bold text-ink tracking-tight">
+                  momo
+                </span>
               </div>
-              <div>
-                <p className="text-lg font-bold text-ink tracking-tight">momo</p>
-                <p className="text-xs text-ink-muted mt-1">사주랑 관상으로 내 이상형 찾기</p>
-              </div>
-            </div>
-          </section>
+            </section>
 
-          {/* 로그인 에러 배너 */}
-          {authError && (
-            <div className="mt-3 px-3 py-2.5 rounded-lg bg-red-50 border border-red-100">
-              <p className="text-sm text-red-600">
-                {authError === "account_deleted" ? "삭제된 계정이에요." : "로그인에 실패했어요. 다시 시도해 주세요."}
+            {/* 에러 */}
+            {authError && (
+              <div className="mt-3 px-3 py-2.5 rounded-lg bg-red-50 border border-red-100">
+                <p className="text-sm text-red-600">
+                  {authError === "account_deleted"
+                    ? "삭제된 계정이에요."
+                    : "로그인에 실패했어요. 다시 시도해 주세요."}
+                </p>
+              </div>
+            )}
+
+            {/* 후킹 카피 */}
+            <section className="mt-10 w-full shrink-0" aria-label="소개">
+              <h1 className="text-[24px] font-bold text-ink leading-snug tracking-tight">
+                내 얼굴에 숨은
+                <br />
+                동물상이 뭘까?
+              </h1>
+              <p className="mt-3 text-[15px] text-ink-muted leading-relaxed">
+                사주와 관상이 알려주는 나의 연애 유형
               </p>
-            </div>
-          )}
+            </section>
 
-          {/* 섹션 2: 훅 — 위(브랜드)와 아래(해답+배너)의 세로 중단에 위치 */}
-          <section className="w-full flex-1 flex flex-col justify-center min-h-[120px]" aria-label="소개">
-            <h1 className="text-left text-[22px] font-bold text-ink leading-snug tracking-tight">
-              사주랑 관상으로
-              <br />
-              내 이상형 찾기
-            </h1>
-          </section>
+            {/* 결과 미리보기 */}
+            <section className="mt-8 w-full shrink-0" aria-label="미리보기">
+              <LandingPreview blurHashes={blurHashes} profileCount={profileCount} />
+            </section>
 
-          <section className="w-full shrink-0 mb-6" aria-label="해답">
-            <p className="text-left text-[15px] text-ink leading-relaxed">
-              모모가 찾아줄게요.
-            </p>
-            <p className="mt-2 text-left text-sm text-ink-muted leading-relaxed">
-              사주와 관상으로 나의 연애 유형과 딱 맞는 이상형을 알려줘요.
-            </p>
-          </section>
+            {/* 제공 항목 */}
+            <section className="mt-6 w-full shrink-0" aria-label="분석 항목">
+              <div className="flex flex-wrap gap-2">
+                {["사주 해석", "관상 분석", "궁합 매칭", "이상형 추천"].map(
+                  (label) => (
+                    <span
+                      key={label}
+                      className="px-3 py-1.5 rounded-full border border-hanji-border text-[12px] text-ink-muted bg-hanji"
+                    >
+                      {label}
+                    </span>
+                  )
+                )}
+              </div>
+            </section>
 
-          {/* 배너 영역 — 해답(위)와 하단 여백의 세로 중단에 배치 */}
-          <div className="w-full flex-1 flex flex-col justify-center min-h-[240px]">
-            <LandingCharacterBanner />
+            {/* 소셜 프루프 (블러해시 카드가 없을 때만) */}
+            {profileCount > 0 && blurHashes.length === 0 && (
+              <section className="mt-5 w-full shrink-0" aria-label="참여자">
+                <p className="text-[13px] text-ink-tertiary">
+                  지금까지{" "}
+                  <span className="font-semibold text-ink-muted">
+                    {profileCount.toLocaleString()}명
+                  </span>
+                  이 자신의 동물상을 확인했어요
+                </p>
+              </section>
+            )}
           </div>
-          </div>
-        </div>
 
-        {/* CTA — 항상 화면 하단 고정 (shrink-0) */}
-        <CtaBar className="shrink-0">
-          <LandingLoginSheet />
-        </CtaBar>
-      </main>
-    </MobileContainer>
+          {/* CTA */}
+          <CtaBar className="shrink-0">
+            <LandingLoginSheet />
+          </CtaBar>
+        </main>
+      </MobileContainer>
     </>
   );
 }

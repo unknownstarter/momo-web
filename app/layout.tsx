@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "../styles/globals.css";
 import { LayoutContent } from "@/components/layout-content";
 import { GoogleAnalytics } from "@/components/google-analytics";
+import { MetaPixel } from "@/components/meta-pixel";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -44,6 +45,7 @@ export default function RootLayout({
     <html lang="ko">
       <body className="font-pretendard antialiased">
         <GoogleAnalytics />
+        <MetaPixel />
         <LayoutContent>{children}</LayoutContent>
       </body>
     </html>

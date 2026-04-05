@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { runAnalysis } from "@/lib/analysis";
 
+/** Vercel API route 타임아웃: 분석에 60~90초 소요 */
+export const maxDuration = 120;
+
 /**
  * 로그인된 유저의 프로필로 사주·관상 분석 실행 (Edge Function 3종 + DB 저장).
  * result/loading 페이지에서 호출.

@@ -27,6 +27,25 @@ export interface RunAnalysisResult {
  * saju_profiles, gwansang_profiles INSERT 및 profile 업데이트.
  * accessToken으로 인증된 Supabase 클라이언트 사용.
  */
+/** Edge Function 호출 + 실패 시 최대 2회 재시도 (2초, 4초 대기) */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function invokeWithRetry(
+  supabase: any,
+  fnName: string,
+  body: Record<string, unknown>,
+  maxRetries = 2
+): Promise<{ data: Record<string, unknown> | null; error: { message: string } | null }> {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    const res = await supabase.functions.invoke(fnName, { body });
+    if (!res.error) return { data: res.data as Record<string, unknown>, error: null };
+    // 마지막 시도면 에러 반환
+    if (attempt === maxRetries) return { data: null, error: { message: res.error.message || `${fnName} 실패` } };
+    // 재시도 전 대기 (1초, 3초)
+    await new Promise((r) => setTimeout(r, (attempt + 1) * 2000));
+  }
+  return { data: null, error: { message: `${fnName} 실패` } };
+}
+
 export async function runAnalysis(
   profile: ProfileForAnalysis,
   accessToken: string
@@ -41,25 +60,15 @@ export async function runAnalysis(
   const photoUrl = profile.profile_images?.[0] ?? null;
 
   try {
-    const res1 = await supabase.functions.invoke("calculate-saju", {
-      body: {
-        birthDate: profile.birth_date,
-        birthTime: birthTime ?? null,
-        isLunar: false,
-      },
+    const res1 = await invokeWithRetry(supabase, "calculate-saju", {
+      birthDate: profile.birth_date,
+      birthTime: birthTime ?? null,
+      isLunar: false,
     });
     if (res1.error) {
-      return { ok: false, error: res1.error.message || "사주 계산 실패" };
+      return { ok: false, error: res1.error.message };
     }
     const sajuResult = res1.data as Record<string, unknown>;
-
-    const res2 = await supabase.functions.invoke("generate-saju-insight", {
-      body: { sajuResult, userName },
-    });
-    if (res2.error) {
-      return { ok: false, error: res2.error.message || "사주 해석 실패" };
-    }
-    const insight = res2.data as Record<string, unknown>;
 
     const yearPillar = (sajuResult.yearPillar ?? sajuResult.year_pillar) as { stem?: string; branch?: string };
     const monthPillar = (sajuResult.monthPillar ?? sajuResult.month_pillar) as { stem?: string; branch?: string };
@@ -68,20 +77,31 @@ export async function runAnalysis(
     const fiveElements = (sajuResult.fiveElements ?? sajuResult.five_elements) as Record<string, number>;
     const dominantElement = (sajuResult.dominantElement ?? sajuResult.dominant_element) as string;
 
-    const res3 = await supabase.functions.invoke("generate-gwansang-reading", {
-      body: {
+    // 사주 해석 + 관상 분석을 병렬 호출 + 재시도 (순차 ~68초 → 병렬 ~45초)
+    const [res2, res3] = await Promise.all([
+      invokeWithRetry(supabase, "generate-saju-insight", {
+        sajuResult,
+        userName,
+      }),
+      invokeWithRetry(supabase, "generate-gwansang-reading", {
         photoUrl: photoUrl ?? "",
         sajuData: {
           dominant_element: dominantElement,
           day_stem: dayPillar?.stem ?? "",
-          personality_traits: insight.personalityTraits ?? insight.personality_traits ?? [],
+          personality_traits: [],
         },
         gender: genderKo,
         age: getAgeFromBirthDate(profile.birth_date),
-      },
-    });
+      }),
+    ]);
+
+    if (res2.error) {
+      return { ok: false, error: res2.error.message };
+    }
+    const insight = res2.data as Record<string, unknown>;
+
     if (res3.error) {
-      return { ok: false, error: res3.error.message || "관상 분석 실패" };
+      return { ok: false, error: res3.error.message };
     }
     const gwansang = res3.data as Record<string, unknown>;
 

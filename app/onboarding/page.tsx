@@ -218,6 +218,13 @@ function OnboardingContent() {
           const { data: { publicUrl } } = supabase.storage.from("profile-images").getPublicUrl(path);
           photoUrl = publicUrl;
         }
+        // blur_hash 생성 (사진이 있으면)
+        let blurHash: string | null = null;
+        if (form.photoFile) {
+          const { generateBlurHash } = await import("@/lib/blurhash");
+          blurHash = await generateBlurHash(form.photoFile);
+        }
+
         const birthTime = form.birthTime ? `${form.birthTime}:00` : null;
         const { data: existing } = await supabase.from("profiles").select("id").eq("auth_id", user.id).maybeSingle();
         const payload = {
@@ -226,6 +233,7 @@ function OnboardingContent() {
           birth_date: form.birthDate,
           birth_time: birthTime,
           ...(photoUrl ? { profile_images: [photoUrl] } : {}),
+          ...(blurHash ? { blur_hash: blurHash } : {}),
           last_active_at: new Date().toISOString(),
         };
         if (existing) {

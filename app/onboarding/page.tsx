@@ -20,8 +20,9 @@ import {
   INTEREST_OPTIONS,
   INTEREST_MAX_SELECT,
 } from "@/lib/constants";
-import { trackViewOnboardingStep, trackClickNextInOnboarding, trackClickStartAnalysis } from "@/lib/analytics";
+import { trackViewOnboardingStep, trackClickNextInOnboarding, trackClickStartAnalysis, trackClickLoginInOnboardingBirthTime } from "@/lib/analytics";
 import { getOnboardingStep } from "@/lib/onboarding-redirect";
+import { LandingLoginSheet } from "@/components/landing-login-sheet";
 
 const STEP_NAMES: Record<number, string> = {
   0: "name",
@@ -953,9 +954,23 @@ function OnboardingContent() {
       )}
       {step === 3 && (
         <CtaBar>
-          <Button size="lg" className="w-full" onClick={goNext}>
-            다음
-          </Button>
+          {isLoggedIn ? (
+            // 로그인 상태: 기존처럼 그냥 다음 (Step 4 사진으로)
+            <Button size="lg" className="w-full" onClick={goNext}>
+              다음
+            </Button>
+          ) : (
+            // 비로그인: 카카오 로그인 바텀시트 트리거
+            // OAuth 호출 직전에 sessionStorage에 form 저장 + 트래킹 이벤트
+            <LandingLoginSheet
+              ctaText="사주 결과 보기"
+              ctaBadge=""
+              onBeforeLogin={() => {
+                trackClickLoginInOnboardingBirthTime();
+                persistPreOnboardingToSession();
+              }}
+            />
+          )}
         </CtaBar>
       )}
       {step === 4 && (

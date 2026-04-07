@@ -147,24 +147,6 @@ export function LandingLoginSheet({
           )}
         </button>
 
-        <p className="mt-3 text-center text-[11px] text-ink-tertiary leading-relaxed">
-          로그인 시,{" "}
-          <a
-            href="/privacy"
-            className="underline underline-offset-2 hover:text-ink-secondary"
-          >
-            개인정보처리방침
-          </a>
-          과{" "}
-          <a
-            href="/terms"
-            className="underline underline-offset-2 hover:text-ink-secondary"
-          >
-            서비스 이용약관
-          </a>
-          에 동의하는 것으로 간주합니다
-        </p>
-
         <div className="mt-6 pt-4 pb-6 border-t border-hanji-border">
           <LegalLinks />
         </div>

@@ -952,6 +952,13 @@ function OnboardingContent() {
           </Button>
         </CtaBar>
       )}
+      {/*
+        Step 3 CTA — isLoggedIn 분기
+        Invariant: step === 3은 useEffect 안에서 setStep(3)이 호출된 후에만 렌더된다.
+        setIsLoggedIn(!!user)는 항상 setStep보다 먼저 호출되므로,
+        step === 3 렌더 시점에 isLoggedIn은 항상 최신값이다.
+        → race condition 없음. 향후 useEffect 수정 시 이 순서를 유지할 것.
+      */}
       {step === 3 && (
         <CtaBar>
           {isLoggedIn ? (

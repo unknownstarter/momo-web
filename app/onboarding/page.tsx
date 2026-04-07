@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { MobileContainer } from "@/components/ui/mobile-container";
 import { Button } from "@/components/ui/button";
 import { CharacterBubble } from "@/components/onboarding/character-bubble";
+import { WelcomeCharacter } from "@/components/onboarding/welcome-character";
 import { ProgressBar } from "@/components/onboarding/progress-bar";
 import { BirthDatePicker } from "@/components/onboarding/birth-date-picker";
 import { CtaBar } from "@/components/ui/cta-bar";
@@ -390,6 +391,10 @@ function OnboardingContent() {
               <p className="mt-2 text-ink-tertiary text-xs">
                 {form.name.length}/10자
               </p>
+            </div>
+            {/* 광고 첫 인상용 환영 캐릭터 + 카피 (입력칸 아래 빈 공간 채우기) */}
+            <div className="mt-10">
+              <WelcomeCharacter />
             </div>
           </>
         )}

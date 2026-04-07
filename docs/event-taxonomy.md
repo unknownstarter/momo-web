@@ -49,6 +49,7 @@
 | `click_next_in_onboarding_ideal_type` | step 12 다음/건너뛰기 클릭 |
 | `view_onboarding_confirm` | step 13 확인 화면 노출 |
 | `click_start_analysis` | step 13 "분석 시작" 클릭 |
+| `click_login_in_onboarding_birth_time` | step 3 "사주 결과 보기" CTA 클릭 (Stage 2: 카카오 OAuth 트리거 직전) |
 
 ---
 

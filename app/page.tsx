@@ -1,10 +1,12 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { MobileContainer } from "@/components/ui/mobile-container";
 import { CtaBar } from "@/components/ui/cta-bar";
-import { LandingLoginSheet } from "@/components/landing-login-sheet";
+import { Button } from "@/components/ui/button";
 import { LandingPreview } from "@/components/landing-preview";
 import { TrackMainView } from "@/components/track-main-view";
 import { DeletionNotice } from "@/components/deletion-notice";
+import { ROUTES } from "@/lib/constants";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 async function getLandingStats(): Promise<{ count: number; blurHashes: string[] }> {
@@ -132,7 +134,16 @@ export default async function HomePage({
 
           {/* CTA */}
           <CtaBar className="shrink-0">
-            <LandingLoginSheet />
+            <Link href={ROUTES.ONBOARDING} className="block w-full">
+              <Button size="lg" className="w-full">
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="bg-white/[0.15] text-[11px] font-medium px-2 py-0.5 rounded-full">
+                    무료
+                  </span>
+                  <span>관상과 사주로 연애운 확인하기</span>
+                </span>
+              </Button>
+            </Link>
           </CtaBar>
         </main>
       </MobileContainer>

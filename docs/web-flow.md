@@ -15,35 +15,36 @@
 ## 1. 전체 플로우
 
 ```
-랜딩 페이지
-  (모모 간략 설명, 스크롤 없음, "사주 & 관상 보기" 버튼)
+진입점 3가지 (모두 /onboarding으로 합류):
+  ① Meta/인스타 광고 → /onboarding 직행 (destination URL)
+  ② 오가닉/직접 진입 → / (랜딩) → CTA → /onboarding
+  ③ 공유 링크 → /share/[id] → CTA → / (랜딩) → CTA → /onboarding
+
+/onboarding (Stage 2: 비로그인 anon 접근 가능)
+  Step 0 닉네임 → Step 1 성별 → Step 2 생년월일 → Step 3 생시
+    ↓ 각 step 진행 시 sessionStorage("momo_pre_onboarding") 백업
+    ↓ "사주 결과 보기" CTA (Step 3)
+카카오 로그인 바텀시트 (LandingLoginSheet 재사용)
+    ↓ "카카오로 시작하기" → onBeforeLogin 콜백이 sessionStorage 저장 → signInWithOAuth
+카카오 OAuth 동의 화면 → /callback — 세션 교환
     ↓
-로그인 화면
-  (카카오 등 OAuth)
+/onboarding?step=4 (사진)
+    sessionStorage 복원 → form hydration
     ↓
-온보딩
-  (이름, 성별 등 최소 입력)
+사진 업로드 → profiles INSERT (첫 저장, 변경 없음) + /api/run-analysis fire-and-forget
     ↓
-생년월일·생시
-  (날짜 + 시진 선택)
+Step 5 키 → ... → Step 13 확인
+    ↓ "분석 시작"
+사주 & 관상 분석 로딩 (/result/loading)
     ↓
-프로필 정보 등록
-  (사진 등 웹에서 수집할 항목)
+결과 페이지 (/result)
     ↓
-확인
-  (입력 내용 요약)
-    ↓
-사주 & 관상 분석 시작
-  (로딩 연출)
-    ↓
-분석 결과 페이지
-  - "친구에게 공유하기" 버튼
-  - "궁합 좋은 이성 보기" (앱 출시 후 매칭 유도)
-    ↓
-완료 화면
-  "딱 맞는 인연을 찾을 수 있는 APP이 준비 중이에요.
-   완료되면 인증하신 전화번호로 알려드릴게요!"
-  → 문자 수신 수락 버튼 (전화번호 입력 + 수신 동의)
+완료 (/complete) — 전화번호 + 문자 수신 동의
+
+회원 재방문:
+- 사주·관상 결과 있음 → /result 직행
+- 필수 정보 일부 누락 → 해당 step으로 이동
+- 비로그인 + sessionStorage 진행 중 → 마지막 step에서 재개
 ```
 
 ---
@@ -54,7 +55,7 @@
 |------|------|------|
 | 랜딩 | `/` | 모모 간략 설명, 스크롤 없음, CTA: "사주 & 관상 보기" |
 | 로그인 | `/login` 또는 랜딩 CTA 직행 | 카카오 로그인 등 |
-| 온보딩 | `/onboarding` | 이름, 성별 등 |
+| 온보딩 | `/onboarding` | **Stage 2: Step 0~3 anon 접근 허용** (닉네임/성별/생년월일/생시). Step 3 CTA에서 카카오 로그인 바텀시트 트리거. Step 4(사진)부터 로그인 필수, profiles INSERT는 사진 업로드 시점 그대로 |
 | 생년월일시 | `/onboarding` 내 또는 `/birth` | 생년월일 + 시진(12지지) |
 | 프로필 등록 | `/onboarding` 내 | 사진 등 |
 | 확인 | `/onboarding/confirm` | 입력 요약, "분석 시작" CTA |
@@ -72,7 +73,9 @@
 A 공유 → B 공유 티저 도착 → 2초 후 궁합 바텀시트
   → B "궁합 보기" 클릭
     → B 기존 회원 → /result?tab=compatibility → 자동 궁합 계산 → 상세 시트
-    → B 비회원 → / (랜딩) → 로그인 → 온보딩 → 분석 → /result → 궁합 탭 자동 활성화
+    → B 비회원 → / (랜딩, 기존 경로 유지) → CTA → /onboarding (anon Step 0~3)
+  → Step 3 카카오 로그인 바텀시트 → /onboarding?step=4 (사진)부터 → 분석 → /result
+  → 궁합 탭 자동 활성화 (momo_compat_partner sessionStorage/쿠키 7일 보존)
   → B "궁합 요청 링크 공유" → C 전환 → 체인
 ```
 

@@ -42,6 +42,8 @@ export function trackStartLogin(): void { trackEvent("start_login"); }
 export function trackViewOnboardingStep(step: string): void { trackEvent(`view_onboarding_${step}`); }
 export function trackClickNextInOnboarding(step: string): void { trackEvent(`click_next_in_onboarding_${step}`); }
 export function trackClickStartAnalysis(): void { trackEvent("click_start_analysis"); }
+/** Step 3 CTA에서 카카오 로그인 바텀시트가 트리거되는 시점 (Stage 2 신규) */
+export function trackClickLoginInOnboardingBirthTime(): void { trackEvent("click_login_in_onboarding_birth_time"); }
 
 // ---------------------------------------------------------------------------
 // 분석 로딩 (/result/loading)

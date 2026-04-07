@@ -22,12 +22,25 @@ function ButtonSpinner() {
   );
 }
 
+interface LandingLoginSheetProps {
+  /** 트리거 버튼 텍스트. 기본값: "관상과 사주로 연애운 확인하기" */
+  ctaText?: string;
+  /** 버튼 안 배지 텍스트. 기본값: "무료". 빈 문자열이면 배지 숨김 */
+  ctaBadge?: string;
+  /** 카카오 OAuth 호출 "직전"에 동기 실행되는 훅. sessionStorage 저장 등 */
+  onBeforeLogin?: () => void;
+}
+
 /**
  * 랜딩 CTA 클릭 시 바텀시트로 카카오 로그인 유도.
  * 카카오 OAuth → /callback → 프로필 유무에 따라 /onboarding 또는 /result.
  * 인연 찾기 한 번 누르면 스피너 표시·비활성화, 시트 닫거나 로그인 끝날 때까지 연타 방지.
  */
-export function LandingLoginSheet() {
+export function LandingLoginSheet({
+  ctaText = "관상과 사주로 연애운 확인하기",
+  ctaBadge = "무료",
+  onBeforeLogin,
+}: LandingLoginSheetProps = {}) {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [kakaoLoading, setKakaoLoading] = useState(false);
 
@@ -44,6 +57,12 @@ export function LandingLoginSheet() {
 
   const handleKakaoStart = async () => {
     trackStartLogin();
+    // OAuth 호출 직전 동기 훅 (Stage 2: /onboarding Step 3에서 sessionStorage 저장)
+    try {
+      onBeforeLogin?.();
+    } catch {
+      // 훅 실패는 OAuth 진행을 막지 않음
+    }
     setKakaoLoading(true);
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithOAuth({
@@ -76,8 +95,12 @@ export function LandingLoginSheet() {
           </>
         ) : (
           <span className="inline-flex items-center gap-1.5">
-            <span className="bg-white/[0.15] text-[11px] font-medium px-2 py-0.5 rounded-full">무료</span>
-            <span>관상과 사주로 연애운 확인하기</span>
+            {ctaBadge && (
+              <span className="bg-white/[0.15] text-[11px] font-medium px-2 py-0.5 rounded-full">
+                {ctaBadge}
+              </span>
+            )}
+            <span>{ctaText}</span>
           </span>
         )}
       </button>

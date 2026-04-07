@@ -138,10 +138,10 @@ function OnboardingContent() {
       const { createClient } = await import("@/lib/supabase/client");
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
-      setIsLoggedIn(!!user);
 
       if (stepInitialized.current) return;
       stepInitialized.current = true;
+      setIsLoggedIn(!!user);
 
       // sessionStorage 복원 헬퍼
       const loadFromSession = (): Partial<OnboardingFormData> | null => {

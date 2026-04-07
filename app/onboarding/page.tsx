@@ -94,15 +94,37 @@ function OnboardingContent() {
   /** 임시로 건너뛸 스텝 (코드 삭제 없이 비활성화) */
   const SKIP_STEPS = new Set([10]); // 10: 자기소개(bio)
 
+  /** Step 0~3 입력값을 sessionStorage에 저장 (Stage 2: 카카오 OAuth 왕복용) */
+  const persistPreOnboardingToSession = useCallback(() => {
+    try {
+      sessionStorage.setItem(
+        "momo_pre_onboarding",
+        JSON.stringify({
+          name: form.name,
+          gender: form.gender,
+          birthDate: form.birthDate,
+          birthTime: form.birthTime,
+          savedAt: new Date().toISOString(),
+        })
+      );
+    } catch {
+      // private mode 등에서는 무시
+    }
+  }, [form.name, form.gender, form.birthDate, form.birthTime]);
+
   const goNext = useCallback(() => {
     const name = STEP_NAMES[step];
     if (name) trackClickNextInOnboarding(name);
+    // Stage 2: Step 0~3 진행 시 sessionStorage 백업 (anon 카카오 OAuth 왕복용)
+    if (step <= 3) {
+      persistPreOnboardingToSession();
+    }
     if (step < ONBOARDING_STEP_COUNT - 1) {
       let next = step + 1;
       while (SKIP_STEPS.has(next) && next < ONBOARDING_STEP_COUNT - 1) next++;
       setStep(next);
     }
-  }, [step]);
+  }, [step, persistPreOnboardingToSession]);
 
   const goBack = useCallback(() => {
     if (step > 0) {
@@ -325,6 +347,13 @@ function OnboardingContent() {
       setSubmitting(false);
       return;
     }
+    // Stage 2: pre-onboarding sessionStorage 정리 (Step 4 INSERT 성공 후)
+    try {
+      sessionStorage.removeItem("momo_pre_onboarding");
+    } catch {
+      // 무시
+    }
+
     setSubmitting(false);
     goNext();
   };

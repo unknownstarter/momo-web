@@ -21,6 +21,7 @@ import {
   INTEREST_MAX_SELECT,
 } from "@/lib/constants";
 import { trackViewOnboardingStep, trackClickNextInOnboarding, trackClickStartAnalysis } from "@/lib/analytics";
+import { getOnboardingStep } from "@/lib/onboarding-redirect";
 
 const STEP_NAMES: Record<number, string> = {
   0: "name",
@@ -87,6 +88,7 @@ function OnboardingContent() {
   const [form, setForm] = useState<OnboardingFormData>(initialForm);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const stepInitialized = useRef(false);
 
   /** 임시로 건너뛸 스텝 (코드 삭제 없이 비활성화) */
@@ -136,57 +138,122 @@ function OnboardingContent() {
       const { createClient } = await import("@/lib/supabase/client");
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.replace(ROUTES.HOME);
-        return;
-      }
+      setIsLoggedIn(!!user);
+
       if (stepInitialized.current) return;
       stepInitialized.current = true;
 
-      const stepParam = searchParams.get("step");
-      let targetStep = stepParam !== null ? parseInt(stepParam, 10) : NaN;
-      if (Number.isNaN(targetStep) || targetStep < 0 || targetStep >= ONBOARDING_STEP_COUNT) {
-        const res = await fetch("/api/onboarding-step", { credentials: "include" });
-        if (res.ok) {
-          const data = await res.json();
-          targetStep = data.step === "result" ? 0 : Number(data.step);
-          if (Number.isNaN(targetStep) || targetStep < 0) targetStep = 0;
-        } else {
+      // sessionStorage 복원 헬퍼
+      const loadFromSession = (): Partial<OnboardingFormData> | null => {
+        try {
+          const raw = sessionStorage.getItem("momo_pre_onboarding");
+          if (!raw) return null;
+          const parsed = JSON.parse(raw) as {
+            name?: string;
+            gender?: "male" | "female" | null;
+            birthDate?: string;
+            birthTime?: string | null;
+            savedAt?: string;
+          };
+          if (parsed.savedAt) {
+            const ageMs = Date.now() - new Date(parsed.savedAt).getTime();
+            if (ageMs > 24 * 60 * 60 * 1000) {
+              sessionStorage.removeItem("momo_pre_onboarding");
+              return null;
+            }
+          }
+          return {
+            name: parsed.name ?? "",
+            gender: parsed.gender ?? null,
+            birthDate: parsed.birthDate ?? "",
+            birthTime: parsed.birthTime ?? null,
+          };
+        } catch {
+          return null;
+        }
+      };
+
+      // ─────────────────────────────────────────────────────────────
+      // 분기 1: 비로그인 (anon) — Step 0~3 진행
+      // ─────────────────────────────────────────────────────────────
+      if (!user) {
+        // sessionStorage에 진행 중 데이터 있으면 form 복원
+        const restored = loadFromSession();
+        if (restored) {
+          setForm((f) => ({ ...f, ...restored }));
+        }
+        // URL ?step= 파라미터: 0~3만 허용. 4 이상이면 0으로 강제.
+        const stepParam = searchParams.get("step");
+        let targetStep = stepParam !== null ? parseInt(stepParam, 10) : 0;
+        if (Number.isNaN(targetStep) || targetStep < 0 || targetStep > 3) {
           targetStep = 0;
         }
+        setStep(targetStep);
+        return;
       }
 
-      if (targetStep > 0) {
-        const { data: profileRow } = await supabase
-          .from("profiles")
-          .select("name, gender, birth_date, birth_time, profile_images, height, occupation, location, body_type, religion, bio, interests, ideal_type")
-          .eq("auth_id", user.id)
-          .maybeSingle();
-        if (profileRow) {
-          const birthTime = profileRow.birth_time
-            ? String(profileRow.birth_time).replace(/:00$/, "") ?? null
-            : null;
-          setForm({
-            name: profileRow.name ?? "",
-            gender: (profileRow.gender as "male" | "female") ?? null,
-            birthDate: profileRow.birth_date ?? "",
-            birthTime,
-            photoPreview: Array.isArray(profileRow.profile_images) && profileRow.profile_images[0]
-              ? profileRow.profile_images[0]
-              : null,
-            photoFile: null,
-            height: profileRow.height != null ? String(profileRow.height) : "",
-            occupation: profileRow.occupation ?? "",
-            location: profileRow.location ?? null,
-            bodyType: profileRow.body_type ?? null,
-            religion: profileRow.religion ?? null,
-            bio: profileRow.bio ?? "",
-            interests: Array.isArray(profileRow.interests) ? profileRow.interests : [],
-            idealType: profileRow.ideal_type ?? "",
-          });
+      // ─────────────────────────────────────────────────────────────
+      // 분기 2: 로그인 + 기존 profile 있음 (재방문 회원)
+      // ─────────────────────────────────────────────────────────────
+      const { data: profileRow } = await supabase
+        .from("profiles")
+        .select("name, gender, birth_date, birth_time, profile_images, height, occupation, location, body_type, religion, bio, interests, ideal_type, saju_profile_id")
+        .eq("auth_id", user.id)
+        .maybeSingle();
+
+      if (profileRow?.name) {
+        // 2a: 사주·관상 결과 있으면 /result로 직행
+        const target = getOnboardingStep(profileRow);
+        if (target === "result") {
+          router.replace(ROUTES.RESULT);
+          return;
         }
+
+        // 2b: 필수 정보 일부 누락 → 해당 step으로 form 채우고 이동
+        const stepParam = searchParams.get("step");
+        let targetStep = stepParam !== null ? parseInt(stepParam, 10) : NaN;
+        if (Number.isNaN(targetStep) || targetStep < 0 || targetStep >= ONBOARDING_STEP_COUNT) {
+          targetStep = typeof target === "number" ? target : 0;
+        }
+        const birthTime = profileRow.birth_time
+          ? String(profileRow.birth_time).replace(/:00$/, "") ?? null
+          : null;
+        setForm({
+          name: profileRow.name ?? "",
+          gender: (profileRow.gender as "male" | "female") ?? null,
+          birthDate: profileRow.birth_date ?? "",
+          birthTime,
+          photoPreview: Array.isArray(profileRow.profile_images) && profileRow.profile_images[0]
+            ? profileRow.profile_images[0]
+            : null,
+          photoFile: null,
+          height: profileRow.height != null ? String(profileRow.height) : "",
+          occupation: profileRow.occupation ?? "",
+          location: profileRow.location ?? null,
+          bodyType: profileRow.body_type ?? null,
+          religion: profileRow.religion ?? null,
+          bio: profileRow.bio ?? "",
+          interests: Array.isArray(profileRow.interests) ? profileRow.interests : [],
+          idealType: profileRow.ideal_type ?? "",
+        });
+        setStep(targetStep);
+        return;
       }
-      setStep(targetStep);
+
+      // ─────────────────────────────────────────────────────────────
+      // 분기 3: 로그인 + profile 없음 (방금 카카오 로그인 후)
+      // ─────────────────────────────────────────────────────────────
+      const restored = loadFromSession();
+      if (restored?.name) {
+        // sessionStorage에 Stage 2 입력값 있음 → 복원 + Step 4(사진)부터
+        setForm((f) => ({ ...f, ...restored }));
+        setStep(4);
+        return;
+      }
+
+      // 분기 4 (fallback): 로그인은 했는데 profile도 sessionStorage도 없음
+      // → 정상 흐름이 아님. Step 0부터 다시 시작.
+      setStep(0);
     })();
   }, [router, searchParams]);
 

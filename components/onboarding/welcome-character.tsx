@@ -12,9 +12,9 @@ import Image from "next/image";
  * 에셋: /public/images/characters/namuri/loading_spinner.gif (움직이는 GIF)
  * 말풍선: whitespace-pre-line으로 명시적 \n 줄바꿈 존중 + break-keep으로 단어 중간 안 끊김.
  */
-const WELCOME_MESSAGE = `어서와~!
-요즘 연애운이 핫한데 너도 보러 왔구나?
-너에 대해 알려주면 알려줄게!`;
+const WELCOME_MESSAGE = `꼭 실명이 아니라도 괜찮아요.
+만세력부터 연애운까지!
+당신과 딱 맞는 사람을 알려줄게요.`;
 
 export function WelcomeCharacter() {
   return (

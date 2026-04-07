@@ -464,11 +464,18 @@ function OnboardingContent() {
         {/* Step 0: 이름 */}
         {step === 0 && (
           <>
-            <CharacterBubble
-              character="mulgyeori"
-              message="반가워요! 이름이 뭐예요?"
-            />
-            <div className="mt-8">
+            {/* 신규 헤딩 + 서브카피 (랜딩 페이지와 동일 디자인 토큰) */}
+            <section className="w-full">
+              <h1 className="text-[24px] font-bold text-ink leading-snug tracking-tight">
+                momo가 사주와 관상을
+                <br />
+                보기 위해 당신에 대해 궁금해요!
+              </h1>
+              <p className="mt-3 text-[15px] text-ink-muted leading-relaxed">
+                우선 닉네임을 알려주세요
+              </p>
+            </section>
+            <div className="mt-10">
               <input
                 type="text"
                 value={form.name}
@@ -490,7 +497,7 @@ function OnboardingContent() {
               </p>
             </div>
             {/* 광고 첫 인상용 환영 캐릭터 + 카피 (입력칸 아래 빈 공간 채우기) */}
-            <div className="mt-10">
+            <div className="mt-6">
               <WelcomeCharacter />
             </div>
           </>

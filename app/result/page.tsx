@@ -307,6 +307,7 @@ export default function MatchingMainPage() {
               productId="saju-detail"
               paymentEnabled={paymentEnabled}
               userEmail={userEmail}
+              userName={profile?.name}
             />
           </section>
 
@@ -328,6 +329,7 @@ export default function MatchingMainPage() {
               productId="gwansang-detail"
               paymentEnabled={paymentEnabled}
               userEmail={userEmail}
+              userName={profile?.name}
             />
           </section>
 

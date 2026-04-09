@@ -18,6 +18,8 @@ interface DetailPaidCtaProps {
   paymentEnabled?: boolean;
   /** 결제자 이메일 (customer 정보용) */
   userEmail?: string | null;
+  /** 결제자 이름 */
+  userName?: string | null;
 }
 
 /**
@@ -35,6 +37,7 @@ export function DetailPaidCta({
   productId,
   paymentEnabled = false,
   userEmail = null,
+  userName = null,
 }: DetailPaidCtaProps) {
   const [loading, setLoading] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -69,6 +72,8 @@ export function DetailPaidCta({
         currency: "KRW",
         payMethod: "CARD",
         customer: {
+          fullName: userName ?? "이용자",
+          phoneNumber: "010-0000-0000",
           email: userEmail ?? undefined,
         },
         redirectUrl: typeof window !== "undefined"

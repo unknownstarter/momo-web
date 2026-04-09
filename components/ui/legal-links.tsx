@@ -26,6 +26,12 @@ export function LegalLinks({
       <a href="https://whatisgoingon.notion.site/momo-3228cdd3705380f3b71ef9160cdfbfd2" target="_blank" rel="noopener noreferrer" className={linkClassName}>
         개인정보처리방침
       </a>
+      <span className="text-ink-tertiary select-none" aria-hidden>
+        {separator}
+      </span>
+      <a href="/refund-policy" className={linkClassName}>
+        환불정책
+      </a>
     </div>
   );
 }

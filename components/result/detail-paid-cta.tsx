@@ -18,7 +18,9 @@ interface DetailPaidCtaProps {
   paymentEnabled?: boolean;
   /** 결제자 이메일 (customer 정보용) */
   userEmail?: string | null;
-  /** 결제자 이름 */
+  /** 결제자 auth UUID (customer.customerId — 식별값) */
+  userId?: string | null;
+  /** 결제자 프로필 이름 (customer.fullName — 이니시스 필수 표시용) */
   userName?: string | null;
 }
 
@@ -37,6 +39,7 @@ export function DetailPaidCta({
   productId,
   paymentEnabled = false,
   userEmail = null,
+  userId = null,
   userName = null,
 }: DetailPaidCtaProps) {
   const [loading, setLoading] = useState(false);
@@ -72,6 +75,7 @@ export function DetailPaidCta({
         currency: "KRW",
         payMethod: "CARD",
         customer: {
+          customerId: userId ?? undefined,
           fullName: userName ?? "이용자",
           phoneNumber: "010-0000-0000",
           email: userEmail ?? undefined,

@@ -237,7 +237,7 @@ momo-web/
 - `saju_compatibility` — 궁합 점수 캐시 (**2026-03-24**: `user_gender`, `partner_gender` NOT NULL 컬럼 추가됨. 웹 upsert 시 필수 포함)
 
 ### Supabase 테이블 (웹에서 사용 — 기존 구조만)
-- `profiles` — 온보딩·프로필 저장. **`phone`만 저장, `is_phone_verified`는 절대 웹에서 설정 금지 (앱에서 SMS 인증 후 설정).** 스키마/정책 변경 금지.
+- `profiles` — 온보딩·프로필 저장. **`phone`만 저장, `is_phone_verified`는 절대 웹에서 설정 금지 (앱의 SMS 인증 결과 필드).** `is_matchable`은 `fn_update_matchable` 트리거가 자동 계산하므로 웹에서 직접 쓰지 않음. 스키마/정책 변경 금지.
 - `saju_profiles`, `gwansang_profiles` — 분석 결과 저장·조회 (Edge Function 호출 후 기존 로직으로 저장됨)
 - `saju_compatibility` — 궁합 점수 저장·조회 (웹에서 직접 upsert + 캐시 조회. `user_gender`/`partner_gender` 필수)
 - `compat_connections` — **유저가 의도적으로 확인한 궁합 관계 추적** (2026-03-25 추가). 웹+앱 공용. 직접 INSERT 불가(RLS), `fn_record_compat_connection` RPC로만 기록. 궁합 리스트 조회 시 이 테이블 기준 (앱 batch 데이터 제외)
@@ -315,7 +315,7 @@ A 결과 → "공유하기" → B 공유 티저 → 2초 후 "궁합 보기" 바
 10. **영역 안 캐릭터**: 원형·카드 등 영역 안 캐릭터는 `object-contain` + 컨테이너보다 작은 크기 + `items-center justify-center`로 전체 노출·중앙 정렬 (위 “영역 안 캐릭터 표시 규칙” 참고)
 11. **⚠️ 배포 필수 프로세스**: feature 브랜치 → **PR 머지로만 main에 합류** (fast-forward 금지) → Vercel Production 배포 완료 확인까지가 작업 완료. 직접 main 푸시 금지.
 12. **⚠️ 다크 모드 범위**: 다크 배경은 **분석 로딩 페이지(`/result/loading`)만** 해당. 결과 페이지(`/result`) 포함 나머지는 전부 라이트 배경. 코드베이스 파악 시 결과 페이지를 다크모드로 오인하지 말 것.
-13. **⚠️ `is_phone_verified` 웹에서 설정 금지**: 전화번호는 `profiles.phone`에 **저장만**. `is_phone_verified: true`를 웹에서 설정하면 앱의 SMS 인증 플로우 + 매칭풀 필터가 깨짐. 앱에서만 SMS OTP 인증 후 설정.
+13. **⚠️ `is_phone_verified` 웹에서 설정 금지**: 전화번호는 `profiles.phone`에 **저장만**. `is_phone_verified`는 **앱의 SMS OTP 본인인증 결과 필드**이며 앱에서만 설정한다. 웹에서 건드리면 앱의 인증 상태가 꼬인다. **(2026-04-09 업데이트)** 매칭풀 조건에서는 더 이상 `is_phone_verified`가 쓰이지 않는다 — `fn_update_matchable` 트리거가 `is_saju_complete + is_profile_complete + profile_images ≥ 1 + occupation + location + height + account_status='active' + created_at ≥ 2026-04-03` 기준으로 `profiles.is_matchable`을 자동 계산. 심사용 테스트 계정(`auth_id = bc03ecc4-ee50-429a-b6f9-817186c4ec49`)은 트리거에서 하드코딩 예외 처리됨.
 14. **⚠️ 궁합 리스트는 `compat_connections` 기반**: `saju_compatibility`를 직접 조회하면 앱 batch 데이터가 섞임. 반드시 `compat_connections` JOIN으로 의도적 궁합만 표시. RPC `fn_record_compat_connection`으로만 기록 (직접 INSERT 불가).
 15. **⚠️ 궁합 계산 시 `compat_connections` 기록 필수**: `computeCompatibility`에서 캐시 히트/미스 **모든 경로**에서 RPC 호출해야 함. 누락 시 궁합 결과는 보이지만 리스트에 안 나오는 "유령 궁합" 발생.
 16. **⚠️ saju 데이터 null-safe 처리 필수**: `saju_profiles`의 pillar JSON이 null이거나 구조가 다를 수 있음. `toPillar()` null-safe 변환 + 필수 pillar 누락 시 조기 종료. 캐스팅(`as SajuPillar`) 금지.

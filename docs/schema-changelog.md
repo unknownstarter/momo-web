@@ -5,6 +5,60 @@
 
 ---
 
+## 2026-04-09: fn_update_matchable 트리거 — 심사용 테스트 계정 예외 추가
+
+**배경**: 카카오페이 PG 심사용 테스트 계정(`kakaopay-review@dropdown.xyz`)이 온보딩을 완료하면서 매칭풀 조건(`is_saju_complete + is_profile_complete + profile_images + occupation + location + height + account_status='active' + created_at ≥ 2026-04-03`)을 전부 충족 → `is_matchable = true`로 자동 세팅되어 프로덕션 매칭풀에 노출됐음.
+
+### 마이그레이션 (`20260409_fn_update_matchable_exclude_kp_review`)
+
+`fn_update_matchable` 함수 선두에 `auth_id` 기반 하드코딩 제외 조건 추가:
+
+```sql
+CREATE OR REPLACE FUNCTION public.fn_update_matchable()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+BEGIN
+  -- 심사용 테스트 계정 영구 제외 (카카오페이 PG 심사용)
+  IF NEW.auth_id = 'bc03ecc4-ee50-429a-b6f9-817186c4ec49'::uuid THEN
+    NEW.is_matchable := false;
+    RETURN NEW;
+  END IF;
+
+  -- 미성년자 영구 제외
+  IF NEW.name IN ('백서현') THEN
+    NEW.is_matchable := false;
+    RETURN NEW;
+  END IF;
+
+  NEW.is_matchable := (
+    NEW.is_saju_complete = true
+    AND NEW.is_profile_complete = true
+    AND cardinality(COALESCE(NEW.profile_images, '{}')) >= 1
+    AND NEW.occupation IS NOT NULL
+    AND NEW.location IS NOT NULL
+    AND NEW.height IS NOT NULL
+    AND NEW.account_status = 'active'
+    AND (
+      NEW.created_at >= '2026-04-03T07:41:00+00:00'::timestamptz
+      OR NEW.name IN ('Noah', '노아')
+    )
+  );
+  RETURN NEW;
+END;
+$function$;
+```
+
+**영향 범위**: `auth_id`가 심사 계정인 경우만. 다른 유저 로직 경로 0% 변경. 기존 `백서현` 제외 + `Noah/노아` 바이패스 로직 그대로 유지.
+
+**사후 조치**: 기존 테스트 유저 row를 `UPDATE profiles SET name = name WHERE auth_id = ...`로 터치하여 트리거 재발화 → `is_matchable = false` 재계산 확인 완료.
+
+**참고 — 매칭풀 룰 변화 (stale 룰 정정)**: 이전 CLAUDE.md rule #13은 "`is_phone_verified: true`를 웹에서 설정하면 **매칭풀 필터가 깨진다**"고 기술했으나, 현재 `fn_update_matchable` 트리거는 `is_phone_verified`를 쓰지 않음. 매칭풀 조건은 `is_saju_complete`, `is_profile_complete`, 프로필 필드, `account_status='active'`, `created_at` 기반. `is_phone_verified`는 여전히 앱의 SMS OTP 본인인증 결과 필드이므로 웹에서 건드리면 안 되지만, 그 이유는 "매칭풀"이 아니라 "앱의 인증 상태 관리"임.
+
+**심사 종료 후 cleanup**: 테스트 계정 삭제 시 본 제외 조건도 같이 제거할 것 (별도 마이그레이션).
+
+---
+
 ## 2026-03-25: compat_connections 테이블 추가 (앱 측 생성)
 
 **목적**: 유저가 의도적으로 궁합을 확인한 관계 추적. 앱 batch 데이터와 구분.

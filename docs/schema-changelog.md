@@ -73,35 +73,56 @@ ALTER TABLE saju_compatibility
 
 ---
 
-## 2026-03-13: 공유 짧은 링크용 share_links (momo-web 전용)
+## 2026-04-08: share_links 실제 적용 + RLS 정책 정비 (앱·웹 공용화)
 
-**목적**: 공유 URL을 `https://도메인/s/abc12xyz` 형태로 짧게 제공.
+**배경 (중요)**: 2026-03-13에 문서로만 "SQL Editor에서 실행" 안내가 남아있었고 **실제 Supabase에는 테이블이 생성된 적이 없었음**. 그 결과 `/api/share-url`의 try/catch가 조용히 에러를 삼켜 모든 유저가 폴백 경로(`/share/{암호화토큰}` 긴 URL)만 받고 있었던 버그가 한 달 가까이 방치됨.
 
-### share_links 테이블 (신규)
+2026-04-08 이 항목으로 (1) 테이블을 정식 생성하고 (2) 앱·웹 양쪽에서 공용으로 사용 가능하도록 RLS 정책까지 함께 심었음.
 
-Supabase SQL Editor에서 실행:
+### 실제 실행된 마이그레이션 (`20260408_share_links`)
 
 ```sql
--- 공유 짧은 코드 → profile_id 매핑 (momo-web 전용)
 CREATE TABLE IF NOT EXISTS share_links (
   short_id text PRIMARY KEY,
   profile_id uuid NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_share_links_profile_id ON share_links(profile_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_share_links_profile_id
+  ON share_links(profile_id);
 
--- RLS: 정책 없이 활성화 → anon/authenticated 접근 불가, service role만 사용(우회)
 ALTER TABLE share_links ENABLE ROW LEVEL SECURITY;
+
+-- 본인 profile에 해당하는 share_link만 select (앱/웹 authenticated 공통)
+CREATE POLICY "users_select_own_share_link" ON share_links
+  FOR SELECT TO authenticated
+  USING (profile_id IN (SELECT id FROM profiles WHERE auth_id = auth.uid()));
+
+-- 본인 profile에 해당하는 share_link만 insert (앱/웹 authenticated 공통)
+CREATE POLICY "users_insert_own_share_link" ON share_links
+  FOR INSERT TO authenticated
+  WITH CHECK (profile_id IN (SELECT id FROM profiles WHERE auth_id = auth.uid()));
 ```
 
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
 | `short_id` | text | 8자 영소문자+숫자 코드 (예: a1b2c3d4) |
-| `profile_id` | uuid | profiles.id |
+| `profile_id` | uuid | profiles.id, UNIQUE |
 | `created_at` | timestamptz | 생성 시각 |
 
-**동작**: `/api/share-url` 호출 시 profile_id에 대해 기존 short_id가 있으면 재사용, 없으면 새로 생성해 `https://도메인/s/{short_id}` 반환.
+**동작**: `/api/share-url` 호출 시 profile_id로 기존 short_id 있으면 재사용, 없으면 새로 생성해 `https://도메인/s/{short_id}` 반환. 웹은 service_role로 접근하여 RLS 무관. 앱은 authenticated JWT로 위 정책을 통해 본인 row만 CRUD 가능.
+
+**웹 코드 변경 (`app/api/share-url/route.ts`)**: 기존 try/catch가 모든 에러를 삼키던 버그 수리. 명시적 에러 로깅 + UNIQUE 충돌(동시 요청) 재시도 + short_id PK 충돌(희박) 재시도. 극단적인 DB 접근 장애에서만 레거시 `/share/{token}` 폴백.
+
+**기존 유저 처리**: 2026-04-08 이전에 발급된 `/share/{token}` 긴 URL이 이미 카톡·문자로 배포되어 있을 수 있음. `app/share/[id]/page.tsx` 라우트와 하위 `detail` 경로는 하위호환 유지 목적으로 당분간 유지. 신규 공유는 모두 `/s/{code}`로 발급됨. 향후 충분한 시간 경과 후 레거시 라우트 deprecate 검토.
+
+---
+
+## 2026-03-13: 공유 짧은 링크용 share_links 초안 (실제 미적용 — DEPRECATED)
+
+> ⚠️ **실제 DB에 반영되지 않은 역사적 기록**. 위 2026-04-08 항목 참고.
+
+당시 문서에만 `CREATE TABLE` SQL을 적어두고 "SQL Editor에서 실행" 안내로 끝냈으나 실제 실행이 누락되었음. 코드(`/api/share-url`)는 테이블이 있다는 가정으로 배포되어 조용히 폴백 경로만 타던 상태였음.
 
 ---
 

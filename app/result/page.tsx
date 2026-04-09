@@ -17,6 +17,8 @@ import { MatchingHero } from "@/components/result/matching-hero";
 import { SajuRomanceCard } from "@/components/result/saju-romance-card";
 import { GwansangRomanceCard } from "@/components/result/gwansang-romance-card";
 import { MatchingCounter } from "@/components/result/matching-counter";
+import { DetailPaidCta } from "@/components/result/detail-paid-cta";
+import { SiteFooter } from "@/components/ui/site-footer";
 import {
   trackViewMatchingMain,
   trackClickShareInMatching,
@@ -283,6 +285,15 @@ export default function MatchingMainPage() {
             onNavigate={handleNavigate}
           />
 
+          {/* 유료 전환 — 사주 상세 (스캐폴딩) */}
+          <section className="px-5">
+            <DetailPaidCta
+              title="더 자세한 사주 보기"
+              hook="궁금하면 오백원!"
+              description="13가지 영역으로 나누어 나의 사주를 아주 자세히 풀어드려요."
+            />
+          </section>
+
           {/* 관상 연애운 */}
           <GwansangRomanceCard
             animalTypeKorean={gwansangProfile?.animal_type_korean ?? null}
@@ -291,6 +302,15 @@ export default function MatchingMainPage() {
             charmKeywords={gwansangProfile?.charm_keywords ?? null}
             onNavigate={handleNavigate}
           />
+
+          {/* 유료 전환 — 관상 상세 (스캐폴딩) */}
+          <section className="px-5">
+            <DetailPaidCta
+              title="더 자세한 관상 보기"
+              hook="왕이 될 상인가 오백원"
+              description="13가지 영역으로 내 얼굴이 말해주는 것들을 깊이 있게 분석해요."
+            />
+          </section>
 
           {/* 궁합 리스트 / 공유 CTA */}
           <section className="px-5">
@@ -322,6 +342,9 @@ export default function MatchingMainPage() {
             )}
           </section>
         </div>
+
+        {/* 사업자 정보 푸터 — 전자상거래법 + 카카오페이 PG 심사 대응 */}
+        <SiteFooter />
       </div>
 
       {/* CTA */}

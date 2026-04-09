@@ -291,6 +291,7 @@ export default function MatchingMainPage() {
               title="더 자세한 사주 보기"
               hook="궁금하면 오백원!"
               description="13가지 영역으로 나누어 나의 사주를 아주 자세히 풀어드려요."
+              productId="saju-detail"
             />
           </section>
 
@@ -309,6 +310,7 @@ export default function MatchingMainPage() {
               title="더 자세한 관상 보기"
               hook="왕이 될 상인가 오백원"
               description="13가지 영역으로 내 얼굴이 말해주는 것들을 깊이 있게 분석해요."
+              productId="gwansang-detail"
             />
           </section>
 

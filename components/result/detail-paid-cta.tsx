@@ -1,34 +1,85 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import Link from "next/link";
+import * as PortOne from "@portone/browser-sdk/v2";
+
+const PORTONE_STORE_ID = "store-a5abbbc0-936c-404b-9cdd-aaf6dfbacde9";
+const PORTONE_CHANNEL_KEY = "channel-key-3ddd52f9-3b5b-4f22-86fe-54c06e6c6003";
 
 interface DetailPaidCtaProps {
+  /** 카드 제목. 예: "더 자세한 사주 보기" */
   title: string;
-  hook: string; // 예: "궁금하면 오백원!"
+  /** 가격 훅. 예: "궁금하면 오백원!" */
+  hook: string;
+  /** 설명 문구 */
   description: string;
+  /** 결제 상품 식별용. "saju-detail" | "gwansang-detail" */
+  productId: string;
 }
 
 /**
- * 결과 페이지의 유료 전환 스캐폴딩 CTA.
+ * 결과 페이지의 유료 전환 CTA.
  *
- * 사주/관상 각 섹션 아래에 배치되어 "더 자세히 보기" 진입점을 제공한다.
- * 실제 결제 플로우는 후속 작업이며, 현재는 클릭 시 "준비 중" 토스트만 띄운다.
- * 카카오페이 PG 심사에서 결제 진입점 가시성 확보 용도.
+ * 클릭 시 포트원 V2 SDK를 통해 KG이니시스 결제창 호출.
+ * 테스트 모드에서는 실결제 없이 결제창 UI만 확인 가능.
+ *
+ * 카카오페이·토스페이먼츠 PG 심사에서 결제 진입점 + 이니시스 결제창 노출 확인 용도.
  */
-export function DetailPaidCta({ title, hook, description }: DetailPaidCtaProps) {
-  const [toastVisible, setToastVisible] = useState(false);
+export function DetailPaidCta({
+  title,
+  hook,
+  description,
+  productId,
+}: DetailPaidCtaProps) {
+  const [loading, setLoading] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const handleClick = useCallback(() => {
-    setToastVisible(true);
-    window.setTimeout(() => setToastVisible(false), 2000);
+  const showToast = useCallback((msg: string) => {
+    setToastMessage(msg);
+    window.setTimeout(() => setToastMessage(null), 2500);
   }, []);
+
+  const handleClick = useCallback(async () => {
+    if (loading) return;
+    setLoading(true);
+
+    try {
+      const paymentId = `${productId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+      const response = await PortOne.requestPayment({
+        storeId: PORTONE_STORE_ID,
+        channelKey: PORTONE_CHANNEL_KEY,
+        paymentId,
+        orderName: title,
+        totalAmount: 500,
+        currency: "CURRENCY_KRW",
+        payMethod: "CARD",
+      });
+
+      if (!response || response.code === "FAILURE") {
+        // 사용자가 결제창 닫음 또는 실패
+        showToast("결제가 취소되었어요.");
+        return;
+      }
+
+      // 결제 성공 (테스트 모드에서는 여기까지 도달)
+      // TODO: 서버에서 결제 검증 + 콘텐츠 해금 (후속 작업)
+      showToast("결제가 완료되었어요! (테스트)");
+    } catch {
+      showToast("결제 중 오류가 발생했어요. 다시 시도해 주세요.");
+    } finally {
+      setLoading(false);
+    }
+  }, [loading, title, productId, showToast]);
 
   return (
     <>
       <button
         type="button"
         onClick={handleClick}
-        className="block w-full rounded-2xl border border-hanji-border bg-hanji-elevated p-4 shadow-low text-left active:bg-hanji-secondary transition-colors"
+        disabled={loading}
+        className="block w-full rounded-2xl border border-hanji-border bg-hanji-elevated p-4 shadow-low text-left active:bg-hanji-secondary transition-colors disabled:opacity-60"
       >
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0 flex-1">
@@ -55,16 +106,27 @@ export function DetailPaidCta({ title, hook, description }: DetailPaidCtaProps) 
             />
           </svg>
         </div>
+        <p className="mt-2 text-[10px] text-ink-tertiary">
+          결제 시{" "}
+          <Link
+            href="/refund-policy"
+            onClick={(e) => e.stopPropagation()}
+            className="underline underline-offset-2 hover:text-ink-muted"
+          >
+            환불정책
+          </Link>
+          에 동의하는 것으로 간주합니다.
+        </p>
       </button>
 
-      {toastVisible && (
+      {toastMessage && (
         <div
           role="status"
           aria-live="polite"
           className="fixed left-1/2 bottom-28 -translate-x-1/2 z-[60] pointer-events-none"
         >
           <div className="px-4 py-2.5 rounded-full bg-ink/90 text-hanji text-[13px] font-medium shadow-high whitespace-nowrap">
-            준비 중입니다. 조금만 기다려주세요!
+            {toastMessage}
           </div>
         </div>
       )}

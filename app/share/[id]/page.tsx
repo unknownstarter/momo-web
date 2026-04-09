@@ -1,3 +1,10 @@
+/**
+ * 레거시 긴 URL 공유 페이지 — 하위호환 유지 전용.
+ *
+ * 2026-04-08 이전에 `/api/share-url`이 `share_links` 테이블 부재로 폴백 경로를 타면서
+ * 모든 유저에게 `/share/{암호화토큰}` 긴 URL을 발급해왔음. 이미 카톡/문자로 공유된
+ * 긴 URL을 계속 해석할 수 있도록 이 라우트는 유지한다. 신규 공유는 모두 `/s/{code}` 사용.
+ */
 import { cache } from "react";
 import Link from "next/link";
 import type { Metadata } from "next";

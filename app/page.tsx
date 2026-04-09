@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { LandingPreview } from "@/components/landing-preview";
 import { TrackMainView } from "@/components/track-main-view";
 import { DeletionNotice } from "@/components/deletion-notice";
+import { SiteFooter } from "@/components/ui/site-footer";
 import { ROUTES } from "@/lib/constants";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -130,6 +131,11 @@ export default async function HomePage({
                 </p>
               </section>
             )}
+
+            {/* 사업자 정보 푸터 — 스크롤 최하단. CtaBar는 별도 하단 고정. */}
+            <div className="mt-10 -mx-5 shrink-0">
+              <SiteFooter />
+            </div>
           </div>
 
           {/* CTA */}

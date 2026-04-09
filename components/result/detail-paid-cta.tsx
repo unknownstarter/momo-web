@@ -2,8 +2,6 @@
 
 import { useState, useCallback } from "react";
 import Link from "next/link";
-import * as PortOne from "@portone/browser-sdk/v2";
-
 const PORTONE_STORE_ID = "store-a5abbbc0-936c-404b-9cdd-aaf6dfbacde9";
 const PORTONE_CHANNEL_KEY = "channel-key-3ddd52f9-3b5b-4f22-86fe-54c06e6c6003";
 
@@ -56,6 +54,7 @@ export function DetailPaidCta({
     setLoading(true);
 
     try {
+      const PortOne = await import("@portone/browser-sdk/v2");
       const paymentId = `${productId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
       const response = await PortOne.requestPayment({

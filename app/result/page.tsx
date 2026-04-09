@@ -76,6 +76,7 @@ export default function MatchingMainPage() {
   const [userCount, setUserCount] = useState<number | null>(null);
   const [blurHashes, setBlurHashes] = useState<string[]>([]);
   const [navigating, setNavigating] = useState(false);
+  const [paymentEnabled, setPaymentEnabled] = useState(false);
 
   const handleNavigate = useCallback((href: string) => {
     setNavigating(true);
@@ -91,6 +92,14 @@ export default function MatchingMainPage() {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
         if (!user || cancelled) return;
+        // PG 심사용 테스트 계정 + 노아님 계정에서만 결제창 활성화
+        const paymentTestEmails = new Set([
+          "kakaopay-review@dropdown.xyz",
+          "hh109a@gmail.com",
+        ]);
+        if (user.email && paymentTestEmails.has(user.email)) {
+          setPaymentEnabled(true);
+        }
         const { data: profileRow } = await supabase
           .from("profiles")
           .select("name, character_type, dominant_element, profile_images, phone, is_phone_verified, saju_profile_id, gwansang_profile_id")
@@ -292,6 +301,7 @@ export default function MatchingMainPage() {
               hook="궁금하면 오백원!"
               description="13가지 영역으로 나누어 나의 사주를 아주 자세히 풀어드려요."
               productId="saju-detail"
+              paymentEnabled={paymentEnabled}
             />
           </section>
 
@@ -311,6 +321,7 @@ export default function MatchingMainPage() {
               hook="왕이 될 상인가 오백원"
               description="13가지 영역으로 내 얼굴이 말해주는 것들을 깊이 있게 분석해요."
               productId="gwansang-detail"
+              paymentEnabled={paymentEnabled}
             />
           </section>
 

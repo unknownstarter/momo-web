@@ -78,6 +78,7 @@ export default function MatchingMainPage() {
   const [navigating, setNavigating] = useState(false);
   const [paymentEnabled, setPaymentEnabled] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
   const handleNavigate = useCallback((href: string) => {
     setNavigating(true);
@@ -93,6 +94,8 @@ export default function MatchingMainPage() {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
         if (!user || cancelled) return;
+        // 결제용 유저 식별 정보
+        setUserId(user.id);
         // PG 심사용 테스트 계정 + 노아님 계정에서만 결제창 활성화
         if (user.email) {
           setUserEmail(user.email);
@@ -307,6 +310,7 @@ export default function MatchingMainPage() {
               productId="saju-detail"
               paymentEnabled={paymentEnabled}
               userEmail={userEmail}
+              userId={userId}
               userName={profile?.name}
             />
           </section>
@@ -329,6 +333,7 @@ export default function MatchingMainPage() {
               productId="gwansang-detail"
               paymentEnabled={paymentEnabled}
               userEmail={userEmail}
+              userId={userId}
               userName={profile?.name}
             />
           </section>

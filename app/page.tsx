@@ -9,6 +9,37 @@ import { DeletionNotice } from "@/components/deletion-notice";
 import { SiteFooter } from "@/components/ui/site-footer";
 import { ROUTES } from "@/lib/constants";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
+import { getOnboardingStep } from "@/lib/onboarding-redirect";
+
+/**
+ * 로그인 유저면 온보딩 재개 위치(또는 결과 페이지)를 반환, 비로그인이면 null.
+ * 랜딩 CTA의 href를 분기하는 용도.
+ */
+async function getResumeHref(): Promise<string | null> {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return null;
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select(
+        "name, gender, birth_date, birth_time, profile_images, height, occupation, location, body_type, religion, saju_profile_id"
+      )
+      .eq("auth_id", user.id)
+      .maybeSingle();
+
+    const target = getOnboardingStep(profile);
+    if (target === "result") return ROUTES.RESULT;
+    if (target === 0) return ROUTES.ONBOARDING;
+    return `${ROUTES.ONBOARDING}?step=${target}`;
+  } catch {
+    return null;
+  }
+}
 
 async function getLandingStats(): Promise<{ count: number; blurHashes: string[] }> {
   try {
@@ -43,7 +74,11 @@ export default async function HomePage({
 }) {
   const params = await searchParams;
   const authError = params?.error;
-  const { count: profileCount, blurHashes } = await getLandingStats();
+  const [{ count: profileCount, blurHashes }, resumeHref] = await Promise.all([
+    getLandingStats(),
+    getResumeHref(),
+  ]);
+  const ctaHref = resumeHref ?? ROUTES.ONBOARDING;
 
   return (
     <>
@@ -140,7 +175,7 @@ export default async function HomePage({
 
           {/* CTA */}
           <CtaBar className="shrink-0">
-            <Link href={ROUTES.ONBOARDING} className="block w-full">
+            <Link href={ctaHref} className="block w-full">
               <Button size="lg" className="w-full">
                 <span className="inline-flex items-center gap-1.5">
                   <span className="bg-white/[0.15] text-[11px] font-medium px-2 py-0.5 rounded-full">

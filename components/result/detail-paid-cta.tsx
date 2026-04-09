@@ -16,6 +16,8 @@ interface DetailPaidCtaProps {
   productId: string;
   /** true일 때만 실제 결제창 호출. false면 "준비 중" 토스트 (일반 유저용) */
   paymentEnabled?: boolean;
+  /** 결제자 이메일 (customer 정보용) */
+  userEmail?: string | null;
 }
 
 /**
@@ -32,6 +34,7 @@ export function DetailPaidCta({
   description,
   productId,
   paymentEnabled = false,
+  userEmail = null,
 }: DetailPaidCtaProps) {
   const [loading, setLoading] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -63,8 +66,15 @@ export function DetailPaidCta({
         paymentId,
         orderName: title,
         totalAmount: 500,
-        currency: "CURRENCY_KRW",
+        currency: "KRW",
         payMethod: "CARD",
+        customer: {
+          email: userEmail ?? undefined,
+        },
+        redirectUrl: typeof window !== "undefined"
+          ? `${window.location.origin}/result`
+          : undefined,
+        productType: "DIGITAL",
       });
 
       if (!response || response.code === "FAILURE") {

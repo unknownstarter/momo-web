@@ -77,6 +77,7 @@ export default function MatchingMainPage() {
   const [blurHashes, setBlurHashes] = useState<string[]>([]);
   const [navigating, setNavigating] = useState(false);
   const [paymentEnabled, setPaymentEnabled] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   const handleNavigate = useCallback((href: string) => {
     setNavigating(true);
@@ -93,12 +94,15 @@ export default function MatchingMainPage() {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user || cancelled) return;
         // PG 심사용 테스트 계정 + 노아님 계정에서만 결제창 활성화
-        const paymentTestEmails = new Set([
-          "kakaopay-review@dropdown.xyz",
-          "hh109a@gmail.com",
-        ]);
-        if (user.email && paymentTestEmails.has(user.email)) {
-          setPaymentEnabled(true);
+        if (user.email) {
+          setUserEmail(user.email);
+          const paymentTestEmails = new Set([
+            "kakaopay-review@dropdown.xyz",
+            "hh109a@gmail.com",
+          ]);
+          if (paymentTestEmails.has(user.email)) {
+            setPaymentEnabled(true);
+          }
         }
         const { data: profileRow } = await supabase
           .from("profiles")
@@ -302,6 +306,7 @@ export default function MatchingMainPage() {
               description="13가지 영역으로 나누어 나의 사주를 아주 자세히 풀어드려요."
               productId="saju-detail"
               paymentEnabled={paymentEnabled}
+              userEmail={userEmail}
             />
           </section>
 
@@ -322,6 +327,7 @@ export default function MatchingMainPage() {
               description="13가지 영역으로 내 얼굴이 말해주는 것들을 깊이 있게 분석해요."
               productId="gwansang-detail"
               paymentEnabled={paymentEnabled}
+              userEmail={userEmail}
             />
           </section>
 

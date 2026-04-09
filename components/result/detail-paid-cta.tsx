@@ -16,6 +16,8 @@ interface DetailPaidCtaProps {
   description: string;
   /** 결제 상품 식별용. "saju-detail" | "gwansang-detail" */
   productId: string;
+  /** true일 때만 실제 결제창 호출. false면 "준비 중" 토스트 (일반 유저용) */
+  paymentEnabled?: boolean;
 }
 
 /**
@@ -31,6 +33,7 @@ export function DetailPaidCta({
   hook,
   description,
   productId,
+  paymentEnabled = false,
 }: DetailPaidCtaProps) {
   const [loading, setLoading] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -42,6 +45,14 @@ export function DetailPaidCta({
 
   const handleClick = useCallback(async () => {
     if (loading) return;
+
+    // 일반 유저: 결제 비활성 → "준비 중" 토스트
+    if (!paymentEnabled) {
+      showToast("준비 중입니다. 조금만 기다려주세요!");
+      return;
+    }
+
+    // PG 심사용 테스트 계정: 실제 이니시스 결제창 호출
     setLoading(true);
 
     try {
@@ -58,12 +69,10 @@ export function DetailPaidCta({
       });
 
       if (!response || response.code === "FAILURE") {
-        // 사용자가 결제창 닫음 또는 실패
         showToast("결제가 취소되었어요.");
         return;
       }
 
-      // 결제 성공 (테스트 모드에서는 여기까지 도달)
       // TODO: 서버에서 결제 검증 + 콘텐츠 해금 (후속 작업)
       showToast("결제가 완료되었어요! (테스트)");
     } catch {
@@ -71,7 +80,7 @@ export function DetailPaidCta({
     } finally {
       setLoading(false);
     }
-  }, [loading, title, productId, showToast]);
+  }, [loading, paymentEnabled, title, productId, showToast]);
 
   return (
     <>

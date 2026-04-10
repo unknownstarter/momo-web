@@ -323,14 +323,13 @@ Body: { productId: "paid_saju" }
 
 1. 인증 확인 (세션에서 user_id)
 2. productId를 PRODUCTS 화이트리스트로 엄격 검증 (['paid_saju', 'paid_gwansang']만 허용)
-3. paid_content에 이미 존재하는지 확인 → 있으면 200 (이미 생성됨)
-4. payment_history_web에 paid 기록 확인 → 없으면 403 (미결제)
-5. saju_profiles 또는 gwansang_profiles에서 profile ID 조회
-6. Edge Function 호출 (supabase.functions.invoke, Authorization 헤더 전달)
-7. 응답: { success: true } 또는 에러
+3. **레이트 리밋 체크** — per-user 1분에 1회 (동일 productId 기준). 초과 시 429 반환.
+4. paid_content에 이미 존재 + content 비어있지 않음 → 200 (이미 생성됨)
+5. payment_history_web에 paid 기록 확인 → 없으면 403 (미결제)
+6. saju_profiles 또는 gwansang_profiles에서 profile ID 조회
+7. Edge Function 호출 (supabase.functions.invoke, Authorization 헤더 전달)
+8. 응답: { success: true } 또는 에러
 ```
-
-**레이트 리밋**: per-user 1분에 1회 (동일 productId 기준). 중복 호출 방지.
 
 ### 7.2 콘텐츠 조회 API
 

@@ -353,10 +353,10 @@ GET /api/paid-content/paid_saju
 서버 셸:
 - 인증 체크 (미로그인 → 홈)
 - productId 검증
-- `paid_content`에서 조회 → 있으면 콘텐츠 + userId 전달
+- `paid_content`에서 조회 → 있으면 콘텐츠를 props로 전달 (userId는 전달하지 않음)
 - 없으면 → `payment_history_web`에서 paid 확인
   - 미결제 → /result로 redirect
-  - 결제됨 → 빈 콘텐츠 + userId 전달 (클라이언트에서 생성 트리거)
+  - 결제됨 → content=null로 전달 (클라이언트에서 생성 트리거, userId는 서버 API가 세션에서 추출)
 
 클라이언트(`PaidContentView`):
 ```
@@ -372,6 +372,7 @@ content가 null이면 (결제됨 + 미생성):
   → 3초 간격 폴링 (GET /api/paid-content/{productId})
   → 최대 20회 (60초)
   → visibilitychange 이벤트로 탭 비활성 시 폴링 pause, 복귀 시 resume
+  → useEffect cleanup에서 반드시 clearInterval (언마운트 시 폴링 정리)
   → 생성 완료 → 콘텐츠 렌더링으로 전환
   → 타임아웃 → "잠시 후 다시 시도해주세요" + 재시도 버튼
 ```

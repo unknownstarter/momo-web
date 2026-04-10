@@ -39,6 +39,18 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
     redirect(`${ROUTES.RESULT}?payment=already`);
   }
 
+  // paid_content에 이미 콘텐츠가 있는 경우도 체크 (앱 Key 구매 유저 대응)
+  const { data: existingContent } = await supabaseAdmin
+    .from("paid_content")
+    .select("id, content")
+    .eq("user_id", user.id)
+    .eq("product_id", productId)
+    .maybeSingle();
+
+  if (existingContent && JSON.stringify(existingContent.content) !== '{}') {
+    redirect(`${ROUTES.RESULT}?payment=already`);
+  }
+
   const product = PRODUCTS[productId];
 
   return (

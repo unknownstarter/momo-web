@@ -71,9 +71,9 @@ CREATE UNIQUE INDEX uq_user_product_paid
   ON payment_history_web(user_id, product_id)
   WHERE status = 'paid';
 
--- status 값 제한
+-- status 값 제한 (processing = 승인 진행 중 원자적 잠금 상태)
 ALTER TABLE payment_history_web
-  ADD CONSTRAINT chk_status CHECK (status IN ('pending', 'paid', 'refunded'));
+  ADD CONSTRAINT chk_status CHECK (status IN ('pending', 'processing', 'paid', 'refunded'));
 
 -- 금액 양수 제한
 ALTER TABLE payment_history_web
@@ -120,12 +120,12 @@ CREATE POLICY "users_insert_own_payments" ON payment_history_web
 ### 4.2 동시성 방어 (더블 컨펌 방지)
 
 ```sql
--- 결제 승인 API의 첫 단계: 원자적 잠금
+-- 결제 승인 API의 첫 단계: 원자적 잠금 + 소유권 검증
 UPDATE payment_history_web
 SET status = 'processing'
-WHERE order_id = $1 AND status = 'pending'
+WHERE order_id = $1 AND status = 'pending' AND user_id = $userId
 RETURNING *;
--- 반환값 없으면 → 이미 처리됨, 즉시 abort
+-- 반환값 없으면 → 이미 처리됨 또는 소유권 불일치, 즉시 abort
 -- 반환값 있으면 → 토스 승인 API 호출 진행
 -- 토스 성공 → status = 'paid'
 -- 토스 실패 → status = 'pending' 복원 (재시도 허용)
@@ -139,8 +139,10 @@ RETURNING *;
 
 ### 4.4 pending 레코드 정리
 
-- 생성 후 30분 경과한 pending 레코드는 만료 처리
-- `/checkout` 진입 시 기존 pending 있으면 재사용 (새로 만들지 않음)
+- `create-order` API에서 기존 pending 조회 시 `created_at > now() - interval '30 minutes'` 조건 적용
+- 30분 이내 pending → 재사용 (orderId 반환)
+- 30분 초과 pending → DELETE 후 신규 생성
+- 별도 cron/스케줄러 불필요 (create-order 호출 시점에 자체 정리)
 
 ---
 
@@ -148,21 +150,26 @@ RETURNING *;
 
 ### 5.1 주문 확인 & 결제 페이지
 
-**파일**: `app/checkout/page.tsx` (클라이언트 컴포넌트)
+**파일**: `app/checkout/page.tsx` (서버 컴포넌트 셸) + `components/checkout/checkout-form.tsx` (클라이언트)
+
+서버 컴포넌트(`page.tsx`)에서:
+- 인증 확인 (미로그인 → 랜딩으로 redirect)
+- `product` 쿼리 파라미터 검증
+- 이미 구매 완료 상태 → /result로 redirect
+- 유효하면 클라이언트 컴포넌트(`CheckoutForm`)에 상품 정보 + userId 전달
+
+클라이언트 컴포넌트(`CheckoutForm`)에서:
 
 구성 (위에서 아래):
 1. **헤더**: ← 뒤로가기 + "주문 확인 및 결제"
 2. **주문 상품 카드**: 상품명 + 간략 설명 (rounded-2xl, bg-hanji-elevated)
-3. **상세 설명 카드**: "13가지 영역으로 나누어 사주를 아주 자세히 풀어드려요" + 영역 목록
+3. **상세 설명 카드**: 상품별 설명 (PRODUCTS 상수에서 참조)
+   - saju-detail: "13가지 영역으로 나누어 사주를 아주 자세히 풀어드려요"
+   - gwansang-detail: "13가지 영역으로 내 얼굴이 말해주는 것들을 깊이 있게 분석해요"
 4. **결제 금액 카드**: "최종 결제 금액" + 500원
 5. **동의 체크박스**: "☐ 위 주문 내용을 확인하였으며, 결제에 동의합니다."
 6. **토스 결제위젯 영역**: 즉시 렌더링 (결제수단 + 약관)
 7. **CTA 하단 고정**: [500원 결제하기] (체크 완료 전 disabled, 결제 중 로딩 상태)
-
-진입 시:
-- `product` 쿼리 파라미터로 상품 식별
-- 로그인 확인 (미로그인 → 랜딩으로)
-- 이미 구매 완료 상태 → /result로 리다이렉트 + "이미 구매한 상품이에요" 토스트
 
 결제 요청 시:
 1. 결제 버튼 disabled + 로딩 표시 (더블클릭 방지)
@@ -192,12 +199,13 @@ Body: { productId: "saju-detail" }
 ```
 GET /api/payment/confirm?paymentKey=...&orderId=...&amount=...
 
-1. orderId로 원자적 잠금: UPDATE status='processing' WHERE status='pending' RETURNING *
-2. 반환 없으면 → /result?payment=already 리다이렉트
-3. DB의 amount로 토스 승인 API 호출 (query param amount 무시)
-4. 성공 → UPDATE: status='paid', payment_key=..., paid_at=now()
-5. 실패 → UPDATE: status='pending' 복원 (재시도 허용)
-6. /result?payment=success 또는 /result?payment=fail 리다이렉트
+1. 세션에서 user_id 확인 (미인증 → /result?payment=fail)
+2. orderId + user_id로 원자적 잠금: UPDATE status='processing' WHERE status='pending' AND user_id=$userId RETURNING *
+3. 반환 없으면 → /result?payment=already 리다이렉트
+4. DB의 amount로 토스 승인 API 호출 (query param amount 무시)
+5. 성공 → UPDATE: status='paid', payment_key=..., paid_at=now()
+6. 실패 → UPDATE: status='pending' 복원 (재시도 허용)
+7. /result?payment=success 또는 /result?payment=fail 리다이렉트
 ```
 
 ### 5.4 CTA 변환 (detail-paid-cta.tsx 재작성)
@@ -254,13 +262,23 @@ GET /api/payment/confirm?paymentKey=...&orderId=...&amount=...
 - 간격: `px-5` (페이지), `p-4` (카드 내부), 섹션 간 `space-y-6`
 - 체크박스: brand 컬러 활용
 - 토스 결제위젯: 즉시 렌더, 동의 체크 전에는 결제 버튼만 disabled
+- 결제 성공 토스트: "결제가 완료되었어요!" (/result?payment=success)
+- 결제 실패 토스트: "결제에 실패했어요. 다시 시도해 주세요." + CTA 카드 재클릭으로 재시도 유도
+
+---
+
+## 8. 보안 참고
+
+- **confirm API는 GET** — 토스 리다이렉트 콜백 구조상 불가피. paymentKey가 URL query param으로 서버 로그에 노출될 수 있음. Vercel 로그 보존 기간 확인 및 민감 파라미터 관리 주의.
+- **향후 개선 가능**: 토스 successUrl을 중간 클라이언트 페이지로 받은 뒤 POST로 서버에 전달하는 구조. 1단계에서는 현행 GET 유지.
 
 ---
 
 ## 8. 파일 변경 요약
 
 ### 신규 생성
-- `app/checkout/page.tsx` — 주문 확인 & 결제 페이지
+- `app/checkout/page.tsx` — 주문 확인 서버 컴포넌트 셸 (인증/구매 체크 + redirect)
+- `components/checkout/checkout-form.tsx` — 결제 폼 클라이언트 컴포넌트 (위젯 + 결제 버튼)
 - `app/api/payment/create-order/route.ts` — 주문 생성 API (orderId 서버 생성)
 - `app/payment-history/page.tsx` — 결제 내역 페이지
 
@@ -272,7 +290,7 @@ GET /api/payment/confirm?paymentKey=...&orderId=...&amount=...
 - `lib/constants.ts` — PRODUCTS 상수 추가
 
 ### Supabase (신규만)
-- `payment_history_web` 테이블 생성 (CHECK 제약 포함)
+- `payment_history_web` 테이블 생성 (CHECK 제약: status에 'processing' 포함, amount > 0)
 - RLS 정책 2개 (SELECT, INSERT with status='pending' 강제)
 
 ### 미변경 (앱 보호)

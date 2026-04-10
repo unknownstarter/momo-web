@@ -14,6 +14,8 @@ export const ROUTES = {
   PENDING_DELETION: "/pending-deletion",
   TERMS: "/terms",
   PRIVACY: "/privacy",
+  CHECKOUT: "/checkout",
+  PAYMENT_HISTORY: "/payment-history",
 } as const;
 
 /** 12시진 (자시 ~ 해시). DB값은 해당 시간대 대표 시각 HH:mm */
@@ -82,4 +84,28 @@ export type CompatibilityGradeKey = typeof COMPATIBILITY_GRADES[number]["key"];
 
 export function getCompatibilityGrade(score: number) {
   return COMPATIBILITY_GRADES.find((g) => score >= g.minScore) ?? COMPATIBILITY_GRADES[COMPATIBILITY_GRADES.length - 1];
+}
+
+/** 유료 상품 정의 — 금액은 이 상수만이 권위 있는 소스 */
+export const PRODUCTS = {
+  "saju-detail": {
+    id: "saju-detail",
+    name: "더 자세한 사주 보기",
+    amount: 500,
+    description: "13가지 영역으로 나누어 사주를 아주 자세히 풀어드려요.",
+    shortDescription: "13가지 영역 심층 사주 분석",
+  },
+  "gwansang-detail": {
+    id: "gwansang-detail",
+    name: "더 자세한 관상 보기",
+    amount: 500,
+    description: "13가지 영역으로 내 얼굴이 말해주는 것들을 깊이 있게 분석해요.",
+    shortDescription: "13가지 영역 심층 관상 분석",
+  },
+} as const;
+
+export type ProductId = keyof typeof PRODUCTS;
+
+export function isValidProductId(id: string): id is ProductId {
+  return id in PRODUCTS;
 }

@@ -81,6 +81,13 @@ export function ResultMenu() {
         <div className="space-y-1">
           <button
             type="button"
+            onClick={() => { closeSheet(); window.location.href = "/payment-history"; }}
+            className="w-full text-left px-4 py-3.5 rounded-xl hover:bg-hanji-secondary transition-colors text-[15px] text-ink"
+          >
+            결제 내역
+          </button>
+          <button
+            type="button"
             onClick={() => setSheet("feedback")}
             className="w-full text-left px-4 py-3.5 rounded-xl hover:bg-hanji-secondary transition-colors text-[15px] text-ink"
           >

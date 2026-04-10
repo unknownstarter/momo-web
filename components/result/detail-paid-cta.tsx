@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
-const PORTONE_STORE_ID = "store-a5abbbc0-936c-404b-9cdd-aaf6dfbacde9";
-const PORTONE_CHANNEL_KEY = "channel-key-3ddd52f9-3b5b-4f22-86fe-54c06e6c6003";
+import { loadTossPayments, type TossPaymentsWidgets } from "@tosspayments/tosspayments-sdk";
+
+const TOSS_CLIENT_KEY = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY ?? "test_gck_docs_Ovk5rk1EwkEbP0W23n07xlzm";
 
 interface DetailPaidCtaProps {
   /** 카드 제목. 예: "더 자세한 사주 보기" */
@@ -14,138 +15,214 @@ interface DetailPaidCtaProps {
   description: string;
   /** 결제 상품 식별용. "saju-detail" | "gwansang-detail" */
   productId: string;
-  /** true일 때만 실제 결제창 호출. false면 "준비 중" 토스트 (일반 유저용) */
+  /** 결제 금액 (원) */
+  amount?: number;
+  /** true일 때만 실제 결제 호출. false면 "준비 중" 토스트 */
   paymentEnabled?: boolean;
-  /** 결제자 이메일 (customer 정보용) */
-  userEmail?: string | null;
-  /** 결제자 auth UUID (customer.customerId — 식별값) */
+  /** 결제자 auth UUID (customerKey용) */
   userId?: string | null;
-  /** 결제자 프로필 이름 (customer.fullName — 이니시스 필수 표시용) */
+  /** 결제자 이름 */
   userName?: string | null;
+  /** 결제자 이메일 */
+  userEmail?: string | null;
 }
 
 /**
  * 결과 페이지의 유료 전환 CTA.
  *
- * 클릭 시 포트원 V2 SDK를 통해 KG이니시스 결제창 호출.
- * 테스트 모드에서는 실결제 없이 결제창 UI만 확인 가능.
- *
- * 카카오페이·토스페이먼츠 PG 심사에서 결제 진입점 + 이니시스 결제창 노출 확인 용도.
+ * 토스페이먼츠 결제위젯 SDK v2를 사용하여
+ * 카카오페이·네이버페이·토스페이·카드 등 결제수단을 페이지 내에 임베드.
  */
 export function DetailPaidCta({
   title,
   hook,
   description,
   productId,
+  amount = 500,
   paymentEnabled = false,
-  userEmail = null,
   userId = null,
   userName = null,
+  userEmail = null,
 }: DetailPaidCtaProps) {
   const [loading, setLoading] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [showWidget, setShowWidget] = useState(false);
+  const [widgetReady, setWidgetReady] = useState(false);
+  const widgetsRef = useRef<TossPaymentsWidgets | null>(null);
 
   const showToast = useCallback((msg: string) => {
     setToastMessage(msg);
     window.setTimeout(() => setToastMessage(null), 2500);
   }, []);
 
-  const handleClick = useCallback(async () => {
-    if (loading) return;
+  // 결제위젯 초기화 & 렌더링
+  useEffect(() => {
+    if (!showWidget || !paymentEnabled) return;
 
-    // 일반 유저: 결제 비활성 → "준비 중" 토스트
+    let destroyed = false;
+
+    (async () => {
+      try {
+        const tossPayments = await loadTossPayments(TOSS_CLIENT_KEY);
+        if (destroyed) return;
+
+        const customerKey = userId ?? `guest_${Date.now()}`;
+        const widgets = tossPayments.widgets({ customerKey });
+        widgetsRef.current = widgets;
+
+        await widgets.setAmount({ currency: "KRW", value: amount });
+        if (destroyed) return;
+
+        await widgets.renderPaymentMethods({
+          selector: `#payment-method-${productId}`,
+        });
+        if (destroyed) return;
+
+        await widgets.renderAgreement({
+          selector: `#agreement-${productId}`,
+        });
+        if (destroyed) return;
+
+        setWidgetReady(true);
+      } catch {
+        if (!destroyed) {
+          showToast("결제 위젯을 불러오지 못했어요. 다시 시도해 주세요.");
+          setShowWidget(false);
+        }
+      }
+    })();
+
+    return () => {
+      destroyed = true;
+      widgetsRef.current = null;
+      setWidgetReady(false);
+    };
+  }, [showWidget, paymentEnabled, userId, amount, productId, showToast]);
+
+  const handleCardClick = useCallback(() => {
     if (!paymentEnabled) {
       showToast("준비 중입니다. 조금만 기다려주세요!");
       return;
     }
+    setShowWidget(true);
+  }, [paymentEnabled, showToast]);
 
-    // PG 심사용 테스트 계정: 실제 이니시스 결제창 호출
+  const handlePayment = useCallback(async () => {
+    if (loading || !widgetsRef.current) return;
     setLoading(true);
 
     try {
-      const PortOne = await import("@portone/browser-sdk/v2");
-      const paymentId = `${productId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const orderId = `${productId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-      const response = await PortOne.requestPayment({
-        storeId: PORTONE_STORE_ID,
-        channelKey: PORTONE_CHANNEL_KEY,
-        paymentId,
+      await widgetsRef.current.requestPayment({
+        orderId,
         orderName: title,
-        totalAmount: 500,
-        currency: "KRW",
-        payMethod: "CARD",
-        customer: {
-          customerId: userId ?? undefined,
-          fullName: userName ?? "이용자",
-          phoneNumber: "010-0000-0000",
-          email: userEmail ?? undefined,
-        },
-        redirectUrl: typeof window !== "undefined"
-          ? `${window.location.origin}/result`
-          : undefined,
-        productType: "DIGITAL",
+        customerName: userName ?? undefined,
+        customerEmail: userEmail ?? undefined,
+        successUrl: `${window.location.origin}/api/payment/confirm`,
+        failUrl: `${window.location.origin}/result?payment=fail`,
       });
-
-      if (!response || response.code === "FAILURE") {
-        showToast("결제가 취소되었어요.");
-        return;
-      }
-
-      // TODO: 서버에서 결제 검증 + 콘텐츠 해금 (후속 작업)
-      showToast("결제가 완료되었어요! (테스트)");
     } catch {
-      showToast("결제 중 오류가 발생했어요. 다시 시도해 주세요.");
+      showToast("결제가 취소되었어요.");
     } finally {
       setLoading(false);
     }
-  }, [loading, paymentEnabled, title, productId, showToast]);
+  }, [loading, productId, title, userName, userEmail, showToast]);
 
   return (
     <>
-      <button
-        type="button"
-        onClick={handleClick}
-        disabled={loading}
-        className="block w-full rounded-2xl border border-hanji-border bg-hanji-elevated p-4 shadow-low text-left active:bg-hanji-secondary transition-colors disabled:opacity-60"
-      >
-        <div className="flex items-center justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink">{title}</p>
-            <p className="mt-1 text-[12px] text-ink-muted leading-relaxed">
-              {description}
-            </p>
-            <p className="mt-2 text-[13px] font-bold text-brand">{hook}</p>
+      {/* 펼치기 전: 기존 CTA 카드 */}
+      {!showWidget && (
+        <button
+          type="button"
+          onClick={handleCardClick}
+          className="block w-full rounded-2xl border border-hanji-border bg-hanji-elevated p-4 shadow-low text-left active:bg-hanji-secondary transition-colors"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-ink">{title}</p>
+              <p className="mt-1 text-[12px] text-ink-muted leading-relaxed">
+                {description}
+              </p>
+              <p className="mt-2 text-[13px] font-bold text-brand">{hook}</p>
+            </div>
+            <svg
+              width={16}
+              height={16}
+              viewBox="0 0 20 20"
+              fill="none"
+              aria-hidden
+              className="shrink-0 text-ink-muted"
+            >
+              <path
+                d="M7.5 5L12.5 10L7.5 15"
+                stroke="currentColor"
+                strokeWidth={1.5}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           </div>
-          <svg
-            width={16}
-            height={16}
-            viewBox="0 0 20 20"
-            fill="none"
-            aria-hidden
-            className="shrink-0 text-ink-muted"
-          >
-            <path
-              d="M7.5 5L12.5 10L7.5 15"
-              stroke="currentColor"
-              strokeWidth={1.5}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </div>
-        <p className="mt-2 text-[10px] text-ink-tertiary">
-          결제 시{" "}
-          <Link
-            href="/refund-policy"
-            onClick={(e) => e.stopPropagation()}
-            className="underline underline-offset-2 hover:text-ink-muted"
-          >
-            환불정책
-          </Link>
-          에 동의하는 것으로 간주합니다.
-        </p>
-      </button>
+          <p className="mt-2 text-[10px] text-ink-tertiary">
+            결제 시{" "}
+            <Link
+              href="/refund-policy"
+              onClick={(e) => e.stopPropagation()}
+              className="underline underline-offset-2 hover:text-ink-muted"
+            >
+              환불정책
+            </Link>
+            에 동의하는 것으로 간주합니다.
+          </p>
+        </button>
+      )}
 
+      {/* 펼친 후: 토스 결제위젯 */}
+      {showWidget && (
+        <div className="rounded-2xl border border-hanji-border bg-hanji-elevated shadow-low overflow-hidden">
+          {/* 상품 정보 헤더 */}
+          <div className="flex items-center justify-between p-4 border-b border-hanji-border">
+            <div>
+              <p className="text-sm font-semibold text-ink">{title}</p>
+              <p className="text-[12px] text-ink-muted mt-0.5">{description}</p>
+            </div>
+            <p className="text-base font-bold text-brand shrink-0">
+              {amount.toLocaleString()}원
+            </p>
+          </div>
+
+          {/* 결제수단 위젯 */}
+          <div id={`payment-method-${productId}`} />
+
+          {/* 약관 위젯 */}
+          <div id={`agreement-${productId}`} />
+
+          {/* 결제 버튼 */}
+          <div className="p-4 pt-0">
+            <button
+              type="button"
+              onClick={handlePayment}
+              disabled={loading || !widgetReady}
+              className="w-full rounded-xl bg-brand py-3.5 text-[15px] font-semibold text-white transition-colors active:bg-brand/90 disabled:opacity-50"
+            >
+              {loading
+                ? "결제 처리 중..."
+                : `${amount.toLocaleString()}원 결제하기`}
+            </button>
+          </div>
+
+          {/* 접기 버튼 */}
+          <button
+            type="button"
+            onClick={() => setShowWidget(false)}
+            className="w-full py-3 text-[12px] text-ink-muted border-t border-hanji-border hover:bg-hanji-secondary transition-colors"
+          >
+            접기
+          </button>
+        </div>
+      )}
+
+      {/* 토스트 */}
       {toastMessage && (
         <div
           role="status"

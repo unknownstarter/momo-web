@@ -101,6 +101,7 @@ export default function MatchingMainPage() {
           setUserEmail(user.email);
           const paymentTestEmails = new Set([
             "kakaopay-review@dropdown.xyz",
+            "toss-review@dropdown.xyz",
             "hh109a@gmail.com",
           ]);
           if (paymentTestEmails.has(user.email)) {

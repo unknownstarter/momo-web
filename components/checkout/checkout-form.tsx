@@ -170,7 +170,7 @@ export function CheckoutForm({
           type="button"
           onClick={handlePayment}
           disabled={!canPay}
-          className="w-full h-[52px] rounded-[14px] bg-brand text-white text-base font-semibold transition-colors active:bg-brand/90 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full h-[52px] rounded-[14px] bg-[#2D2D2D] text-white text-base font-semibold transition-opacity hover:opacity-90 active:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? "결제 처리 중..." : `${amount.toLocaleString()}원 결제하기`}
         </button>

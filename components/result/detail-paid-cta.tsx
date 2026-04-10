@@ -32,7 +32,7 @@ export function DetailPaidCta({
 
   const handleClick = useCallback(() => {
     if (purchased) {
-      showToast("상세 분석 페이지를 준비 중이에요!");
+      router.push(`/paid/${productId}`);
       return;
     }
     if (!paymentEnabled) {

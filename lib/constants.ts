@@ -15,6 +15,7 @@ export const ROUTES = {
   TERMS: "/terms",
   PRIVACY: "/privacy",
   CHECKOUT: "/checkout",
+  PAID: "/paid",
   PAYMENT_HISTORY: "/payment-history",
 } as const;
 
@@ -88,15 +89,15 @@ export function getCompatibilityGrade(score: number) {
 
 /** 유료 상품 정의 — 금액은 이 상수만이 권위 있는 소스 */
 export const PRODUCTS = {
-  "saju-detail": {
-    id: "saju-detail",
+  paid_saju: {
+    id: "paid_saju",
     name: "더 자세한 사주 보기",
     amount: 500,
     description: "13가지 영역으로 나누어 사주를 아주 자세히 풀어드려요.",
     shortDescription: "13가지 영역 심층 사주 분석",
   },
-  "gwansang-detail": {
-    id: "gwansang-detail",
+  paid_gwansang: {
+    id: "paid_gwansang",
     name: "더 자세한 관상 보기",
     amount: 500,
     description: "13가지 영역으로 내 얼굴이 말해주는 것들을 깊이 있게 분석해요.",

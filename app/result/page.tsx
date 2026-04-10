@@ -111,8 +111,17 @@ export default function MatchingMainPage() {
           .select("product_id")
           .eq("status", "paid");
 
-        if (purchases && purchases.length > 0 && !cancelled) {
-          setPurchasedProducts(new Set(purchases.map((p: { product_id: string }) => p.product_id)));
+        // 유료 콘텐츠 해금 상태 조회
+        const { data: paidContent } = await supabase
+          .from("paid_content")
+          .select("product_id");
+
+        const allPurchased = new Set([
+          ...(purchases ?? []).map((p: { product_id: string }) => p.product_id),
+          ...(paidContent ?? []).map((p: { product_id: string }) => p.product_id),
+        ]);
+        if (allPurchased.size > 0 && !cancelled) {
+          setPurchasedProducts(allPurchased);
         }
         const { data: profileRow } = await supabase
           .from("profiles")
@@ -344,8 +353,8 @@ export default function MatchingMainPage() {
               title="더 자세한 사주 보기"
               hook="궁금하면 오백원!"
               description="13가지 영역으로 나누어 나의 사주를 아주 자세히 풀어드려요."
-              productId="saju-detail"
-              purchased={purchasedProducts.has("saju-detail")}
+              productId="paid_saju"
+              purchased={purchasedProducts.has("paid_saju")}
               paymentEnabled={paymentEnabled}
             />
           </section>
@@ -365,8 +374,8 @@ export default function MatchingMainPage() {
               title="더 자세한 관상 보기"
               hook="왕이 될 상인가 오백원"
               description="13가지 영역으로 내 얼굴이 말해주는 것들을 깊이 있게 분석해요."
-              productId="gwansang-detail"
-              purchased={purchasedProducts.has("gwansang-detail")}
+              productId="paid_gwansang"
+              purchased={purchasedProducts.has("paid_gwansang")}
               paymentEnabled={paymentEnabled}
             />
           </section>

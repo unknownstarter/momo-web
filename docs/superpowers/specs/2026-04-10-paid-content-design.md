@@ -226,19 +226,31 @@ Edge Function은 **반드시 호출자를 인증**해야 함:
 - 불일치 시 401 반환
 - 추가로 `payment_history_web`에서 해당 유저의 paid 기록 **독립 검증** (웹 API의 체크에 의존하지 않음)
 
-### 6.2 멱등성 (CRITICAL)
+### 6.2 멱등성 (CRITICAL) — 예약 row 선점 방식
 
-Edge Function 내부에서 `INSERT ... ON CONFLICT (user_id, product_id) DO NOTHING` 사용:
-- 더블탭/네트워크 재시도로 2번 호출되어도 Claude API 1번만 호출
-- 순서: (1) paid_content 존재 체크 → 있으면 즉시 `{ success: true }` → (2) 없으면 Claude 호출 → (3) INSERT ON CONFLICT DO NOTHING
+동시 요청 시 Claude 2중 호출을 방지하기 위해 **예약 row를 먼저 INSERT**:
+
+```
+순서:
+(1) INSERT INTO paid_content (user_id, product_id, content) VALUES ($1, $2, '{}')
+    ON CONFLICT (user_id, product_id) DO NOTHING
+    RETURNING id;
+(2) 반환값 없음(이미 존재) → SELECT content → 비어있으면 생성 중, 차있으면 완료 → 즉시 반환
+(3) 반환값 있음(선점 성공) → Claude 호출 → UPDATE content = 생성된 JSON
+```
+
+이렇게 하면:
+- 첫 요청이 빈 row를 선점 → Claude 호출은 1번만
+- 동시 두 번째 요청은 INSERT 실패 → 기존 row 확인 → 대기/반환
+- Claude 실패 시: 빈 row(`content = '{}'`) 남음 → 재방문 시 빈 content 감지 → 재생성 트리거
 
 ### 6.3 실패 복구
 
-Claude API 성공 → INSERT 실패 시:
-- Edge Function에서 INSERT를 3회 재시도 (1s, 2s, 4s 백오프)
-- 최종 실패 시 `{ error: "insert_failed" }` 반환
-- 웹 API가 이 에러를 받으면 클라이언트에 "재시도" 안내
-- 유저가 열람 페이지 재방문 시 paid_content 없음 → 자동 재생성 트리거
+예약 row 방식에서는 Claude 실패 시 빈 row(`content = '{}'`)가 남음:
+- 재방문 시 빈 content 감지 → UPDATE로 재생성 (INSERT 불필요)
+- **재생성 횟수 제한**: 빈 row에 `retry_count` 필드 불필요 — generate API의 per-user 레이트 리밋(1분 1회)이 무한 호출 방지
+- 모든 생성 경로가 generate API를 경유하므로 서버 셸 직접 트리거 없음 — 레이트 리밋 우회 불가
+- Claude 성공 → UPDATE 실패: 3회 재시도 (1s, 2s, 4s 백오프) → 최종 실패 시 에러 반환
 
 ### 6.4 `generate-paid-saju`
 
@@ -254,12 +266,15 @@ Claude API 성공 → INSERT 실패 시:
 
 처리:
 1. JWT에서 `auth.uid()` 추출 + userId 일치 확인
-2. `paid_content`에서 기존 row 확인 → 있으면 즉시 `{ success: true }`
-3. `payment_history_web`에서 paid 기록 확인 → 없으면 403
+2. `payment_history_web`에서 paid 기록 확인 → 없으면 403 (**결제 검증 최우선**)
+3. `paid_content`에 예약 row INSERT ON CONFLICT → 이미 있으면 content 확인
+   - content 비어있지 않음(`!= '{}'`) → 이미 생성 완료, `{ success: true }`
+   - content 비어있음(`= '{}'`) → 이전 생성 실패, step 5로 진행
+   - 새로 INSERT 성공 → step 4로 진행
 4. `saju_profiles`에서 사주 데이터 조회 (사주, 오행, 성격 특성, 연애 스타일 등)
 5. `profiles`에서 이름, 성별, 생년월일 조회
 6. **Claude Haiku 4.5** API 호출 — 구조화된 프롬프트로 13개 영역 심층 분석 생성
-7. `paid_content`에 `INSERT ... ON CONFLICT DO NOTHING`
+7. `paid_content` UPDATE content = 생성된 JSON (예약 row 업데이트)
 8. 응답: `{ success: true }`
 
 ### 6.5 `generate-paid-gwansang`
@@ -276,12 +291,15 @@ Claude API 성공 → INSERT 실패 시:
 
 처리:
 1. JWT에서 `auth.uid()` 추출 + userId 일치 확인
-2. `paid_content`에서 기존 row 확인 → 있으면 즉시 `{ success: true }`
-3. `payment_history_web`에서 paid 기록 확인 → 없으면 403
+2. `payment_history_web`에서 paid 기록 확인 → 없으면 403 (**결제 검증 최우선**)
+3. `paid_content`에 예약 row INSERT ON CONFLICT → 이미 있으면 content 확인
+   - content 비어있지 않음 → 이미 생성 완료, `{ success: true }`
+   - content 비어있음 → 이전 생성 실패, step 5로 진행
+   - 새로 INSERT 성공 → step 4로 진행
 4. `gwansang_profiles`에서 관상 데이터 조회 (동물상, 삼정, 오관, 성격 5축 등)
 5. `profiles`에서 이름, 성별, 프로필 사진 URL 조회
 6. **Claude Haiku 4.5** API 호출 — 구조화된 프롬프트로 13개 영역 심층 분석 생성
-7. `paid_content`에 `INSERT ... ON CONFLICT DO NOTHING`
+7. `paid_content` UPDATE content = 생성된 JSON (예약 row 업데이트)
 8. 응답: `{ success: true }`
 
 ### 6.6 CLAUDE.md 준수
@@ -342,7 +360,8 @@ GET /api/paid-content/paid_saju
 
 클라이언트(`PaidContentView`):
 ```
-Props: { productId, content (null이면 생성 필요), userId, productName }
+Props: { productId, content (null이면 생성 필요), productName }
+// userId는 props로 내려주지 않음 — API 호출 시 서버가 세션에서 추출
 
 content가 있으면:
   → 바로 렌더링 (13개 섹션 카드)

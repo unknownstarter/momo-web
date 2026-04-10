@@ -18,6 +18,7 @@ import { SajuRomanceCard } from "@/components/result/saju-romance-card";
 import { GwansangRomanceCard } from "@/components/result/gwansang-romance-card";
 import { MatchingCounter } from "@/components/result/matching-counter";
 import { DetailPaidCta } from "@/components/result/detail-paid-cta";
+import { ResultMenu } from "@/components/result/result-menu";
 import { SiteFooter } from "@/components/ui/site-footer";
 import {
   trackViewMatchingMain,
@@ -77,8 +78,7 @@ export default function MatchingMainPage() {
   const [blurHashes, setBlurHashes] = useState<string[]>([]);
   const [navigating, setNavigating] = useState(false);
   const [paymentEnabled, setPaymentEnabled] = useState(false);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
+  const [purchasedProducts, setPurchasedProducts] = useState<Set<string>>(new Set());
 
   const handleNavigate = useCallback((href: string) => {
     setNavigating(true);
@@ -94,11 +94,8 @@ export default function MatchingMainPage() {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
         if (!user || cancelled) return;
-        // 결제용 유저 식별 정보
-        setUserId(user.id);
         // PG 심사용 테스트 계정 + 노아님 계정에서만 결제창 활성화
         if (user.email) {
-          setUserEmail(user.email);
           const paymentTestEmails = new Set([
             "kakaopay-review@dropdown.xyz",
             "toss-review@dropdown.xyz",
@@ -107,6 +104,15 @@ export default function MatchingMainPage() {
           if (paymentTestEmails.has(user.email)) {
             setPaymentEnabled(true);
           }
+        }
+        // 구매 상태 조회
+        const { data: purchases } = await supabase
+          .from("payment_history_web")
+          .select("product_id")
+          .eq("status", "paid");
+
+        if (purchases && purchases.length > 0 && !cancelled) {
+          setPurchasedProducts(new Set(purchases.map((p: { product_id: string }) => p.product_id)));
         }
         const { data: profileRow } = await supabase
           .from("profiles")
@@ -143,6 +149,32 @@ export default function MatchingMainPage() {
       }
     })();
     return () => { cancelled = true; };
+  }, []);
+
+  // 결제 결과 토스트
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const payment = params.get("payment");
+    if (!payment) return;
+
+    const messages: Record<string, string> = {
+      success: "결제가 완료되었어요!",
+      fail: "결제에 실패했어요. 다시 시도해 주세요.",
+      already: "이미 구매한 상품이에요.",
+    };
+
+    if (messages[payment]) {
+      const wrapper = document.createElement("div");
+      wrapper.className = "fixed left-1/2 bottom-28 -translate-x-1/2 z-[60] pointer-events-none";
+      const inner = document.createElement("div");
+      inner.className = "px-4 py-2.5 rounded-full bg-ink/90 text-hanji text-[13px] font-medium shadow-high whitespace-nowrap";
+      inner.textContent = messages[payment];
+      wrapper.appendChild(inner);
+      document.body.appendChild(wrapper);
+      setTimeout(() => wrapper.remove(), 2500);
+    }
+
+    window.history.replaceState({}, "", "/result");
   }, []);
 
   // 공유 URL
@@ -269,6 +301,10 @@ export default function MatchingMainPage() {
           />
         </div>
       )}
+      {/* 햄버거 메뉴 */}
+      <div className="shrink-0 flex justify-end px-5 pt-[max(0.5rem,env(safe-area-inset-top))]">
+        <ResultMenu />
+      </div>
       <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden scroll-touch">
         {/* 히어로 */}
         <MatchingHero
@@ -309,10 +345,8 @@ export default function MatchingMainPage() {
               hook="궁금하면 오백원!"
               description="13가지 영역으로 나누어 나의 사주를 아주 자세히 풀어드려요."
               productId="saju-detail"
+              purchased={purchasedProducts.has("saju-detail")}
               paymentEnabled={paymentEnabled}
-              userEmail={userEmail}
-              userId={userId}
-              userName={profile?.name}
             />
           </section>
 
@@ -332,10 +366,8 @@ export default function MatchingMainPage() {
               hook="왕이 될 상인가 오백원"
               description="13가지 영역으로 내 얼굴이 말해주는 것들을 깊이 있게 분석해요."
               productId="gwansang-detail"
+              purchased={purchasedProducts.has("gwansang-detail")}
               paymentEnabled={paymentEnabled}
-              userEmail={userEmail}
-              userId={userId}
-              userName={profile?.name}
             />
           </section>
 

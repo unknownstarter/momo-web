@@ -187,8 +187,10 @@ Body: { productId: "saju-detail" }
 1. 인증 확인 (세션에서 user_id)
 2. productId가 PRODUCTS에 존재하는지 검증
 3. 이미 paid 상태인 기록 있는지 확인 → 있으면 409 Conflict
-4. 기존 pending 레코드 있으면 재사용 (orderId 반환)
-5. 없으면 신규 생성: orderId = crypto.randomUUID(), amount = PRODUCTS[productId].amount
+4. 기존 pending 레코드 조회 (WHERE user_id=$userId AND product_id=$productId AND status='pending')
+   - 30분 이내(created_at > now() - 30min) → 재사용 (orderId 반환)
+   - 30분 초과 → DELETE 후 step 5로
+5. 신규 생성: orderId = crypto.randomUUID(), amount = PRODUCTS[productId].amount
 6. 응답: { orderId, amount }
 ```
 
@@ -274,7 +276,7 @@ GET /api/payment/confirm?paymentKey=...&orderId=...&amount=...
 
 ---
 
-## 8. 파일 변경 요약
+## 9. 파일 변경 요약
 
 ### 신규 생성
 - `app/checkout/page.tsx` — 주문 확인 서버 컴포넌트 셸 (인증/구매 체크 + redirect)

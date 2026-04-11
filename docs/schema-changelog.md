@@ -5,6 +5,104 @@
 
 ---
 
+## 2026-04-11: `paid_content` 테이블 신규 생성 (앱+웹 공용)
+
+**배경**: momo-web 유료 상세 분석 콘텐츠(사주/관상 500원) 저장용 신규 테이블. 앱에서도 향후 Key 결제 시 동일 테이블에서 콘텐츠 조회 가능하도록 공용 설계.
+
+### 마이그레이션
+
+```sql
+CREATE TABLE paid_content (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     uuid NOT NULL REFERENCES auth.users(id),
+  product_id  text NOT NULL,          -- 'paid_saju' | 'paid_gwansang' | 미래 확장
+  content     jsonb NOT NULL DEFAULT '{}'::jsonb,
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  UNIQUE(user_id, product_id)
+);
+
+ALTER TABLE paid_content ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "users_select_own_paid_content" ON paid_content
+  FOR SELECT TO authenticated
+  USING (user_id = auth.uid());
+-- INSERT/UPDATE는 RLS 없음 → service_role 전용
+```
+
+### 콘텐츠 구조 (JSONB)
+- `version` 필드로 스키마 변경 대응
+- `sections: [{ id, title, body }]` 배열 구조
+- paid_saju는 월별 운세(12개월 + rating/focus) 추가 섹션 포함
+
+### 앱 측 액션
+- 당장 연동 불필요 — 웹 전용으로 먼저 운영
+- 필요 시 `docs/handoff/2026-04-11-paid-content-integration.md` 참조
+
+---
+
+## 2026-04-10: fn_update_matchable — 토스페이먼츠 테스트 계정 추가 제외
+
+**배경**: 토스페이먼츠 PG 심사용 테스트 계정(`toss-review@dropdown.xyz`, auth_id `2c1b6189-506c-4a48-8d72-d8204fed2551`)도 매칭풀에서 영구 제외.
+
+### 마이그레이션
+
+기존 카카오페이 제외 블록 아래에 토스 제외 블록 추가:
+
+```sql
+-- 토스페이먼츠 PG 심사용 테스트 계정 제외 (2026-04-10 추가)
+IF NEW.auth_id = '2c1b6189-506c-4a48-8d72-d8204fed2551'::uuid THEN
+  NEW.is_matchable := false;
+  RETURN NEW;
+END IF;
+```
+
+일반 유저 매칭 로직은 불변. 트리거 구조 동일.
+
+---
+
+## 2026-04-10: `payment_history_web` 테이블 신규 생성 (웹 전용)
+
+**배경**: 웹의 토스페이먼츠 결제 기록 저장용. 앱의 `purchases` 테이블과 분리 (PG사·영수증 형식 다름).
+
+### 마이그레이션
+
+```sql
+CREATE TABLE payment_history_web (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id         uuid NOT NULL REFERENCES auth.users(id),
+  product_id      text NOT NULL,
+  order_id        text NOT NULL UNIQUE,
+  payment_key     text,
+  amount          integer NOT NULL,
+  status          text NOT NULL DEFAULT 'pending',
+  created_at      timestamptz NOT NULL DEFAULT now(),
+  paid_at         timestamptz
+);
+
+CREATE UNIQUE INDEX uq_user_product_paid
+  ON payment_history_web(user_id, product_id)
+  WHERE status = 'paid';
+
+ALTER TABLE payment_history_web
+  ADD CONSTRAINT chk_status CHECK (status IN ('pending', 'processing', 'paid', 'refunded'));
+ALTER TABLE payment_history_web
+  ADD CONSTRAINT chk_amount_positive CHECK (amount > 0);
+
+-- RLS
+CREATE POLICY "users_select_own_payments" ON payment_history_web
+  FOR SELECT TO authenticated USING (user_id = auth.uid());
+
+CREATE POLICY "users_insert_own_payments" ON payment_history_web
+  FOR INSERT TO authenticated
+  WITH CHECK (user_id = auth.uid() AND status = 'pending');
+```
+
+### 앱 측 액션
+- **참조 없음** — 웹 전용 테이블
+- 앱은 기존 `purchases` 테이블 계속 사용
+
+---
+
 ## 2026-04-09: fn_update_matchable 트리거 — 심사용 테스트 계정 예외 추가
 
 **배경**: 카카오페이 PG 심사용 테스트 계정(`kakaopay-review@dropdown.xyz`)이 온보딩을 완료하면서 매칭풀 조건(`is_saju_complete + is_profile_complete + profile_images + occupation + location + height + account_status='active' + created_at ≥ 2026-04-03`)을 전부 충족 → `is_matchable = true`로 자동 세팅되어 프로덕션 매칭풀에 노출됐음.

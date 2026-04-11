@@ -4,6 +4,48 @@
 
 ---
 
+## 2026-04-10 ~ 2026-04-11
+
+### 결제 플로우 + 유료 상세 콘텐츠 (마일스톤)
+
+**마일스톤 문서**: [`docs/milestones/2026-04-11-payment-paid-content/`](./milestones/2026-04-11-payment-paid-content/README.md)
+
+#### 1단계: 결제 인프라 (2026-04-10)
+- **PR**: [#44](https://github.com/unknownstarter/momo-web/pull/44), [#45](https://github.com/unknownstarter/momo-web/pull/45), [#46](https://github.com/unknownstarter/momo-web/pull/46), [#47](https://github.com/unknownstarter/momo-web/pull/47)
+- 포트원/이니시스 → **토스페이먼츠 결제위젯 SDK v2** 전환
+- `payment_history_web` 신규 테이블 (웹 전용)
+- `/checkout` 페이지 (서버 셸 + 토스 위젯 임베드)
+- 결제 승인 API (원자적 잠금 + DB 금액 검증)
+- `/payment-history` 결제 내역 페이지
+- `ResultMenu`를 `/result`에도 추가 + "결제 내역" 메뉴
+- 테스트 계정 화이트리스트에서만 결제 활성화
+
+#### 2단계: 유료 상세 콘텐츠 (2026-04-11)
+- **PR**: [#48](https://github.com/unknownstarter/momo-web/pull/48)
+- `paid_content` 신규 테이블 (앱+웹 공용, JSONB)
+- Edge Function 2개 신규 (`generate-paid-saju`, `generate-paid-gwansang`, Claude Haiku 4.5)
+- `/paid/[productId]` 열람 페이지 (서버 셸 + 클라이언트 뷰어 + 폴링)
+- 로딩 연출 (라이트 스켈레톤 + 단계 메시지 + 진행 바)
+- 섹션 카드 + 월별 운세 컴포넌트 (가로 스크롤 탭)
+- product_id 마이그레이션: `saju-detail` → `paid_saju`, `gwansang-detail` → `paid_gwansang`
+- 해금 기준: `paid_content` row 존재 (결제 수단 무관, 앱+웹 공용)
+
+#### 상품 정의
+| product_id | 상품명 | 가격 | 내용 |
+|-----------|--------|------|------|
+| `paid_saju` | 더 자세한 사주 보기 | 500원 | 13개 영역 심층 분석 + 월별 운세 |
+| `paid_gwansang` | 더 자세한 관상 보기 | 500원 | 13개 영역 관상 심층 분석 |
+
+#### 비용 / 마진
+- Claude Haiku 4.5 기준: paid_saju 원가 ~86원, paid_gwansang 원가 ~57원
+- PG 수수료 17원 (3.5%)
+- **마진 79~85%**
+
+#### 앱 팀 전달
+- [앱 연동 가이드](./handoff/2026-04-11-paid-content-integration.md) 작성 완료
+
+---
+
 ## 2026-04-04
 
 ### 온보딩 퍼널 트래킹 + 미성년자 제한

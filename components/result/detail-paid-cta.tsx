@@ -47,7 +47,11 @@ export function DetailPaidCta({
       <button
         type="button"
         onClick={handleClick}
-        className="block w-full rounded-2xl border border-hanji-border bg-hanji-elevated p-4 shadow-low text-left active:bg-hanji-secondary transition-colors"
+        className={`block w-full rounded-2xl p-4 text-left transition-all active:scale-[0.98] ${
+          purchased
+            ? "border border-brand/30 bg-brand/5 shadow-low"
+            : "border-2 border-brand/40 bg-gradient-to-r from-brand/5 to-hanji-elevated shadow-md"
+        }`}
       >
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0 flex-1">
@@ -65,33 +69,39 @@ export function DetailPaidCta({
               </>
             ) : (
               <>
-                <p className="text-sm font-semibold text-ink">{title}</p>
-                <p className="mt-1 text-[12px] text-ink-muted leading-relaxed">
+                <p className="text-[15px] font-bold text-ink">{title}</p>
+                <p className="mt-1.5 text-[13px] text-ink-muted leading-relaxed">
                   {description}
                 </p>
-                <p className="mt-2 text-[13px] font-bold text-brand">{hook}</p>
+                <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand/15">
+                  <span className="text-[14px] font-bold text-brand">{hook}</span>
+                </div>
               </>
             )}
           </div>
-          <svg
-            width={16}
-            height={16}
-            viewBox="0 0 20 20"
-            fill="none"
-            aria-hidden
-            className="shrink-0 text-ink-muted"
-          >
-            <path
-              d="M7.5 5L12.5 10L7.5 15"
-              stroke="currentColor"
-              strokeWidth={1.5}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+            purchased ? "bg-brand/10" : "bg-brand/20"
+          }`}>
+            <svg
+              width={14}
+              height={14}
+              viewBox="0 0 20 20"
+              fill="none"
+              aria-hidden
+              className="text-brand"
+            >
+              <path
+                d="M7.5 5L12.5 10L7.5 15"
+                stroke="currentColor"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
         </div>
         {!purchased && (
-          <p className="mt-2 text-[10px] text-ink-tertiary">
+          <p className="mt-3 text-[10px] text-ink-tertiary">
             결제 시{" "}
             <Link
               href="/refund-policy"

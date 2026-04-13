@@ -92,14 +92,14 @@ export const PRODUCTS = {
   paid_saju: {
     id: "paid_saju",
     name: "더 자세한 사주 보기",
-    amount: 500,
+    amount: 990,
     description: "13가지 영역으로 나누어 사주를 아주 자세히 풀어드려요.",
     shortDescription: "13가지 영역 심층 사주 분석",
   },
   paid_gwansang: {
     id: "paid_gwansang",
     name: "더 자세한 관상 보기",
-    amount: 500,
+    amount: 990,
     description: "13가지 영역으로 내 얼굴이 말해주는 것들을 깊이 있게 분석해요.",
     shortDescription: "13가지 영역 심층 관상 분석",
   },

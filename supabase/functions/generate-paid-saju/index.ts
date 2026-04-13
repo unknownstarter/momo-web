@@ -11,61 +11,147 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
+// 섹션 메타 — Claude는 body 텍스트만 생성, 나머지는 코드에서 조립
+const SECTION_KEYS = [
+  "personality", "wealth", "career", "romance", "marriage", "health",
+  "relationships", "family", "academic", "travel", "advice", "summary",
+] as const;
+
+const SECTION_TITLES: Record<string, string> = {
+  personality: "성격과 기질", wealth: "재물운", career: "직업운",
+  romance: "연애운", marriage: "결혼운", health: "건강운",
+  relationships: "대인관계", family: "가정운", academic: "학업/시험운",
+  travel: "이동/해외운", advice: "사주가 알려주는 조언", summary: "종합 풀이",
+};
+
 const SYSTEM_PROMPT = `당신은 30년 경력의 사주 역학 전문가입니다.
 
 <context>
-고객이 유료로 구매한 심층 사주 분석 콘텐츠입니다.
-무료 분석과 확실히 차별화된, 구체적이고 실용적인 조언을 포함해야 합니다.
-각 영역별 400~800자의 상세한 해석을 제공하세요.
-월별 운세는 각 300~500자로 구체적인 시기, 방향, 조언을 포함하세요.
+고객이 990원을 지불한 유료 심층 사주 분석입니다.
+무료 분석과 확실히 차별화되어야 합니다.
+이 사주에만 해당하는 구체적인 해석과 실용적 조언을 포함하세요.
 </context>
 
 <instructions>
-1. 사주팔자(연주, 월주, 일주, 시주)와 오행 분포를 기반으로 해석하세요.
-2. 추상적인 문구가 아닌, 이 사주에만 해당하는 구체적인 해석을 하세요.
-3. 각 섹션은 해당 영역의 강점, 주의점, 실천 조언을 포함하세요.
-4. 월별 운세는 해당 월의 천간지지 흐름과 사주의 관계를 기반으로 하세요.
-5. 반드시 아래 JSON 형식으로만 응답하세요. 다른 텍스트는 포함하지 마세요.
+1. 사주팔자와 오행 분포를 기반으로 각 영역을 해석하세요.
+2. 추상적 문구 금지. 이 사주의 구체적인 특성에 맞춘 해석만 하세요.
+3. 각 영역: 강점, 주의점, 실천 조언을 포함. 400~800자.
+4. 월별 운세: 해당 월 천간지지와 사주 관계 기반. 각 월 300~500자 + rating(1~5) + focus(주력영역 한 단어).
+5. 반드시 아래 JSON 형식으로만 응답. 다른 텍스트 금지.
 </instructions>
 
 <output_format>
 {
-  "version": 1,
-  "sections": [
-    { "id": "personality", "title": "성격과 기질", "body": "400~800자" },
-    { "id": "wealth", "title": "재물운", "body": "..." },
-    { "id": "career", "title": "직업운", "body": "..." },
-    { "id": "romance", "title": "연애운", "body": "..." },
-    { "id": "marriage", "title": "결혼운", "body": "..." },
-    { "id": "health", "title": "건강운", "body": "..." },
-    { "id": "relationships", "title": "대인관계", "body": "..." },
-    { "id": "family", "title": "가정운", "body": "..." },
-    { "id": "academic", "title": "학업/시험운", "body": "..." },
-    { "id": "travel", "title": "이동/해외운", "body": "..." },
-    { "id": "advice", "title": "사주가 알려주는 조언", "body": "..." },
-    { "id": "summary", "title": "종합 풀이", "body": "..." },
-    {
-      "id": "monthly_fortune",
-      "title": "YEAR년 월별 운세",
-      "year": YEAR,
-      "months": [
-        { "month": 1, "title": "1월", "rating": 1-5, "focus": "주력영역", "body": "300~500자" },
-        { "month": 2, "title": "2월", "rating": 1-5, "focus": "주력영역", "body": "..." },
-        { "month": 3, "title": "3월", "rating": 1-5, "focus": "주력영역", "body": "..." },
-        { "month": 4, "title": "4월", "rating": 1-5, "focus": "주력영역", "body": "..." },
-        { "month": 5, "title": "5월", "rating": 1-5, "focus": "주력영역", "body": "..." },
-        { "month": 6, "title": "6월", "rating": 1-5, "focus": "주력영역", "body": "..." },
-        { "month": 7, "title": "7월", "rating": 1-5, "focus": "주력영역", "body": "..." },
-        { "month": 8, "title": "8월", "rating": 1-5, "focus": "주력영역", "body": "..." },
-        { "month": 9, "title": "9월", "rating": 1-5, "focus": "주력영역", "body": "..." },
-        { "month": 10, "title": "10월", "rating": 1-5, "focus": "주력영역", "body": "..." },
-        { "month": 11, "title": "11월", "rating": 1-5, "focus": "주력영역", "body": "..." },
-        { "month": 12, "title": "12월", "rating": 1-5, "focus": "주력영역", "body": "..." }
-      ]
-    }
-  ]
+  "personality": "400~800자",
+  "wealth": "...",
+  "career": "...",
+  "romance": "...",
+  "marriage": "...",
+  "health": "...",
+  "relationships": "...",
+  "family": "...",
+  "academic": "...",
+  "travel": "...",
+  "advice": "...",
+  "summary": "...",
+  "m1": {"r":1-5,"f":"주력영역","b":"300~500자"},
+  "m2": {"r":1-5,"f":"주력영역","b":"..."},
+  "m3": {"r":1-5,"f":"...","b":"..."},
+  "m4": {"r":1-5,"f":"...","b":"..."},
+  "m5": {"r":1-5,"f":"...","b":"..."},
+  "m6": {"r":1-5,"f":"...","b":"..."},
+  "m7": {"r":1-5,"f":"...","b":"..."},
+  "m8": {"r":1-5,"f":"...","b":"..."},
+  "m9": {"r":1-5,"f":"...","b":"..."},
+  "m10": {"r":1-5,"f":"...","b":"..."},
+  "m11": {"r":1-5,"f":"...","b":"..."},
+  "m12": {"r":1-5,"f":"...","b":"..."}
 }
 </output_format>`;
+
+/** Claude API 호출 + 429 재시도 (최대 3회, 백오프 10s/20s/40s) */
+async function callClaude(system: string, userMessage: string): Promise<string> {
+  const delays = [0, 10_000, 20_000, 40_000];
+
+  for (let attempt = 0; attempt < delays.length; attempt++) {
+    if (delays[attempt] > 0) {
+      console.log(`[generate-paid-saju] 재시도 ${attempt}회, ${delays[attempt] / 1000}초 대기`);
+      await new Promise((r) => setTimeout(r, delays[attempt]));
+    }
+
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-5-20250929",
+        max_tokens: 12000,
+        system,
+        messages: [{ role: "user", content: userMessage }],
+      }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      return data.content?.[0]?.text ?? "";
+    }
+
+    if (res.status === 429 && attempt < delays.length - 1) {
+      console.warn(`[generate-paid-saju] 429 Rate Limit, 재시도 예정`);
+      continue;
+    }
+
+    const errText = await res.text();
+    throw new Error(`Claude API ${res.status}: ${errText}`);
+  }
+
+  throw new Error("Claude API 최대 재시도 초과");
+}
+
+/** Claude 응답에서 JSON 파싱 (코드 블록 안에 있어도 추출) */
+function parseJsonResponse(text: string) {
+  try {
+    return JSON.parse(text);
+  } catch {
+    const match = text.match(/\{[\s\S]*\}/);
+    if (match) return JSON.parse(match[0]);
+    throw new Error("Failed to parse AI response as JSON");
+  }
+}
+
+/** 축약 JSON → 표준 paid_content 구조로 변환 */
+function expandContent(raw: Record<string, unknown>, year: number) {
+  const sections = SECTION_KEYS.map((key) => ({
+    id: key,
+    title: SECTION_TITLES[key],
+    body: (raw[key] as string) ?? "",
+  }));
+
+  // 월별 운세 조립
+  const months = [];
+  for (let m = 1; m <= 12; m++) {
+    const mData = raw[`m${m}`] as { r?: number; f?: string; b?: string } | undefined;
+    months.push({
+      month: m,
+      title: `${m}월`,
+      rating: mData?.r ?? 3,
+      focus: mData?.f ?? "",
+      body: mData?.b ?? "",
+    });
+  }
+
+  sections.push({
+    id: "monthly_fortune",
+    title: `${year}년 월별 운세`,
+    body: "",
+    ...{ year, months },
+  });
+
+  return { version: 1, sections };
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -117,23 +203,10 @@ Deno.serve(async (req) => {
     }
 
     const currentYear = new Date().getFullYear();
-    const prompt = SYSTEM_PROMPT.replaceAll("YEAR", String(currentYear));
+    const systemPrompt = SYSTEM_PROMPT.replaceAll("YEAR", String(currentYear));
 
-    // 4. Claude Haiku 호출
-    const anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 16000,
-        system: prompt,
-        messages: [{
-          role: "user",
-          content: `다음 사주 데이터를 기반으로 심층 분석을 JSON으로 생성해주세요.
+    // 4. Claude Sonnet 호출 (재시도 백오프 포함)
+    const textContent = await callClaude(systemPrompt, `다음 사주 데이터를 기반으로 심층 분석을 JSON으로 생성해주세요.
 
 <user_info>
 이름: ${profile.name}
@@ -150,33 +223,14 @@ Deno.serve(async (req) => {
 주요원소: ${sajuProfile.dominant_element}
 성격특성: ${JSON.stringify(sajuProfile.personality_traits)}
 연애스타일: ${sajuProfile.romance_style}
-</saju_data>`,
-        }],
-      }),
-    });
+</saju_data>`);
 
-    if (!anthropicRes.ok) {
-      console.error("[generate-paid-saju] Claude 실패:", await anthropicRes.text());
-      return new Response(JSON.stringify({ error: "AI generation failed" }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const anthropicData = await anthropicRes.json();
-    const textContent = anthropicData.content?.[0]?.text ?? "";
-
-    let parsedContent;
-    try {
-      parsedContent = JSON.parse(textContent);
-    } catch {
-      const match = textContent.match(/\{[\s\S]*\}/);
-      if (match) { parsedContent = JSON.parse(match[0]); }
-      else { throw new Error("Failed to parse AI response as JSON"); }
-    }
+    const raw = parseJsonResponse(textContent);
+    const finalContent = expandContent(raw, currentYear);
 
     // 5. UPDATE paid_content
     await supabaseAdmin
-      .from("paid_content").update({ content: parsedContent })
+      .from("paid_content").update({ content: finalContent })
       .eq("user_id", userId).eq("product_id", "paid_saju");
 
     return new Response(JSON.stringify({ success: true }), {

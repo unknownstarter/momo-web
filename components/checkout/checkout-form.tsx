@@ -119,22 +119,23 @@ export function CheckoutForm({
         });
 
         // 결제 성공 → 서버에서 승인 처리
-        // confirm API 호출 (redirect: "manual"로 자동 리다이렉트 방지)
+        // confirm API 호출 (JSON 응답 요청)
         const confirmRes = await fetch(
           `/api/payment/confirm?paymentKey=${encodeURIComponent(result.paymentKey)}&orderId=${encodeURIComponent(result.orderId)}&amount=${result.amount.value}`,
-          { redirect: "manual" }
+          {
+            headers: {
+              "Accept": "application/json",
+              "X-Requested-With": "fetch",
+            },
+          }
         );
 
-        // 3xx redirect 응답에서 Location 헤더 추출하여 이동
-        if (confirmRes.status >= 300 && confirmRes.status < 400) {
-          const location = confirmRes.headers.get("Location");
-          if (location) {
-            window.location.href = location;
-            return;
-          }
+        const confirmData = await confirmRes.json();
+        if (confirmData.success) {
+          window.location.href = `/result?payment=success`;
+        } else {
+          window.location.href = `/result?payment=fail&reason=${confirmData.error ?? "unknown"}`;
         }
-        // 정상 완료 시 result로 이동
-        router.push(`${ROUTES.RESULT}?payment=success`);
       }
     } catch (err: unknown) {
       // 사용자 취소 또는 결제 실패

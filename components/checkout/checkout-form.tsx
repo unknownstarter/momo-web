@@ -10,6 +10,14 @@ import { ROUTES } from "@/lib/constants";
 
 const TOSS_CLIENT_KEY = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY ?? "test_gck_docs_Ovk5rk1EwkEbP0W43n07xlzm";
 
+/** 모바일 브라우저 감지 */
+function isMobile() {
+  if (typeof window === "undefined") return false;
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent
+  );
+}
+
 interface CheckoutFormProps {
   productId: string;
   productName: string;
@@ -75,6 +83,7 @@ export function CheckoutForm({
     setLoading(true);
 
     try {
+      // 1. 서버에서 orderId 생성
       const res = await fetch("/api/payment/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -92,15 +101,51 @@ export function CheckoutForm({
 
       const { orderId } = await res.json();
 
-      await widgetsRef.current.requestPayment({
-        orderId,
-        orderName: productName,
-        customerEmail: userEmail ?? undefined,
-        successUrl: `${window.location.origin}/api/payment/confirm`,
-        failUrl: `${window.location.origin}/result?payment=fail`,
-      });
-    } catch {
-      setLoading(false);
+      if (isMobile()) {
+        // 모바일: Redirect 방식 (앱 이동 때문에 Promise 불가)
+        await widgetsRef.current.requestPayment({
+          orderId,
+          orderName: productName,
+          customerEmail: userEmail ?? undefined,
+          successUrl: `${window.location.origin}/api/payment/confirm`,
+          failUrl: `${window.location.origin}/result?payment=fail`,
+        });
+      } else {
+        // PC: Promise 방식 (결과를 직접 받아서 서버에 승인 요청)
+        const result = await widgetsRef.current.requestPayment({
+          orderId,
+          orderName: productName,
+          customerEmail: userEmail ?? undefined,
+        });
+
+        // 결제 성공 → 서버에서 승인 처리
+        // confirm API 호출 (redirect: "manual"로 자동 리다이렉트 방지)
+        const confirmRes = await fetch(
+          `/api/payment/confirm?paymentKey=${encodeURIComponent(result.paymentKey)}&orderId=${encodeURIComponent(result.orderId)}&amount=${result.amount.value}`,
+          { redirect: "manual" }
+        );
+
+        // 3xx redirect 응답에서 Location 헤더 추출하여 이동
+        if (confirmRes.status >= 300 && confirmRes.status < 400) {
+          const location = confirmRes.headers.get("Location");
+          if (location) {
+            window.location.href = location;
+            return;
+          }
+        }
+        // 정상 완료 시 result로 이동
+        router.push(`${ROUTES.RESULT}?payment=success`);
+      }
+    } catch (err: unknown) {
+      // 사용자 취소 또는 결제 실패
+      const errorCode = (err as { code?: string })?.code;
+      if (errorCode === "USER_CANCEL") {
+        // 사용자가 직접 취소 — 조용히 처리
+        setLoading(false);
+        return;
+      }
+      console.error("[checkout] 결제 실패:", err);
+      router.push(`${ROUTES.RESULT}?payment=fail`);
     }
   }, [loading, agreed, productId, productName, userEmail, router]);
 
@@ -160,7 +205,7 @@ export function CheckoutForm({
             </span>
           </label>
 
-          {/* 토스 결제위젯 — 자체 스타일 유지를 위해 패딩/간격 최소화 */}
+          {/* 토스 결제위젯 */}
           <div id="payment-method" className="-mx-5" />
           <div id="agreement" className="-mx-5" />
         </div>

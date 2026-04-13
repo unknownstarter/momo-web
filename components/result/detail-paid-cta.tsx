@@ -49,8 +49,8 @@ export function DetailPaidCta({
         onClick={handleClick}
         className={`block w-full rounded-2xl p-4 text-left transition-all active:scale-[0.98] ${
           purchased
-            ? "border border-brand/30 bg-brand/5 shadow-low"
-            : "border-2 border-brand/40 bg-gradient-to-r from-brand/5 to-hanji-elevated shadow-md"
+            ? "border border-[#D4A017]/30 bg-[#FDF8E8] shadow-low"
+            : "border-2 border-[#D4A017]/40 bg-gradient-to-r from-[#FDF8E8] to-[#FFFDF5] shadow-md"
         }`}
       >
         <div className="flex items-center justify-between gap-3">
@@ -85,7 +85,7 @@ export function DetailPaidCta({
             )}
           </div>
           <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-            purchased ? "bg-brand/10" : "bg-brand/20"
+            purchased ? "bg-[#D4A017]/15" : "bg-[#D4A017]"
           }`}>
             <svg
               width={14}
@@ -93,7 +93,7 @@ export function DetailPaidCta({
               viewBox="0 0 20 20"
               fill="none"
               aria-hidden
-              className="text-brand"
+              className={purchased ? "text-[#D4A017]" : "text-white"}
             >
               <path
                 d="M7.5 5L12.5 10L7.5 15"

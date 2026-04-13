@@ -138,7 +138,7 @@ export function CheckoutForm({
             <h2 className="text-[15px] font-semibold text-ink mb-3">결제 금액</h2>
             <div className="rounded-2xl border border-hanji-border bg-hanji-elevated p-4 shadow-low flex items-center justify-between">
               <span className="text-[15px] text-ink">최종 결제 금액</span>
-              <span className="text-[18px] font-bold text-brand">
+              <span className="text-[18px] font-bold text-ink">
                 {amount.toLocaleString()}원
               </span>
             </div>
@@ -160,8 +160,9 @@ export function CheckoutForm({
             </span>
           </label>
 
-          <div id="payment-method" />
-          <div id="agreement" />
+          {/* 토스 결제위젯 — 자체 스타일 유지를 위해 패딩/간격 최소화 */}
+          <div id="payment-method" className="-mx-5" />
+          <div id="agreement" className="-mx-5" />
         </div>
       </main>
 

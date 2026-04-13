@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 import { ROUTES } from "@/lib/constants";
 
@@ -24,6 +25,7 @@ export function DetailPaidCta({
 }: DetailPaidCtaProps) {
   const router = useRouter();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [navigating, setNavigating] = useState(false);
 
   const showToast = useCallback((msg: string) => {
     setToastMessage(msg);
@@ -31,7 +33,9 @@ export function DetailPaidCta({
   }, []);
 
   const handleClick = useCallback(() => {
+    if (navigating) return;
     if (purchased) {
+      setNavigating(true);
       router.push(`/paid/${productId}`);
       return;
     }
@@ -39,15 +43,30 @@ export function DetailPaidCta({
       showToast("준비 중입니다. 조금만 기다려주세요!");
       return;
     }
+    setNavigating(true);
     router.push(`${ROUTES.CHECKOUT}?product=${productId}`);
-  }, [purchased, paymentEnabled, productId, router, showToast]);
+  }, [purchased, paymentEnabled, productId, router, showToast, navigating]);
 
   return (
     <>
+      {/* 딤 + 로딩 오버레이 */}
+      {navigating && (
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
+          <Image
+            src="/images/characters/loading_spinner.gif"
+            alt=""
+            width={80}
+            height={80}
+            unoptimized
+          />
+        </div>
+      )}
+
       <button
         type="button"
         onClick={handleClick}
-        className={`block w-full rounded-2xl p-4 text-left transition-all active:scale-[0.98] ${
+        disabled={navigating}
+        className={`block w-full rounded-2xl p-4 text-left transition-all active:scale-[0.98] disabled:opacity-60 ${
           purchased
             ? "border border-hanji-border bg-hanji-elevated shadow-low"
             : "border border-[#E8DFC8] bg-[#FDFAF3] shadow-md"

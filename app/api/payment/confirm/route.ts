@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { createClient as createServerClient } from "@/lib/supabase/server";
 
 const TOSS_SECRET_KEY = process.env.TOSS_SECRET_KEY ?? "test_gsk_docs_OaPz8L5KdmQXkzRz3y47BMw6";
 
@@ -9,6 +8,13 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+/**
+ * 토스페이먼츠 결제 승인 API.
+ *
+ * 토스 결제창 → successUrl 리다이렉트로 호출됨.
+ * 외부 도메인(토스) → 우리 도메인 리다이렉트이므로 세션 쿠키가 유실될 수 있어
+ * 세션 인증 대신 orderId(서버 생성 UUID, 추측 불가)로 주문을 식별한다.
+ */
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   const paymentKey = searchParams.get("paymentKey");
@@ -21,23 +27,15 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // 1. 세션에서 user_id 확인
-    const supabase = await createServerClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return NextResponse.redirect(
-        new URL("/result?payment=fail&reason=unauthorized", request.url)
-      );
-    }
-
-    // 2. 원자적 잠금 + 소유권 검증
+    // 1. 원자적 잠금 — orderId(서버 생성 UUID)로 식별
+    // 세션 쿠키가 외부 리다이렉트에서 유실될 수 있으므로 user_id 검증 생략
+    // orderId는 crypto.randomUUID()로 생성되어 추측 불가능
     const { data: locked, error: lockError } = await supabaseAdmin
       .from("payment_history_web")
       .update({ status: "processing" })
       .eq("order_id", orderId)
       .eq("status", "pending")
-      .eq("user_id", user.id)
-      .select("id, amount, product_id")
+      .select("id, amount, product_id, user_id")
       .maybeSingle();
 
     if (lockError || !locked) {
@@ -46,7 +44,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // 3. DB의 amount로 토스 승인 API 호출 (클라이언트 amount 무시)
+    // 2. DB의 amount로 토스 승인 API 호출 (클라이언트 amount 무시)
     const response = await fetch(
       "https://api.tosspayments.com/v1/payments/confirm",
       {
@@ -78,7 +76,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // 4. 성공 → paid + paymentKey 저장
+    // 3. 성공 → paid + paymentKey 저장
     await supabaseAdmin
       .from("payment_history_web")
       .update({

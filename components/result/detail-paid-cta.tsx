@@ -50,7 +50,7 @@ export function DetailPaidCta({
         className={`block w-full rounded-2xl p-4 text-left transition-all active:scale-[0.98] ${
           purchased
             ? "border border-hanji-border bg-hanji-elevated shadow-low"
-            : "border border-hanji-border bg-hanji-elevated shadow-md ring-1 ring-accent/30"
+            : "border border-[#E8DFC8] bg-[#FDFAF3] shadow-md"
         }`}
       >
         <div className="flex items-center justify-between gap-3">
@@ -78,7 +78,7 @@ export function DetailPaidCta({
                 <p className="mt-1.5 text-[13px] text-ink-muted leading-relaxed">
                   {description}
                 </p>
-                <p className="mt-3 text-[15px] font-bold text-[#C27A88]">{hook}</p>
+                <p className="mt-3 text-[15px] font-bold text-[#B8860B]">{hook}</p>
               </>
             )}
           </div>

@@ -78,7 +78,7 @@ export function DetailPaidCta({
                 <p className="mt-1.5 text-[13px] text-ink-muted leading-relaxed">
                   {description}
                 </p>
-                <p className="mt-3 text-[15px] font-bold text-[#B8860B]">{hook}</p>
+                <p className="mt-3 text-[15px] font-bold text-[#996515]">{hook}</p>
               </>
             )}
           </div>

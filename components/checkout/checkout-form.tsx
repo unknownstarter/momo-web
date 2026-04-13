@@ -10,14 +10,6 @@ import { ROUTES } from "@/lib/constants";
 
 const TOSS_CLIENT_KEY = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY ?? "test_gck_docs_Ovk5rk1EwkEbP0W43n07xlzm";
 
-/** 모바일 브라우저 감지 */
-function isMobile() {
-  if (typeof window === "undefined") return false;
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-    navigator.userAgent
-  );
-}
-
 interface CheckoutFormProps {
   productId: string;
   productName: string;
@@ -101,42 +93,15 @@ export function CheckoutForm({
 
       const { orderId } = await res.json();
 
-      if (isMobile()) {
-        // 모바일: Redirect 방식 (앱 이동 때문에 Promise 불가)
-        await widgetsRef.current.requestPayment({
-          orderId,
-          orderName: productName,
-          customerEmail: userEmail ?? undefined,
-          successUrl: `${window.location.origin}/api/payment/confirm`,
-          failUrl: `${window.location.origin}/result?payment=fail`,
-        });
-      } else {
-        // PC: Promise 방식 (결과를 직접 받아서 서버에 승인 요청)
-        const result = await widgetsRef.current.requestPayment({
-          orderId,
-          orderName: productName,
-          customerEmail: userEmail ?? undefined,
-        });
-
-        // 결제 성공 → 서버에서 승인 처리
-        // confirm API 호출 (JSON 응답 요청)
-        const confirmRes = await fetch(
-          `/api/payment/confirm?paymentKey=${encodeURIComponent(result.paymentKey)}&orderId=${encodeURIComponent(result.orderId)}&amount=${result.amount.value}`,
-          {
-            headers: {
-              "Accept": "application/json",
-              "X-Requested-With": "fetch",
-            },
-          }
-        );
-
-        const confirmData = await confirmRes.json();
-        if (confirmData.success) {
-          window.location.href = `/paid/${productId}`;
-        } else {
-          window.location.href = `/result?payment=fail&reason=${confirmData.error ?? "unknown"}`;
-        }
-      }
+      // Redirect 방식 통일 (PC + 모바일)
+      // confirm API는 세션 불필요 (orderId UUID로 식별)
+      await widgetsRef.current.requestPayment({
+        orderId,
+        orderName: productName,
+        customerEmail: userEmail ?? undefined,
+        successUrl: `${window.location.origin}/api/payment/confirm`,
+        failUrl: `${window.location.origin}/result?payment=fail`,
+      });
     } catch (err: unknown) {
       // 사용자 취소 또는 결제 실패
       const errorCode = (err as { code?: string })?.code;

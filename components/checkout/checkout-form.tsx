@@ -132,7 +132,7 @@ export function CheckoutForm({
 
         const confirmData = await confirmRes.json();
         if (confirmData.success) {
-          window.location.href = `/result?payment=success`;
+          window.location.href = `/paid/${productId}`;
         } else {
           window.location.href = `/result?payment=fail&reason=${confirmData.error ?? "unknown"}`;
         }

@@ -99,10 +99,11 @@ export async function GET(request: NextRequest) {
       .eq("id", locked.id);
 
     if (wantsJson) {
-      return NextResponse.json({ success: true });
+      return NextResponse.json({ success: true, productId: locked.product_id });
     }
+    // 모바일 redirect: 결제 완료 → 상세 분석 페이지로 바로 이동
     return NextResponse.redirect(
-      new URL("/result?payment=success", request.url)
+      new URL(`/paid/${locked.product_id}`, request.url)
     );
   } catch (error) {
     console.error("[payment/confirm] 서버 오류:", error);

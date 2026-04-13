@@ -501,7 +501,7 @@ function ResultDetailPageInner() {
       </div>
 
       <CtaBar className="shrink-0">
-        <Link href={ROUTES.RESULT} className="block">
+        <Link href={ROUTES.COMPLETE} className="block">
           <Button size="lg" className="w-full" style={{ backgroundColor: accentColor, borderColor: accentColor }}>
             이상형 매칭 보러가기
           </Button>

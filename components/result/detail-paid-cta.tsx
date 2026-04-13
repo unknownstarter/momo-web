@@ -49,8 +49,8 @@ export function DetailPaidCta({
         onClick={handleClick}
         className={`block w-full rounded-2xl p-4 text-left transition-all active:scale-[0.98] ${
           purchased
-            ? "border border-[#D4A017]/30 bg-[#FDF8E8] shadow-low"
-            : "border-2 border-[#D4A017]/40 bg-gradient-to-r from-[#FDF8E8] to-[#FFFDF5] shadow-md"
+            ? "border border-hanji-border bg-hanji-elevated shadow-low"
+            : "border border-hanji-border bg-hanji-elevated shadow-md ring-1 ring-accent/30"
         }`}
       >
         <div className="flex items-center justify-between gap-3">
@@ -78,14 +78,12 @@ export function DetailPaidCta({
                 <p className="mt-1.5 text-[13px] text-ink-muted leading-relaxed">
                   {description}
                 </p>
-                <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#E85A3A]/10">
-                  <span className="text-[14px] font-bold text-[#E85A3A]">{hook}</span>
-                </div>
+                <p className="mt-3 text-[15px] font-bold text-[#C27A88]">{hook}</p>
               </>
             )}
           </div>
           <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-            purchased ? "bg-[#D4A017]/15" : "bg-[#D4A017]"
+            purchased ? "bg-hanji-secondary" : "bg-[#2D2D2D]"
           }`}>
             <svg
               width={14}
@@ -93,7 +91,7 @@ export function DetailPaidCta({
               viewBox="0 0 20 20"
               fill="none"
               aria-hidden
-              className={purchased ? "text-[#D4A017]" : "text-white"}
+              className={purchased ? "text-ink-muted" : "text-white"}
             >
               <path
                 d="M7.5 5L12.5 10L7.5 15"

@@ -69,12 +69,17 @@ export function DetailPaidCta({
               </>
             ) : (
               <>
-                <p className="text-[15px] font-bold text-ink">{title}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-[15px] font-bold text-ink">{title}</p>
+                  <span className="shrink-0 px-1.5 py-0.5 rounded-md bg-[#F5C518] text-[#1D1E23] text-[10px] font-extrabold tracking-wide">
+                    BEST
+                  </span>
+                </div>
                 <p className="mt-1.5 text-[13px] text-ink-muted leading-relaxed">
                   {description}
                 </p>
-                <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand/15">
-                  <span className="text-[14px] font-bold text-brand">{hook}</span>
+                <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#E85A3A]/10">
+                  <span className="text-[14px] font-bold text-[#E85A3A]">{hook}</span>
                 </div>
               </>
             )}

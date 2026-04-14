@@ -163,12 +163,24 @@ export default function CompletePage() {
   }
 
   return (
-    <MobileContainer className="min-h-dvh bg-hanji flex flex-col px-5">
-      <div className="flex-1 min-h-0 overflow-auto py-8">
-        <h1 className="text-xl font-bold text-ink">
-          앱 출시 알림 받기
-        </h1>
-        <p className="mt-2 text-ink-muted text-sm leading-relaxed">
+    <MobileContainer className="min-h-dvh bg-hanji flex flex-col">
+      {/* 헤더 — 뒤로가기 */}
+      <header className="shrink-0 flex items-center gap-3 px-5 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 border-b border-hanji-border">
+        <button
+          type="button"
+          onClick={() => window.history.back()}
+          className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-hanji-secondary"
+          aria-label="뒤로가기"
+        >
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        <h1 className="text-[17px] font-semibold text-ink">앱 출시 알림 받기</h1>
+      </header>
+
+      <div className="flex-1 min-h-0 overflow-auto px-5 py-8">
+        <p className="text-ink-muted text-sm leading-relaxed">
           이상형 매칭 앱이 출시되면 전화번호로 가장 먼저 알려드릴게요!
         </p>
         <form id="complete-form" onSubmit={handleSubmit} className="mt-8 space-y-4">

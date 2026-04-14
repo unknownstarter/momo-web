@@ -426,13 +426,11 @@ export default function MatchingMainPage() {
             </span>
           )}
         </Button>
-        {!hasPhone && (
-          <Link href={ROUTES.COMPLETE} className="block mt-3">
-            <Button variant="outline" size="md" className="w-full">
-              앱 출시 알림 받기
-            </Button>
-          </Link>
-        )}
+        <Link href={ROUTES.COMPLETE} className="block mt-3">
+          <Button variant="outline" size="md" className="w-full">
+            앱에서 찰떡궁합 찾기
+          </Button>
+        </Link>
       </CtaBar>
 
       {/* 앱 다운로드 바텀시트 — 3초 후 표시 */}

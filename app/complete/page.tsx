@@ -104,8 +104,21 @@ export default function CompletePage() {
   if (submitted) {
     return (
       <MobileContainer className="min-h-dvh bg-hanji flex flex-col">
+        {/* 헤더 — 뒤로가기 */}
+        <header className="shrink-0 flex items-center gap-3 px-5 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 border-b border-hanji-border">
+          <button
+            type="button"
+            onClick={() => window.history.back()}
+            className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-hanji-secondary"
+            aria-label="뒤로가기"
+          >
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+        </header>
+
         <div className="flex-1 flex flex-col items-center justify-center px-5 text-center">
-          {/* 완료 아이콘 — 브랜드 톤 */}
           <div className="w-16 h-16 rounded-full bg-brand/20 flex items-center justify-center shrink-0" aria-hidden>
             <span className="text-3xl text-brand">✓</span>
           </div>
@@ -113,30 +126,28 @@ export default function CompletePage() {
             신청 완료!
           </h1>
           <p className="mt-3 text-[15px] text-ink-muted leading-relaxed max-w-[280px]">
-            앱 출시 시 등록하신 번호로
+            등록하신 번호로 알려드릴게요.
             <br />
-            <strong className="text-ink font-medium">가장 먼저</strong> 알려드릴게요.
+            지금 바로 앱에서 찰떡궁합을 찾아보세요!
           </p>
-          <div className="mt-8 w-full max-w-[320px] rounded-2xl border border-hanji-border bg-hanji-elevated p-5 text-left">
-            <p className="text-sm font-medium text-ink">이렇게 할게요</p>
-            <ul className="mt-3 space-y-2 text-sm text-ink-muted leading-relaxed">
-              <li className="flex gap-2">
-                <span className="text-brand shrink-0">1.</span>
-                앱이 나오면 문자로 알려드려요.
-              </li>
-              <li className="flex gap-2">
-                <span className="text-brand shrink-0">2.</span>
-                앱에서 지금 만든 프로필로 바로 로그인할 수 있어요.
-              </li>
-              <li className="flex gap-2">
-                <span className="text-brand shrink-0">3.</span>
-                사주·궁합 맞는 인연 추천을 받을 수 있어요.
-              </li>
-            </ul>
+
+          {/* 앱 다운로드 */}
+          <div className="mt-8 w-full max-w-[320px] space-y-3">
+            <a
+              href="https://apps.apple.com/app/momo-%EB%AA%A8%EB%93%A0-%EC%9D%B8%EC%97%B0%EC%97%94-%EC%9D%B4%EC%9C%A0%EA%B0%80-%EC%9E%88%EB%8B%A4/id6760338547"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full h-[52px] rounded-xl bg-[#2D2D2D] text-white text-[15px] font-semibold hover:opacity-90 active:opacity-80 transition-opacity inline-flex items-center justify-center gap-2"
+            >
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
+                <path d="M12.7 9.4c0-2.1 1.7-3.1 1.8-3.2-1-1.4-2.5-1.6-3.1-1.7-1.3-.1-2.6.8-3.2.8-.7 0-1.7-.8-2.8-.7-1.4 0-2.7.8-3.5 2.1-1.5 2.6-.4 6.4 1.1 8.5.7 1 1.6 2.2 2.7 2.1 1.1 0 1.5-.7 2.8-.7 1.3 0 1.7.7 2.8.7 1.2 0 1.9-1 2.6-2.1.8-1.2 1.2-2.3 1.2-2.4 0-.1-2.4-.9-2.4-3.4zM10.5 3.3c.6-.7 1-1.7.9-2.7-0.9 0-1.9.6-2.5 1.3-.6.6-1 1.6-.9 2.6 1 .1 1.9-.5 2.5-1.2z" fill="currentColor"/>
+              </svg>
+              iOS(아이폰) 앱 다운로드
+            </a>
+            <p className="text-[13px] text-ink-tertiary">
+              안드로이드는 준비 중입니다.
+            </p>
           </div>
-          <p className="mt-6 text-sm text-ink-tertiary">
-            그때까지 momo가 기다릴게요 ♥
-          </p>
         </div>
         <CtaBar className="flex flex-col gap-3">
           <Link href="/result" className="block w-full">
@@ -144,19 +155,6 @@ export default function CompletePage() {
               사주와 관상 결과보기
             </Button>
           </Link>
-          <Button
-            type="button"
-            size="lg"
-            variant="outline"
-            className="w-full"
-            onClick={async () => {
-              const { createClient } = await import("@/lib/supabase/client");
-              await createClient().auth.signOut();
-              window.location.href = "/";
-            }}
-          >
-            처음으로
-          </Button>
         </CtaBar>
       </MobileContainer>
     );

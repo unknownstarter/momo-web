@@ -217,6 +217,27 @@ export default function CompletePage() {
             </span>
           </label>
         </form>
+
+        {/* 앱 다운로드 안내 */}
+        <div className="mt-10 pt-6 border-t border-hanji-border">
+          <p className="text-[15px] font-semibold text-ink">지금 바로 앱을 다운로드하세요!</p>
+          <div className="mt-4 space-y-3">
+            <a
+              href="https://apps.apple.com/app/momo-%EB%AA%A8%EB%93%A0-%EC%9D%B8%EC%97%B0%EC%97%94-%EC%9D%B4%EC%9C%A0%EA%B0%80-%EC%9E%88%EB%8B%A4/id6760338547"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full h-[48px] rounded-xl bg-[#2D2D2D] text-white text-[14px] font-semibold hover:opacity-90 active:opacity-80 transition-opacity inline-flex items-center justify-center gap-2"
+            >
+              <svg width="16" height="16" viewBox="0 0 18 18" fill="none" aria-hidden>
+                <path d="M12.7 9.4c0-2.1 1.7-3.1 1.8-3.2-1-1.4-2.5-1.6-3.1-1.7-1.3-.1-2.6.8-3.2.8-.7 0-1.7-.8-2.8-.7-1.4 0-2.7.8-3.5 2.1-1.5 2.6-.4 6.4 1.1 8.5.7 1 1.6 2.2 2.7 2.1 1.1 0 1.5-.7 2.8-.7 1.3 0 1.7.7 2.8.7 1.2 0 1.9-1 2.6-2.1.8-1.2 1.2-2.3 1.2-2.4 0-.1-2.4-.9-2.4-3.4zM10.5 3.3c.6-.7 1-1.7.9-2.7-0.9 0-1.9.6-2.5 1.3-.6.6-1 1.6-.9 2.6 1 .1 1.9-.5 2.5-1.2z" fill="currentColor"/>
+              </svg>
+              iOS(아이폰) 앱 다운로드
+            </a>
+            <p className="text-[13px] text-ink-tertiary text-center">
+              안드로이드는 준비 중입니다.
+            </p>
+          </div>
+        </div>
       </div>
       <CtaBar>
         <Button

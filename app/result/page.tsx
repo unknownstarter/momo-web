@@ -19,6 +19,7 @@ import { GwansangRomanceCard } from "@/components/result/gwansang-romance-card";
 import { MatchingCounter } from "@/components/result/matching-counter";
 import { DetailPaidCta } from "@/components/result/detail-paid-cta";
 import { ResultMenu } from "@/components/result/result-menu";
+import { AppDownloadSheet } from "@/components/result/app-download-sheet";
 import { SiteFooter } from "@/components/ui/site-footer";
 import {
   trackViewMatchingMain,
@@ -433,6 +434,9 @@ export default function MatchingMainPage() {
           </Link>
         )}
       </CtaBar>
+
+      {/* 앱 다운로드 바텀시트 — 3초 후 표시 */}
+      <AppDownloadSheet />
     </MobileContainer>
   );
 }

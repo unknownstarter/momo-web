@@ -99,6 +99,13 @@ export function trackClickCompatCtaInPrompt(): void { trackEvent("click_compat_c
 // ---------------------------------------------------------------------------
 /** @deprecated use trackViewMain */
 export const trackMainView = trackViewMain;
+// ---------------------------------------------------------------------------
+// 앱 다운로드 바텀시트
+// ---------------------------------------------------------------------------
+export function trackViewAppDownloadSheet(): void { trackEvent("view_app_download_sheet"); }
+export function trackClickAppDownload(): void { trackEvent("click_app_download"); }
+export function trackDismissAppDownloadSheet(): void { trackEvent("dismiss_app_download_sheet"); }
+
 /** @deprecated use trackClickCtaInMain */
 export const trackClickLoginButtonInMain = trackClickCtaInMain;
 /** @deprecated use trackViewOnboardingStep("name") */

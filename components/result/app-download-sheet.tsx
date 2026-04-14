@@ -3,6 +3,11 @@
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
+import {
+  trackViewAppDownloadSheet,
+  trackClickAppDownload,
+  trackDismissAppDownloadSheet,
+} from "@/lib/analytics";
 
 const APP_STORE_URL =
   "https://apps.apple.com/app/momo-%EB%AA%A8%EB%93%A0-%EC%9D%B8%EC%97%B0%EC%97%94-%EC%9D%B4%EC%9C%A0%EA%B0%80-%EC%9E%88%EB%8B%A4/id6760338547";
@@ -14,23 +19,27 @@ export function AppDownloadSheet() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    // 하루에 한번만 표시
     const dismissedAt = localStorage.getItem(STORAGE_KEY);
     if (dismissedAt) {
       const elapsed = Date.now() - Number(dismissedAt);
-      if (elapsed < 24 * 60 * 60 * 1000) return; // 24시간 미경과
+      if (elapsed < 24 * 60 * 60 * 1000) return;
     }
 
-    const timer = setTimeout(() => setOpen(true), 3000);
+    const timer = setTimeout(() => {
+      setOpen(true);
+      trackViewAppDownloadSheet();
+    }, 3000);
     return () => clearTimeout(timer);
   }, []);
 
   const handleClose = useCallback(() => {
     setOpen(false);
     localStorage.setItem(STORAGE_KEY, String(Date.now()));
+    trackDismissAppDownloadSheet();
   }, []);
 
   const handleDownload = useCallback(() => {
+    trackClickAppDownload();
     window.open(APP_STORE_URL, "_blank", "noopener,noreferrer");
     handleClose();
   }, [handleClose]);
@@ -59,7 +68,6 @@ export function AppDownloadSheet() {
         </p>
       </div>
 
-      {/* 앱스토어 다운로드 버튼 */}
       <button
         type="button"
         onClick={handleDownload}
@@ -71,7 +79,6 @@ export function AppDownloadSheet() {
         App Store에서 다운로드
       </button>
 
-      {/* 나중에 버튼 */}
       <button
         type="button"
         onClick={handleClose}

@@ -189,7 +189,7 @@
         </mxCell>
 
         <!-- Phase 7 TODO -->
-        <mxCell id="200" value="📌 Phase 7 (TODO)&#xa;&#xa;포트원 본인인증 연동&#xa;→ is_phone_verified = true&#xa;→ 매칭풀 실제 진입" style="shape=note;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="1">
+        <mxCell id="200" value="📌 Phase 7 (TODO)&#xa;&#xa;본인인증 연동&#xa;→ is_phone_verified = true&#xa;→ 매칭풀 실제 진입" style="shape=note;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="1">
           <mxGeometry x="550" y="1180" width="200" height="90" as="geometry" />
         </mxCell>
         <mxCell id="e200" style="dashed=1;strokeColor=#d79b00;" edge="1" source="100" target="200" parent="1">

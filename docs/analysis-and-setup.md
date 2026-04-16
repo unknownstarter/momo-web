@@ -10,7 +10,7 @@
 ### 1.1 CLAUDE.md (프로젝트 메모리)
 - **정체성**: momo 네이티브 앱 출시 전, 프로필 사전 확보용 모바일웹. 사주·관상 500원 → 바이럴 공유 → 궁합 알림 신청 → 앱 출시 시 문자.
 - **절대 규칙**: Supabase DB·RLS·Edge Function·Storage 정책 **수정 금지**. 앱과 백엔드 공유. 신규 테이블 추가·Redirect URL 추가만 허용.
-- **Tech**: Next.js 15 (App Router), React 19, TypeScript, Tailwind 4, Supabase(공유), 포트원 V2, Pretendard, Framer Motion.
+- **Tech**: Next.js 15 (App Router), React 19, TypeScript, Tailwind 4, Supabase(공유), 토스페이먼츠(결제위젯 SDK v2), Pretendard, Framer Motion.
 - **레이아웃**: `max-w-[430px] mx-auto min-h-dvh`, 한지 크림(#F7F3EE) / 다크 먹색(#1D1E23).
 - **아키텍처**: app(라우팅·서버 컴포넌트), components(UI), lib(비즈니스·Supabase·결제), hooks(클라이언트 상태).
 
@@ -35,11 +35,11 @@
 ### 1.4 docs/plans/implementation-plan.md
 - **Phase 0**: Next.js 생성, Tailwind Momo 토큰, Supabase 클라이언트·미들웨어, 루트 레이아웃, Vercel 연결.
 - **Phase 1**: 랜딩 3슬라이드, 카카오 로그인·콜백, 온보딩 4단계, profiles INSERT.
-- **Phase 2**: 결제벽, 포트원 V2·서버 검증, payments 테이블(신규).
+- **Phase 2**: 결제벽, 토스페이먼츠 결제위젯·서버 검증, payments 테이블(신규).
 - **Phase 3**: Edge Function 호출(기존 그대로), 로딩 연출, 사주/관상 결과·공유·OG.
 - **Phase 4**: waitlist 테이블(신규), 알림 신청·완료, SMS 발송 준비.
 - **Phase 5**: SEO, 성능, 분석·에러 핸들링.
-- **일정**: 약 8일. 사전 준비물(사업자, 포트원, 카카오 Web, Supabase Redirect URL 등) 명시.
+- **일정**: 약 8일. 사전 준비물(사업자, 토스페이먼츠, 카카오 Web, Supabase Redirect URL 등) 명시.
 
 ### 1.5 docs/plans/supabase-integration.md
 - **연결**: 동일 프로젝트 `ejngitwtzecqbhbqfnsc`, .env.local에 URL·anon key·service role key.
@@ -49,9 +49,9 @@
 - **신규 테이블**: payments, waitlist(RLS·정책 예시 포함). **기존 테이블/정책 수정 금지.**
 
 ### 1.6 docs/plans/payment-integration.md
-- **500원 고정**, 포트원 V2, 카카오페이 우선. 환경변수: STORE_ID, CHANNEL_KEY, V2 API SECRET.
-- **클라이언트**: @portone/browser-sdk, requestPayment → redirectUrl /payment/complete.
-- **서버**: /api/payment/verify에서 포트원 API로 검증 후 payments INSERT.
+- **500원 고정**, 토스페이먼츠 결제위젯 SDK v2, 간편결제 우선. 환경변수: CLIENT_KEY, SECRET_KEY.
+- **클라이언트**: @tosspayments/tosspayments-sdk, 결제위젯 임베드 → /checkout 페이지.
+- **서버**: /api/payment/confirm에서 토스페이먼츠 API로 승인·검증 후 payment_history_web INSERT.
 
 ### 1.7 docs/plans/waitlist-and-marketing.md
 - **전략**: 결과 후 "궁합 매칭·앱 출시 알림" → 전화번호·마케팅 동의 → 앱 출시 시 문자.
@@ -111,7 +111,7 @@
 2. **의존성 추가**  
    - `@supabase/ssr`, `@supabase/supabase-js`  
    - `framer-motion`  
-   - `@portone/browser-sdk` (결제)
+   - `@tosspayments/tosspayments-sdk` (결제)
 3. **Pretendard** 폰트: self-hosted (`next/font/local`) — design-system 기준.
 
 ### 4.3 환경 변수 (.env.local)
@@ -121,7 +121,7 @@ NEXT_PUBLIC_SUPABASE_URL=https://ejngitwtzecqbhbqfnsc.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon key>
 SUPABASE_SERVICE_ROLE_KEY=<service role key — 서버 전용>
 
-# 포트원 (결제)
+# 토스페이먼츠 (결제)
 NEXT_PUBLIC_PORTONE_STORE_ID=
 NEXT_PUBLIC_PORTONE_CHANNEL_KEY=
 PORTONE_V2_API_SECRET=
@@ -162,7 +162,7 @@ PORTONE_V2_API_SECRET=
 ### 5.3 데이터·인증
 - **인증**: Supabase Auth, 카카오 OAuth. 세션은 미들웨어에서 갱신.
 - **프로필**: 기존 `profiles` INSERT만 (온보딩 완료 시). 스키마 변경 없음.
-- **결제**: 포트원 검증 후 `payments` INSERT (신규 테이블).
+- **결제**: 토스페이먼츠 승인·검증 후 `payment_history_web` INSERT (신규 테이블).
 - **알림**: `waitlist` INSERT/UPDATE (신규 테이블).
 - **분석**: 기존 Edge Function만 호출 (calculate-saju → generate-saju-insight → generate-gwansang-reading). 응답으로 ideal_match·ideal_match_* 등 활용.
 

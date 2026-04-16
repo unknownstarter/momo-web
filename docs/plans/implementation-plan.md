@@ -33,7 +33,7 @@ npx create-next-app@latest momo-web --typescript --tailwind --app --src-dir=fals
 
 ### Task 0-5: Vercel 배포 연결
 - GitHub 레포 생성 + Vercel 연동
-- 환경변수 설정 (Supabase, PortOne)
+- 환경변수 설정 (Supabase, 토스페이먼츠)
 - Preview 배포 확인
 
 ---
@@ -85,15 +85,15 @@ Flutter 앱의 15스텝 중 웹에 필요한 4단계만 구현:
 - 결제 버튼: "카카오페이로 500원 결제하기"
 - 결제 수단 아이콘 (카카오페이, 토스페이, 카드)
 
-### Task 2-2: 포트원 결제 연동
-- `@portone/browser-sdk` 설치
-- 포트원 V2 API 키 설정
-- 결제 요청 → 카카오페이 간편결제
-- 결제 완료 콜백 → 서버사이드 검증
+### Task 2-2: 토스페이먼츠 결제 연동
+- `@tosspayments/tosspayments-sdk` 설치
+- 토스페이먼츠 API 키 설정
+- 결제위젯 임베드 → 간편결제 (카카오페이, 토스페이 등)
+- 결제 완료 콜백 → 서버사이드 승인·검증
 
-### Task 2-3: 결제 검증 API Route
-- `app/api/payment/verify/route.ts`
-- 포트원 API로 결제 상태 확인
+### Task 2-3: 결제 승인 API Route
+- `app/api/payment/confirm/route.ts`
+- 토스페이먼츠 API로 결제 승인·상태 확인
 - `payments` 테이블에 기록 (transaction_id, amount, status, profile_id)
 - 검증 성공 → 사주/관상 분석 트리거
 
@@ -227,9 +227,9 @@ alter table waitlist enable row level security;
 
 ## 사전 준비물 (노아님 필요)
 
-- [ ] **사업자등록증** — PG 가맹 심사용 (포트원)
-- [ ] **포트원 계정** — V2 API 키 발급
-- [ ] **카카오페이 가맹** — 포트원 통해 신청
+- [x] **사업자등록증** — PG 가맹 심사용 (토스페이먼츠)
+- [x] **토스페이먼츠 계정** — 결제위젯 SDK v2 키 발급
+- [x] **간편결제 연동** — 토스페이먼츠 통해 카카오페이·네이버페이·토스페이·애플페이 등
 - [ ] **도메인** — 예: momo-saju.com
 - [ ] **Vercel 계정** — 배포용
 - [ ] **알리고/뿌리오 계정** — SMS 발송용

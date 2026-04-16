@@ -392,7 +392,7 @@ create index idx_waitlist_referrer on matching_waitlist(referred_by);
 | 항목 | 결정 |
 |------|------|
 | **Phase 1** | NHN Cloud SMS API (OTP 발송, 건당 ~10원) |
-| **Phase 2** | NHN KCP PASS 본인인증 (PortOne 경유) |
+| **Phase 2** | NHN KCP PASS 본인인증 |
 | **전환 용이성** | 같은 NHN 그룹, 인증 인터페이스만 교체 |
 
 ---

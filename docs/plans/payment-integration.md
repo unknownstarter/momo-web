@@ -1,4 +1,7 @@
-# 결제 연동 — 포트원 V2 + 카카오페이 (500원)
+# ~~결제 연동 — 포트원 V2 + 카카오페이 (500원)~~ (DEPRECATED)
+
+> **⚠️ DEPRECATED**: 이 문서는 초기 설계 문서입니다. 포트원/이니시스 → **토스페이먼츠 결제위젯 SDK v2**로 전환 완료.
+> 현행 결제 구현은 [`docs/milestones/2026-04-11-payment-paid-content/`](../milestones/2026-04-11-payment-paid-content/README.md) 참조.
 
 ---
 

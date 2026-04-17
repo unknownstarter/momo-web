@@ -134,7 +134,7 @@ export default function CompletePage() {
           {/* 앱 다운로드 */}
           <div className="mt-8 w-full max-w-[320px] space-y-3">
             <a
-              href="https://apps.apple.com/app/momo-%EB%AA%A8%EB%93%A0-%EC%9D%B8%EC%97%B0%EC%97%94-%EC%9D%B4%EC%9C%A0%EA%B0%80-%EC%9E%88%EB%8B%A4/id6760338547"
+              href="https://apps.apple.com/kr/app/momo-%EB%AA%A8%EB%93%A0-%EC%9D%B8%EC%97%B0%EC%97%94-%EC%9D%B4%EC%9C%A0%EA%B0%80-%EC%9E%88%EB%8B%A4/id6760338547"
               target="_blank"
               rel="noopener noreferrer"
               className="w-full h-[52px] rounded-xl bg-[#2D2D2D] text-white text-[15px] font-semibold hover:opacity-90 active:opacity-80 transition-opacity inline-flex items-center justify-center gap-2"
@@ -223,7 +223,7 @@ export default function CompletePage() {
           <p className="text-[15px] font-semibold text-ink">지금 바로 앱을 다운로드하세요!</p>
           <div className="mt-4 space-y-3">
             <a
-              href="https://apps.apple.com/app/momo-%EB%AA%A8%EB%93%A0-%EC%9D%B8%EC%97%B0%EC%97%94-%EC%9D%B4%EC%9C%A0%EA%B0%80-%EC%9E%88%EB%8B%A4/id6760338547"
+              href="https://apps.apple.com/kr/app/momo-%EB%AA%A8%EB%93%A0-%EC%9D%B8%EC%97%B0%EC%97%94-%EC%9D%B4%EC%9C%A0%EA%B0%80-%EC%9E%88%EB%8B%A4/id6760338547"
               target="_blank"
               rel="noopener noreferrer"
               className="w-full h-[48px] rounded-xl bg-[#2D2D2D] text-white text-[14px] font-semibold hover:opacity-90 active:opacity-80 transition-opacity inline-flex items-center justify-center gap-2"

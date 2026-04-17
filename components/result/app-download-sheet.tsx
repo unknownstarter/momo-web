@@ -10,7 +10,7 @@ import {
 } from "@/lib/analytics";
 
 const APP_STORE_URL =
-  "https://apps.apple.com/app/momo-%EB%AA%A8%EB%93%A0-%EC%9D%B8%EC%97%B0%EC%97%94-%EC%9D%B4%EC%9C%A0%EA%B0%80-%EC%9E%88%EB%8B%A4/id6760338547";
+  "https://apps.apple.com/kr/app/momo-%EB%AA%A8%EB%93%A0-%EC%9D%B8%EC%97%B0%EC%97%94-%EC%9D%B4%EC%9C%A0%EA%B0%80-%EC%9E%88%EB%8B%A4/id6760338547";
 
 const STORAGE_KEY = "momo_app_sheet_dismissed_at";
 
